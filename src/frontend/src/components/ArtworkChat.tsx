@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useMemo } from 'react'
 import { Send, Loader2, Bot, User } from 'lucide-react'
 import type { QualityReport, ColorReport } from '@shared/types'
 
@@ -15,12 +15,17 @@ interface ArtworkChatProps {
   workerUrl?: string
 }
 
-export default function ArtworkChat({ quality, colors, workerUrl = '/api' }: ArtworkChatProps) {
+export default function ArtworkChat({ quality, colors, workerUrl }: ArtworkChatProps) {
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
+  const apiBase = useMemo(() => {
+    const fallback = import.meta.env.VITE_WORKER_URL?.trim()
+    const base = workerUrl?.trim() || fallback || '/api'
+    return base.replace(/\/$/, '')
+  }, [workerUrl])
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -48,7 +53,7 @@ export default function ArtworkChat({ quality, colors, workerUrl = '/api' }: Art
     setIsLoading(true)
 
     try {
-      const response = await fetch(`${workerUrl}/ai/chat`, {
+      const response = await fetch(`${apiBase}/ai/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

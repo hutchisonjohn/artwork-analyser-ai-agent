@@ -132,6 +132,13 @@ function App() {
   const [docFile, setDocFile] = useState<File | null>(null)
   const previewCleanupRef = useRef<(() => void) | null>(null)
   const fileInputRef = useRef<HTMLInputElement | null>(null)
+  const workerBaseUrl = useMemo(() => {
+    const raw = import.meta.env.VITE_WORKER_URL
+    if (!raw || !raw.trim()) {
+      return '/api'
+    }
+    return raw.trim().replace(/\/$/, '')
+  }, [])
 
   const docMessageClass = useMemo(() => {
     switch (docMessageTone) {
@@ -368,22 +375,33 @@ function App() {
     []
   )
 
+  const buildWorkerUrl = useCallback(
+    (path: string) => {
+      const normalizedPath = path.startsWith('/') ? path : `/${path}`
+      if (workerBaseUrl.startsWith('http')) {
+        return `${workerBaseUrl}${normalizedPath}`
+      }
+      return `${workerBaseUrl}${normalizedPath}`
+    },
+    [workerBaseUrl]
+  )
+
   const authorizedFetch = useCallback(
-    async (input: RequestInfo | URL, init?: RequestInit) => {
+    async (path: string, init?: RequestInit) => {
       const headers = new Headers(init?.headers)
       if (adminToken.trim()) {
         headers.set('Authorization', `Bearer ${adminToken.trim()}`)
       }
-      return fetch(input, { ...init, headers })
+      return fetch(buildWorkerUrl(path), { ...init, headers })
     },
-    [adminToken]
+    [adminToken, buildWorkerUrl]
   )
 
   const loadAdminConfig = useCallback(async () => {
     setConfigLoading(true)
     setAdminError(null)
     try {
-      const response = await authorizedFetch('/api/config')
+      const response = await authorizedFetch('/config')
       if (!response.ok) {
         const text = await response.text()
         throw new Error(text || `Failed to load config (${response.status})`)
@@ -402,7 +420,7 @@ function App() {
     setDocsLoading(true)
     setDocMessage(null)
     try {
-      const response = await authorizedFetch('/api/docs')
+      const response = await authorizedFetch('/docs')
       if (!response.ok) {
         const text = await response.text()
         throw new Error(text || `Failed to load documents (${response.status})`)
@@ -460,7 +478,7 @@ function App() {
         payload.apiKey = apiKeyInput.trim()
       }
 
-      const response = await authorizedFetch('/api/config', {
+      const response = await authorizedFetch('/config', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
@@ -516,7 +534,7 @@ function App() {
       setDocMessageTone('info')
       setDocProgress((current) => (current !== null && current > 90 ? current : 90))
 
-      const response = await authorizedFetch('/api/docs', {
+      const response = await authorizedFetch('/docs', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ filename: docFile.name, content }),
@@ -548,7 +566,7 @@ function App() {
   const handleDeleteDocument = useCallback(
     async (source: string) => {
       try {
-        const response = await authorizedFetch(`/api/docs/${encodeURIComponent(source)}`, {
+        const response = await authorizedFetch(`/docs/${encodeURIComponent(source)}`, {
           method: 'DELETE',
         })
         if (!response.ok) {
@@ -967,7 +985,7 @@ function App() {
                 <ArtworkChat
                   quality={analysis.quality}
                   colors={analysis.colors}
-                  workerUrl="/api"
+                  workerUrl={workerBaseUrl}
                 />
               </div>
             </section>
