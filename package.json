@@ -16,5 +16,8 @@
     "test:frontend": "npm --prefix src/frontend run test",
     "test:worker": "npm --prefix src/worker run test",
     "test": "npm run test:frontend && npm run test:worker"
+  },
+  "dependencies": {
+    "tailwindcss": "^3.4.14"
   }
 }
