@@ -42,6 +42,21 @@ interface DocSummary {
   updated_at: string
 }
 
+function parseErrorMessage(value: string): string {
+  if (!value) {
+    return value
+  }
+  try {
+    const parsed = JSON.parse(value) as { error?: unknown }
+    if (parsed && typeof parsed === 'object' && typeof parsed.error === 'string') {
+      return parsed.error
+    }
+  } catch {
+    // ignore parse errors
+  }
+  return value
+}
+
 const ALLOWED_MIME_TYPES = new Set(['image/png', 'application/pdf'])
 const ALLOWED_EXTENSIONS = ['.png', '.pdf']
 
@@ -132,6 +147,8 @@ function App() {
   const [docFile, setDocFile] = useState<File | null>(null)
   const previewCleanupRef = useRef<(() => void) | null>(null)
   const fileInputRef = useRef<HTMLInputElement | null>(null)
+  const [pendingUnlock, setPendingUnlock] = useState(false)
+  const unlocked = Boolean(adminConfig)
   const workerBaseUrl = useMemo(() => {
     const raw = import.meta.env.VITE_WORKER_URL
     if (!raw || !raw.trim()) {
@@ -398,57 +415,92 @@ function App() {
   )
 
   const loadAdminConfig = useCallback(async () => {
+    if (!adminToken.trim()) {
+      setAdminConfig(null)
+      setAdminError('Enter the admin token to unlock these settings.')
+      return false
+    }
     setConfigLoading(true)
     setAdminError(null)
     try {
       const response = await authorizedFetch('/config')
       if (!response.ok) {
         const text = await response.text()
-        throw new Error(text || `Failed to load config (${response.status})`)
+        throw new Error(parseErrorMessage(text) || `Failed to load config (${response.status})`)
       }
       const data = (await response.json()) as AdminConfigState
       setAdminConfig(data)
       setApiKeyInput('')
+      setAdminMessage('Configuration loaded.')
+      return true
     } catch (err) {
       setAdminError(err instanceof Error ? err.message : 'Unable to load configuration.')
+      setAdminConfig(null)
+      return false
     } finally {
       setConfigLoading(false)
     }
-  }, [authorizedFetch])
+  }, [adminToken, authorizedFetch])
 
   const loadDocs = useCallback(async () => {
+    if (!adminToken.trim()) {
+      setDocs([])
+      setDocMessage('Enter the admin token to view documents.')
+      setDocMessageTone('info')
+      return false
+    }
     setDocsLoading(true)
     setDocMessage(null)
     try {
       const response = await authorizedFetch('/docs')
       if (!response.ok) {
         const text = await response.text()
-        throw new Error(text || `Failed to load documents (${response.status})`)
+        throw new Error(parseErrorMessage(text) || `Failed to load documents (${response.status})`)
       }
       const data = (await response.json()) as DocSummary[]
       setDocs(data)
+      return true
     } catch (err) {
       setDocMessage(err instanceof Error ? err.message : 'Unable to load documents.')
+      return false
     } finally {
       setDocsLoading(false)
     }
-  }, [authorizedFetch])
+  }, [adminToken, authorizedFetch])
 
   useEffect(() => {
     if (activeTab === 'admin') {
       const stored = window.localStorage.getItem('artwork-admin-token')
       if (stored) {
         setAdminToken(stored)
+        setPendingUnlock(true)
       }
     }
   }, [activeTab])
 
-  useEffect(() => {
-    if (activeTab === 'admin') {
-      void loadAdminConfig()
-      void loadDocs()
+  const handleUnlock = useCallback(async () => {
+    if (!adminToken.trim()) {
+      setAdminError('Enter the admin token to unlock these settings.')
+      return
     }
-  }, [activeTab, loadAdminConfig, loadDocs])
+    if (rememberToken) {
+      window.localStorage.setItem('artwork-admin-token', adminToken.trim())
+    } else {
+      window.localStorage.removeItem('artwork-admin-token')
+    }
+    setAdminMessage(null)
+    const loaded = await loadAdminConfig()
+    if (loaded) {
+      await loadDocs()
+    }
+  }, [adminToken, rememberToken, loadAdminConfig, loadDocs])
+
+  useEffect(() => {
+    if (activeTab === 'admin' && pendingUnlock && adminToken.trim()) {
+      void handleUnlock()
+      setPendingUnlock(false)
+    }
+  }, [activeTab, pendingUnlock, adminToken, handleUnlock])
 
   const handleSaveConfig = useCallback(async () => {
     if (!adminConfig) {
@@ -1001,44 +1053,54 @@ function App() {
           </header>
 
           <div className="grid gap-6 rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
-            {configLoading ? (
-              <p className="text-sm text-slate-500">Loading configuration...</p>
-            ) : adminConfig ? (
-              <div className="grid gap-4">
-                <label className="flex flex-col gap-1 text-sm">
-                  <span className="font-medium text-slate-700">Admin token</span>
+            <div className="grid gap-4">
+              <label className="flex flex-col gap-1 text-sm">
+                <span className="font-medium text-slate-700">Admin token</span>
+                <input
+                  className="rounded-md border border-slate-200 bg-white px-3 py-2 text-sm"
+                  value={adminToken}
+                  onChange={(event) => setAdminToken(event.target.value)}
+                  placeholder="Enter admin token to access secured endpoints"
+                  type="password"
+                />
+                <label className="mt-1 inline-flex items-center gap-2 text-xs text-slate-500">
                   <input
-                    className="rounded-md border border-slate-200 bg-white px-3 py-2 text-sm"
-                    value={adminToken}
+                    type="checkbox"
+                    checked={rememberToken}
                     onChange={(event) => {
-                      setAdminToken(event.target.value)
-                      if (rememberToken) {
-                        if (event.target.value.trim()) {
-                          window.localStorage.setItem('artwork-admin-token', event.target.value.trim())
-                        } else {
-                          window.localStorage.removeItem('artwork-admin-token')
-                        }
+                      setRememberToken(event.target.checked)
+                      if (!event.target.checked) {
+                        window.localStorage.removeItem('artwork-admin-token')
+                      } else if (adminToken.trim()) {
+                        window.localStorage.setItem('artwork-admin-token', adminToken.trim())
                       }
                     }}
-                    placeholder="Enter admin token to access secured endpoints"
-                    type="password"
                   />
-                  <label className="mt-1 inline-flex items-center gap-2 text-xs text-slate-500">
-                    <input
-                      type="checkbox"
-                      checked={rememberToken}
-                      onChange={(event) => {
-                        setRememberToken(event.target.checked)
-                        if (!event.target.checked) {
-                          window.localStorage.removeItem('artwork-admin-token')
-                        } else if (adminToken.trim()) {
-                          window.localStorage.setItem('artwork-admin-token', adminToken.trim())
-                        }
-                      }}
-                    />
-                    Remember token in this browser
-                  </label>
+                  Remember token in this browser
                 </label>
+              </label>
+              <div className="flex flex-wrap items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => void handleUnlock()}
+                  className="inline-flex items-center rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-60"
+                  disabled={configLoading}
+                >
+                  {configLoading ? 'Unlocking...' : unlocked ? 'Refresh configuration' : 'Unlock admin panel'}
+                </button>
+                {adminError && (
+                  <span className="text-sm text-destructive" role="alert">
+                    {adminError}
+                  </span>
+                )}
+                {adminMessage && unlocked && <span className="text-sm text-slate-500">{adminMessage}</span>}
+              </div>
+            </div>
+
+            {configLoading && !unlocked ? (
+              <p className="text-sm text-slate-500">Loading configuration...</p>
+            ) : unlocked && adminConfig ? (
+              <div className="grid gap-4">
                 <div className="grid gap-2 sm:grid-cols-2">
                   <label className="flex flex-col gap-1 text-sm">
                     <span className="font-medium text-slate-700">Provider</span>
@@ -1124,16 +1186,11 @@ function App() {
                     {configSaving ? 'Saving…' : 'Save configuration'}
                   </button>
                   {adminMessage && <span className="text-sm text-slate-500">{adminMessage}</span>}
-                  {adminError && (
-                    <span className="text-sm text-destructive" role="alert">
-                      {adminError}
-                    </span>
-                  )}
                 </div>
               </div>
             ) : (
-              <p className="text-sm text-rose-600" role="alert">
-                {adminError ?? 'No configuration loaded.'}
+              <p className="text-sm text-slate-500">
+                Enter your admin token above and click "Unlock admin panel" to load configuration settings.
               </p>
             )}
           </div>
@@ -1145,7 +1202,7 @@ function App() {
                   Knowledge-base documents
                 </h4>
                 <p className="text-xs text-slate-500">
-                  Upload Markdown or plain text files; they will be chunked, embedded, and added to the RAG store.
+                  Upload Markdown or plain text files (max 2 MB); they will be chunked, embedded, and added to the RAG store.
                 </p>
               </div>
               <div className="flex items-center gap-2 text-xs">
@@ -1155,11 +1212,12 @@ function App() {
                   accept=".txt,.md,.markdown,.TXT,.MD,.MARKDOWN"
                   onChange={handleDocFileChange}
                   className="text-xs text-muted-foreground"
+                  disabled={!unlocked}
                 />
                 <button
                   type="button"
                   onClick={() => void handleUploadDocument()}
-                  disabled={docUploading || !docFile}
+                  disabled={!unlocked || docUploading || !docFile}
                   className="inline-flex items-center rounded-md border border-slate-200 bg-white px-3 py-1 text-xs font-medium transition hover:border-indigo-300 disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   {docUploading
