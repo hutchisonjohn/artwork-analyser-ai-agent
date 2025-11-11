@@ -1,0 +1,17 @@
+{
+  "name": "artwork-analyser",
+  "private": true,
+  "workspaces": [
+    "src/frontend",
+    "src/worker"
+  ],
+  "scripts": {
+    "dev:frontend": "npm --prefix src/frontend run dev",
+    "dev:worker": "npm --prefix src/worker run dev",
+    "build:frontend": "npm --prefix src/frontend run build",
+    "check:worker": "npm --prefix src/worker run check",
+    "test:frontend": "npm --prefix src/frontend run test",
+    "test:worker": "npm --prefix src/worker run test",
+    "test": "npm run test:frontend && npm run test:worker"
+  }
+}

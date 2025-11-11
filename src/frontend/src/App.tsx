@@ -1,0 +1,1221 @@
+import {
+  type ChangeEvent,
+  type DragEvent,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react'
+import { FileBarChart2, Settings, UploadCloud } from 'lucide-react'
+import type { LucideIcon } from 'lucide-react'
+import type { QualityReport, ColorReport } from '@shared/types'
+import { analyzeArtwork } from '@/analyzers'
+import { createPaletteDownloads } from '@/lib/colors'
+import { generateArtworkPreview, type ArtworkPreview } from '@/analyzers/preview'
+import AppShell, { type AppSection } from '@/layout/AppShell'
+import ArtworkChat from '@/components/ArtworkChat'
+
+interface AnalysisState {
+  fileName: string
+  quality: QualityReport
+  colors?: ColorReport
+  preview?: ArtworkPreview
+}
+
+interface PaletteDownloads {
+  csvUrl: string
+  jsonUrl: string
+}
+
+interface AdminConfigState {
+  provider: 'claude' | 'openai'
+  model: string
+  embeddingModel: string
+  systemPrompt: string
+  apiKey?: string
+}
+
+interface DocSummary {
+  source: string
+  chunks: number
+  updated_at: string
+}
+
+const ALLOWED_MIME_TYPES = new Set(['image/png', 'application/pdf'])
+const ALLOWED_EXTENSIONS = ['.png', '.pdf']
+
+interface UploadItem {
+  id: string
+  name: string
+  size: number
+  type: string
+  status: 'queued' | 'processing' | 'complete' | 'error'
+  progress: number
+  message?: string
+  file?: File
+}
+
+const MAX_UPLOAD_HISTORY = 6
+
+function generateId() {
+  if (typeof crypto !== 'undefined' && 'randomUUID' in crypto) {
+    return crypto.randomUUID()
+  }
+  return Math.random().toString(36).slice(2)
+}
+
+const NAV_ITEMS: Array<{ id: AppSection; label: string; icon: LucideIcon }> = [
+  { id: 'analyze', label: 'Analyzer', icon: FileBarChart2 },
+  { id: 'admin', label: 'Settings', icon: Settings },
+]
+
+const ACCEPTED_DOC_TYPES = ['md', 'markdown', 'txt']
+const MAX_DOC_SIZE_BYTES = 1024 * 1024 * 2 // 2 MB ceiling for admin uploads
+
+const formatBytes = (bytes: number) => {
+  if (bytes === 0) return '0 B'
+  const k = 1024
+  const sizes = ['B', 'KB', 'MB', 'GB']
+  const i = Math.floor(Math.log(bytes) / Math.log(k))
+  const value = bytes / Math.pow(k, i)
+  return `${value.toFixed(value >= 10 || i === 0 ? 0 : 1)} ${sizes[i]}`
+}
+
+function isAcceptedDoc(fileName: string) {
+  const parts = fileName.toLowerCase().split('.')
+  if (parts.length < 2) return false
+  return ACCEPTED_DOC_TYPES.includes(parts.pop() as string)
+}
+
+function formatFileSizeMB(size: number | undefined) {
+  if (typeof size !== 'number' || Number.isNaN(size)) return 'N/A'
+  return `${size.toFixed(2)} MB`
+}
+
+function formatTimestamp(value: string) {
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) {
+    return value
+  }
+  return date.toLocaleString()
+}
+
+function App() {
+  const [activeTab, setActiveTab] = useState<AppSection>('analyze')
+
+  const [analysis, setAnalysis] = useState<AnalysisState | null>(null)
+  const [error, setError] = useState<string | null>(null)
+  const [isLoading, setIsLoading] = useState(false)
+  const [downloads, setDownloads] = useState<PaletteDownloads | null>(null)
+
+  const [uploads, setUploads] = useState<UploadItem[]>([])
+  const [uploadError, setUploadError] = useState<string | null>(null)
+  const [isDragActive, setIsDragActive] = useState(false)
+
+  const [adminConfig, setAdminConfig] = useState<AdminConfigState | null>(null)
+  const [apiKeyInput, setApiKeyInput] = useState('')
+  const [configLoading, setConfigLoading] = useState(false)
+  const [configSaving, setConfigSaving] = useState(false)
+  const [adminMessage, setAdminMessage] = useState<string | null>(null)
+  const [adminError, setAdminError] = useState<string | null>(null)
+  const [adminToken, setAdminToken] = useState('')
+  const [rememberToken, setRememberToken] = useState(true)
+
+  const [docs, setDocs] = useState<DocSummary[]>([])
+  const [docsLoading, setDocsLoading] = useState(false)
+  const [docUploading, setDocUploading] = useState(false)
+  const [docProgress, setDocProgress] = useState<number | null>(null)
+  const [docMessage, setDocMessage] = useState<string | null>(null)
+  const [docMessageTone, setDocMessageTone] = useState<'info' | 'success' | 'error'>('info')
+  const docInputRef = useRef<HTMLInputElement | null>(null)
+  const [docFile, setDocFile] = useState<File | null>(null)
+  const previewCleanupRef = useRef<(() => void) | null>(null)
+  const fileInputRef = useRef<HTMLInputElement | null>(null)
+
+  const docMessageClass = useMemo(() => {
+    switch (docMessageTone) {
+      case 'success':
+        return 'text-emerald-500'
+      case 'error':
+        return 'text-rose-600'
+      default:
+        return 'text-slate-500'
+    }
+  }, [docMessageTone])
+
+  useEffect(() => {
+    if (!analysis?.colors || analysis.colors.top.length === 0) {
+      setDownloads((previous) => {
+        if (previous) {
+          URL.revokeObjectURL(previous.csvUrl)
+          URL.revokeObjectURL(previous.jsonUrl)
+        }
+        return null
+      })
+      return
+    }
+
+    const next = createPaletteDownloads(analysis.colors)
+    setDownloads((previous) => {
+      if (previous) {
+        URL.revokeObjectURL(previous.csvUrl)
+        URL.revokeObjectURL(previous.jsonUrl)
+      }
+      return next
+    })
+
+    return () => {
+      URL.revokeObjectURL(next.csvUrl)
+      URL.revokeObjectURL(next.jsonUrl)
+    }
+  }, [analysis])
+
+
+  const analyzeSelectedFile = useCallback(async (file: File) => {
+    setIsLoading(true)
+    setError(null)
+    setUploadError(null)
+    previewCleanupRef.current?.()
+    previewCleanupRef.current = null
+
+    try {
+      const { quality, colors } = await analyzeArtwork(file)
+
+      let preview: ArtworkPreview | undefined
+      try {
+        preview = await generateArtworkPreview(file, quality)
+      } catch (err) {
+        console.warn('Failed to generate artwork preview:', err)
+      }
+      if (preview) {
+        previewCleanupRef.current = preview.cleanup
+      }
+
+      setAnalysis({ fileName: file.name, quality, colors, preview })
+      return { success: true as const }
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Unexpected error analysing artwork.'
+      setError(message)
+      setAnalysis(null)
+      return { success: false as const, message }
+    } finally {
+      setIsLoading(false)
+    }
+  }, [generateArtworkPreview])
+
+  const handleFilesSelected = useCallback(
+    (incoming: FileList | File[] | null) => {
+      if (!incoming) {
+        return
+      }
+
+      const files = Array.from(incoming)
+      const accepted: UploadItem[] = []
+      const rejected: string[] = []
+
+      for (const file of files) {
+        const lower = file.name.toLowerCase()
+        const hasValidMime = ALLOWED_MIME_TYPES.has(file.type)
+        const hasValidExt = ALLOWED_EXTENSIONS.some((ext) => lower.endsWith(ext))
+        if (hasValidMime || hasValidExt) {
+          accepted.push({
+            id: generateId(),
+            name: file.name,
+            size: file.size,
+            type: file.type,
+            status: 'queued',
+            progress: 0,
+            file,
+          })
+        } else {
+          rejected.push(file.name)
+        }
+      }
+
+      if (rejected.length) {
+        setUploadError(
+          `Unsupported file type: ${rejected.join(', ')}. Currently only PNG and PDF are supported.`
+        )
+      } else {
+        setUploadError(null)
+      }
+
+      if (!accepted.length) {
+        if (fileInputRef.current) {
+          fileInputRef.current.value = ''
+        }
+        return
+      }
+
+      setUploads((current) => {
+        const next = [...accepted, ...current]
+        return next.slice(0, MAX_UPLOAD_HISTORY)
+      })
+
+      if (fileInputRef.current) {
+        fileInputRef.current.value = ''
+      }
+    },
+    []
+  )
+
+  const processUpload = useCallback(
+    async (uploadId: string, file: File) => {
+      setUploads((current) =>
+        current.map((item) =>
+          item.id === uploadId
+            ? { ...item, status: 'processing', progress: 25 }
+            : item
+        )
+      )
+
+      const result = await analyzeSelectedFile(file)
+
+      if (result.success) {
+        setUploads((current) => current.filter((item) => item.id !== uploadId))
+      } else {
+        setUploads((current) =>
+          current.map((item) =>
+            item.id === uploadId
+              ? {
+                  ...item,
+                  status: 'error',
+                  progress: 0,
+                  message: result.message,
+                  file: undefined,
+                }
+              : item
+          )
+        )
+      }
+    },
+    [analyzeSelectedFile]
+  )
+
+  useEffect(() => {
+    if (isLoading) {
+      return
+    }
+    const next = uploads.find((item) => item.status === 'queued' && item.file)
+    if (!next || !next.file) {
+      return
+    }
+    void processUpload(next.id, next.file)
+  }, [uploads, isLoading, processUpload])
+
+  const handleBrowseClick = useCallback(() => {
+    fileInputRef.current?.click()
+  }, [])
+
+  const handleDrop = useCallback(
+    (event: DragEvent<HTMLDivElement>) => {
+      event.preventDefault()
+      event.stopPropagation()
+      setIsDragActive(false)
+      if (event.dataTransfer?.files?.length) {
+        handleFilesSelected(event.dataTransfer.files)
+      }
+    },
+    [handleFilesSelected]
+  )
+
+  const handleDragOver = useCallback((event: DragEvent<HTMLDivElement>) => {
+    event.preventDefault()
+    event.stopPropagation()
+    setIsDragActive(true)
+  }, [])
+
+  const handleDragLeave = useCallback(() => {
+    setIsDragActive(false)
+  }, [])
+
+
+  const handleDocFileChange = useCallback(
+    (event: ChangeEvent<HTMLInputElement>) => {
+      const nextFile = event.target.files?.[0] ?? null
+      setDocProgress(null)
+
+      if (!nextFile) {
+        setDocFile(null)
+        return
+      }
+
+      if (!isAcceptedDoc(nextFile.name)) {
+        setDocFile(null)
+        setDocMessage('Only Markdown (.md) or plain text (.txt) files are supported.')
+        setDocMessageTone('error')
+        event.target.value = ''
+        return
+      }
+
+      if (nextFile.size > MAX_DOC_SIZE_BYTES) {
+        setDocFile(null)
+        setDocMessage(
+          `Document is too large (${formatBytes(nextFile.size)}). Maximum allowed is ${formatBytes(MAX_DOC_SIZE_BYTES)}.`
+        )
+        setDocMessageTone('error')
+        event.target.value = ''
+        return
+      }
+
+      setDocFile(nextFile)
+      setDocMessage(
+        `Ready to upload ${nextFile.name} (${formatBytes(nextFile.size)}).`
+      )
+      setDocMessageTone('info')
+    },
+    []
+  )
+
+  const authorizedFetch = useCallback(
+    async (input: RequestInfo | URL, init?: RequestInit) => {
+      const headers = new Headers(init?.headers)
+      if (adminToken.trim()) {
+        headers.set('Authorization', `Bearer ${adminToken.trim()}`)
+      }
+      return fetch(input, { ...init, headers })
+    },
+    [adminToken]
+  )
+
+  const loadAdminConfig = useCallback(async () => {
+    setConfigLoading(true)
+    setAdminError(null)
+    try {
+      const response = await authorizedFetch('/api/config')
+      if (!response.ok) {
+        const text = await response.text()
+        throw new Error(text || `Failed to load config (${response.status})`)
+      }
+      const data = (await response.json()) as AdminConfigState
+      setAdminConfig(data)
+      setApiKeyInput('')
+    } catch (err) {
+      setAdminError(err instanceof Error ? err.message : 'Unable to load configuration.')
+    } finally {
+      setConfigLoading(false)
+    }
+  }, [authorizedFetch])
+
+  const loadDocs = useCallback(async () => {
+    setDocsLoading(true)
+    setDocMessage(null)
+    try {
+      const response = await authorizedFetch('/api/docs')
+      if (!response.ok) {
+        const text = await response.text()
+        throw new Error(text || `Failed to load documents (${response.status})`)
+      }
+      const data = (await response.json()) as DocSummary[]
+      setDocs(data)
+    } catch (err) {
+      setDocMessage(err instanceof Error ? err.message : 'Unable to load documents.')
+    } finally {
+      setDocsLoading(false)
+    }
+  }, [authorizedFetch])
+
+  useEffect(() => {
+    if (activeTab === 'admin') {
+      const stored = window.localStorage.getItem('artwork-admin-token')
+      if (stored) {
+        setAdminToken(stored)
+      }
+    }
+  }, [activeTab])
+
+  useEffect(() => {
+    if (activeTab === 'admin') {
+      void loadAdminConfig()
+      void loadDocs()
+    }
+  }, [activeTab, loadAdminConfig, loadDocs])
+
+  const handleSaveConfig = useCallback(async () => {
+    if (!adminConfig) {
+      return
+    }
+
+    if (rememberToken) {
+      if (adminToken.trim()) {
+        window.localStorage.setItem('artwork-admin-token', adminToken.trim())
+      } else {
+        window.localStorage.removeItem('artwork-admin-token')
+      }
+    }
+
+    setConfigSaving(true)
+    setAdminMessage(null)
+    setAdminError(null)
+
+    try {
+      const payload: Partial<AdminConfigState> = {
+        provider: adminConfig.provider,
+        model: adminConfig.model,
+        embeddingModel: adminConfig.embeddingModel,
+        systemPrompt: adminConfig.systemPrompt,
+      }
+      if (apiKeyInput.trim()) {
+        payload.apiKey = apiKeyInput.trim()
+      }
+
+      const response = await authorizedFetch('/api/config', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      })
+
+      if (!response.ok) {
+        const text = await response.text()
+        throw new Error(text || `Failed to save configuration (${response.status})`)
+      }
+
+      const data = (await response.json()) as AdminConfigState
+      setAdminConfig(data)
+      setApiKeyInput('')
+      setAdminMessage('Configuration saved successfully.')
+    } catch (err) {
+      setAdminError(err instanceof Error ? err.message : 'Unable to save configuration.')
+    } finally {
+      setConfigSaving(false)
+    }
+  }, [adminConfig, apiKeyInput, adminToken, rememberToken, authorizedFetch])
+
+  const handleUploadDocument = useCallback(async () => {
+    if (!docFile) {
+      setDocMessage('Select a .md or .txt file to upload first.')
+      setDocMessageTone('error')
+      return
+    }
+
+    setDocUploading(true)
+    setDocProgress(0)
+    setDocMessage('Reading document...')
+    setDocMessageTone('info')
+
+    try {
+      const content = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader()
+        reader.onerror = () => reject(reader.error ?? new Error('Failed to read document.'))
+        reader.onabort = () => reject(new Error('Document read aborted.'))
+        reader.onprogress = (event) => {
+          if (event.lengthComputable) {
+            const percent = Math.min(80, Math.round((event.loaded / event.total) * 80))
+            setDocProgress(percent)
+          }
+        }
+        reader.onload = () => {
+          setDocProgress((current) => (current !== null && current > 80 ? current : 80))
+          resolve(typeof reader.result === 'string' ? reader.result : '')
+        }
+        reader.readAsText(docFile)
+      })
+
+      setDocMessage('Uploading to worker...')
+      setDocMessageTone('info')
+      setDocProgress((current) => (current !== null && current > 90 ? current : 90))
+
+      const response = await authorizedFetch('/api/docs', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ filename: docFile.name, content }),
+      })
+
+      if (!response.ok) {
+        const text = await response.text()
+        throw new Error(text || `Failed to upload document (${response.status})`)
+      }
+
+      const data = (await response.json()) as { chunks: number }
+      setDocProgress(100)
+      setDocMessage(`Uploaded ${docFile.name} (${data.chunks} chunks).`)
+      setDocMessageTone('success')
+      setDocFile(null)
+      if (docInputRef.current) {
+        docInputRef.current.value = ''
+      }
+      void loadDocs()
+    } catch (err) {
+      setDocMessage(err instanceof Error ? err.message : 'Document upload failed.')
+      setDocMessageTone('error')
+    } finally {
+      setDocUploading(false)
+      setTimeout(() => setDocProgress(null), 250)
+    }
+  }, [docFile, loadDocs, authorizedFetch, docInputRef])
+
+  const handleDeleteDocument = useCallback(
+    async (source: string) => {
+      try {
+        const response = await authorizedFetch(`/api/docs/${encodeURIComponent(source)}`, {
+          method: 'DELETE',
+        })
+        if (!response.ok) {
+          const text = await response.text()
+          throw new Error(text || `Failed to delete document (${response.status})`)
+        }
+        setDocMessage(`Removed document ${source}.`)
+        void loadDocs()
+      } catch (err) {
+        setDocMessage(err instanceof Error ? err.message : 'Unable to remove document.')
+      }
+    },
+    [loadDocs, authorizedFetch]
+  )
+
+  const providerOptions = useMemo(
+    () => [
+      { value: 'claude', label: 'Claude (Workers AI)' },
+      { value: 'openai', label: 'OpenAI (coming soon)', disabled: true },
+    ] as Array<{ value: 'claude' | 'openai'; label: string; disabled?: boolean }>,
+    []
+  )
+
+  const alphaStats = analysis?.quality.alphaStats ?? analysis?.colors?.alphaStats ?? null
+  const preview = analysis?.preview
+  const previewDisplay = useMemo(() => {
+    if (!preview) {
+      return null
+    }
+    const width = preview.width && preview.width > 0 ? preview.width : 0
+    const height = preview.height && preview.height > 0 ? preview.height : 0
+    const maxThumb = 240
+    if (!width || !height) {
+      return {
+        width: 160,
+        height: 0,
+        scalePercent: 25,
+      }
+    }
+    const scale = Math.min(1, maxThumb / Math.max(width, height))
+    return {
+      width: Math.round(width * scale),
+      height: Math.round(height * scale),
+      scalePercent: Math.round(scale * 100),
+    }
+  }, [preview])
+
+  const showPreview = Boolean(preview && previewDisplay)
+
+  const pixelDimensions = useMemo(() => {
+    if (analysis?.quality?.pixels) {
+      return analysis.quality.pixels
+    }
+    if (preview?.width && preview?.height) {
+      return { w: preview.width, h: preview.height }
+    }
+    return null
+  }, [analysis?.quality?.pixels?.w, analysis?.quality?.pixels?.h, preview?.width, preview?.height])
+
+  const fileSummary = useMemo(() => {
+    if (!analysis) {
+      return null
+    }
+    const type = analysis.quality.fileType?.toUpperCase?.() ?? analysis.quality.fileType ?? 'FILE'
+    const parts: string[] = [type]
+    const size = formatFileSizeMB(analysis.quality.fileSizeMB)
+    if (size !== 'N/A') {
+      parts.push(size)
+    }
+    if (analysis.quality.rating) {
+      parts.push(`DPI Rating: ${analysis.quality.rating}`)
+    }
+    return parts.join(' • ')
+  }, [analysis])
+
+  const originalSize = useMemo(() => {
+    if (!pixelDimensions) {
+      return null
+    }
+    const { w, h } = pixelDimensions
+    const dpi = 300
+    const wIn = w / dpi
+    const hIn = h / dpi
+    const wCm = wIn * 2.54
+    const hCm = hIn * 2.54
+    const formatInches = (value: number) => {
+      const rounded = Math.round(value)
+      return Math.abs(value - rounded) < 0.05 ? `${rounded}` : value.toFixed(1)
+    }
+    const formatCentimetres = (value: number) => value.toFixed(2)
+    return `Original size: ${w}px × ${h}px (${formatInches(wIn)}" × ${formatInches(hIn)}" (${formatCentimetres(wCm)}cm × ${formatCentimetres(hCm)} cm))`
+  }, [pixelDimensions])
+
+  useEffect(() => {
+    return () => {
+      previewCleanupRef.current?.()
+      previewCleanupRef.current = null
+    }
+  }, [])
+
+  return (
+    <AppShell
+      title="Artwork Analyser"
+      subtitle="Artwork Analyser is your digital pre-press assistant — instantly reviewing your artwork for DPI, color profiles, transparency, and print-readiness, so every print comes out perfectly."
+      activeSection={activeTab}
+      onChangeSection={setActiveTab}
+      navItems={NAV_ITEMS}
+    >
+      {activeTab === 'analyze' ? (
+        <>
+          <section className="space-y-6">
+            <div className="w-full max-w-5xl rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+              <div className="flex flex-col gap-3">
+                <h2 className="text-2xl font-semibold text-slate-900">Check Your Image Quality</h2>
+                <p className="max-w-3xl text-base text-slate-600">
+                  Upload your artwork file to see instant print-readiness insights.
+                </p>
+              </div>
+
+              {uploadError && (
+                <p className="mt-3 rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+                  {uploadError}
+                </p>
+              )}
+
+              <div className="mt-6 grid gap-6 lg:justify-items-center">
+                <div
+                  onDragOver={handleDragOver}
+                  onDragLeave={handleDragLeave}
+                  onDrop={handleDrop}
+                  className={`flex w-full max-w-xl flex-col items-center justify-center rounded-xl border-2 border-dashed px-6 py-10 text-center transition ${
+                    isDragActive
+                      ? 'border-indigo-400 bg-indigo-50'
+                      : 'border-slate-300 bg-slate-50 hover:border-indigo-300 hover:bg-white'
+                  }`}
+                >
+                  {showPreview ? (
+                    <>
+                      {previewDisplay && (
+                        <img
+                          src={preview?.url ?? ''}
+                          alt={analysis?.fileName ? `Preview of ${analysis.fileName}` : 'Preview of uploaded artwork'}
+                          className="max-h-64 w-auto rounded-md border border-slate-200 bg-white object-contain shadow-sm"
+                          style={{
+                            width: previewDisplay.width ? `${previewDisplay.width}px` : undefined,
+                            height: previewDisplay.height ? `${previewDisplay.height}px` : undefined,
+                          }}
+                        />
+                      )}
+                      {fileSummary && (
+                        <p className="mt-4 text-sm font-medium text-slate-700">{fileSummary}</p>
+                      )}
+                      {originalSize && (
+                        <p className="mt-1 text-sm text-slate-500">{originalSize}</p>
+                      )}
+                      {previewDisplay && (
+                        <p className="mt-1 text-xs text-slate-500">
+                          Displayed at approximately {previewDisplay.scalePercent}% scale.
+                        </p>
+                      )}
+                      <button
+                        type="button"
+                        onClick={handleBrowseClick}
+                        disabled={isLoading}
+                        className="mt-4 inline-flex items-center rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow transition hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60"
+                      >
+                        {isLoading ? 'Processing...' : 'Change Image'}
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <UploadCloud className="h-8 w-8 text-primary" aria-hidden="true" />
+                      <p className="mt-3 text-sm font-medium text-slate-800">Upload your image PNG or PDF file and to analyse your artwork quality</p>
+                      <button
+                        type="button"
+                        onClick={handleBrowseClick}
+                        disabled={isLoading}
+                        className="mt-3 inline-flex items-center rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow transition hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60"
+                      >
+                        {isLoading ? 'Processing...' : 'Upload Files'}
+                      </button>
+                      <p className="mt-4 text-xs text-slate-500">
+                        (Support for SVG, EPS, AI, and PSD is coming soon!)
+                      </p>
+                    </>
+                  )}
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept=".png,.pdf,image/png,application/pdf"
+                    multiple
+                    className="hidden"
+                    onChange={(event) => handleFilesSelected(event.target.files)}
+                    disabled={isLoading}
+                  />
+                </div>
+
+              </div>
+            </div>
+
+            {error && (
+              <div className="rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">
+                {error}
+              </div>
+            )}
+          </section>
+
+          {analysis ? (
+            <section className="grid gap-6 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+              <header className="space-y-1">
+                <h3 className="text-2xl font-semibold">{analysis.fileName}</h3>
+                <p className="text-sm text-slate-500">
+                  {analysis.quality.fileType.toUpperCase()} • {formatFileSizeMB(analysis.quality.fileSizeMB)} • Rating:{' '}
+                  <span className="font-medium text-primary">{analysis.quality.rating}</span>
+                </p>
+              </header>
+
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+                  <h4 className="text-sm font-semibold uppercase tracking-wide text-slate-500">
+                    Dimensions & DPI
+                  </h4>
+                  <dl className="mt-2 space-y-1 text-sm">
+                    <div className="flex justify-between text-slate-600">
+                      <dt>Category</dt>
+                      <dd>{analysis.quality.imageCategory}</dd>
+                    </div>
+                    <div className="flex justify-between text-slate-600">
+                      <dt>Pixels</dt>
+                      <dd>
+                        {analysis.quality.pixels
+                          ? `${analysis.quality.pixels.w} x ${analysis.quality.pixels.h}`
+                          : 'Vector / N/A'}
+                      </dd>
+                    </div>
+                    <div className="flex justify-between text-slate-600">
+                      <dt>DPI</dt>
+                      <dd>{analysis.quality.dpi ?? 'Not embedded'}</dd>
+                    </div>
+                    <div className="flex justify-between text-slate-600">
+                      <dt>Aspect ratio</dt>
+                      <dd>{analysis.quality.aspectRatio}</dd>
+                    </div>
+                    <div className="flex justify-between text-slate-600">
+                      <dt>Bit depth</dt>
+                      <dd>{analysis.quality.bitDepth ?? 'N/A'}</dd>
+                    </div>
+                    <div className="flex justify-between text-slate-600">
+                      <dt>Alpha channel</dt>
+                      <dd>{analysis.quality.hasAlpha ? 'Yes' : 'No'}</dd>
+                    </div>
+                  </dl>
+                </div>
+
+                <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+                  <h4 className="text-sm font-semibold uppercase tracking-wide text-slate-500">
+                    Recommended print sizes
+                  </h4>
+                  <dl className="mt-2 space-y-1 text-sm">
+                    <div className="flex justify-between text-slate-600">
+                      <dt>300 DPI</dt>
+                      <dd>
+                        {`${analysis.quality.recommendedSizes.at300dpi.w_in}" × ${analysis.quality.recommendedSizes.at300dpi.h_in}"`}
+                        <span className="text-xs text-muted-foreground">
+                          {` (${analysis.quality.recommendedSizes.at300dpi.w_cm} × ${analysis.quality.recommendedSizes.at300dpi.h_cm} cm)`}
+                        </span>
+                      </dd>
+                    </div>
+                    <div className="flex justify-between text-slate-600">
+                      <dt>150 DPI</dt>
+                      <dd>
+                        {`${analysis.quality.recommendedSizes.at150dpi.w_in}" × ${analysis.quality.recommendedSizes.at150dpi.h_in}"`}
+                        <span className="text-xs text-muted-foreground">
+                          {` (${analysis.quality.recommendedSizes.at150dpi.w_cm} × ${analysis.quality.recommendedSizes.at150dpi.h_cm} cm)`}
+                        </span>
+                      </dd>
+                    </div>
+                    <div className="flex justify-between text-slate-600">
+                      <dt>ICC profile</dt>
+                      <dd>
+                        {analysis.quality.hasICC
+                          ? analysis.quality.iccProfile ?? 'Embedded'
+                          : 'Not embedded'}
+                      </dd>
+                    </div>
+                  </dl>
+                </div>
+              </div>
+
+              {alphaStats && (
+                <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+                  <h4 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+                    Alpha channel details
+                  </h4>
+                  <dl className="mt-2 grid gap-2 text-sm sm:grid-cols-3">
+                    <div className="flex justify-between text-slate-600">
+                      <dt>Sample size</dt>
+                      <dd>{alphaStats.sampleSize.toLocaleString()}</dd>
+                    </div>
+                    <div className="flex justify-between text-slate-600">
+                      <dt>Minimum value</dt>
+                      <dd>{alphaStats.min}</dd>
+                    </div>
+                    <div className="flex justify-between text-slate-600">
+                      <dt>Maximum value</dt>
+                      <dd>{alphaStats.max}</dd>
+                    </div>
+                  </dl>
+                  <div className="mt-3 overflow-x-auto">
+                    <table className="min-w-full divide-y divide-border/60 text-sm">
+                      <thead className="bg-muted/20 text-left text-xs uppercase tracking-wide text-muted-foreground">
+                        <tr>
+                          <th className="px-3 py-2">Alpha range</th>
+                          <th className="px-3 py-2">Transparency</th>
+                          <th className="px-3 py-2 text-right">Pixels</th>
+                          <th className="px-3 py-2 text-right">Percent</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-border/60">
+                        <tr>
+                          <td className="px-3 py-2 font-medium text-slate-700">0</td>
+                          <td className="px-3 py-2">Fully transparent</td>
+                          <td className="px-3 py-2 text-right">{alphaStats.transparentCount.toLocaleString()}</td>
+                          <td className="px-3 py-2 text-right">{alphaStats.transparentPercent.toFixed(2)}%</td>
+                        </tr>
+                        <tr>
+                          <td className="px-3 py-2 font-medium text-slate-700">1-254</td>
+                          <td className="px-3 py-2">Semi transparent</td>
+                          <td className="px-3 py-2 text-right">{alphaStats.semiTransparentCount.toLocaleString()}</td>
+                          <td className="px-3 py-2 text-right">{alphaStats.semiTransparentPercent.toFixed(2)}%</td>
+                        </tr>
+                        <tr>
+                          <td className="px-3 py-2 font-medium text-slate-700">255</td>
+                          <td className="px-3 py-2">Fully opaque</td>
+                          <td className="px-3 py-2 text-right">{alphaStats.opaqueCount.toLocaleString()}</td>
+                          <td className="px-3 py-2 text-right">{alphaStats.opaquePercent.toFixed(2)}%</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+
+              {analysis.colors && analysis.colors.top.length > 0 && (
+                <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h4 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+                        Palette overview
+                      </h4>
+                      <p className="text-xs text-muted-foreground">
+                        Dominant colours detected across the artwork; exported alongside the AI prompt.
+                      </p>
+                    </div>
+                    {downloads && (
+                      <div className="flex gap-2 text-xs">
+                        <a
+                          href={downloads.csvUrl}
+                          download={`${analysis.fileName}-palette.csv`}
+                          className="rounded-md border border-slate-200 bg-white px-2 py-1 text-xs font-medium text-slate-600 transition hover:border-indigo-300"
+                        >
+                          Download CSV
+                        </a>
+                        <a
+                          href={downloads.jsonUrl}
+                          download={`${analysis.fileName}-palette.json`}
+                          className="rounded-md border border-slate-200 bg-white px-2 py-1 text-xs font-medium text-slate-600 transition hover:border-indigo-300"
+                        >
+                          Download JSON
+                        </a>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                    {analysis.colors.top.map((swatch) => (
+                      <div
+                        key={swatch.hex}
+                        className="flex flex-col overflow-hidden rounded-lg border border-border/60 bg-background/90"
+                      >
+                        <div
+                          className="h-20 w-full"
+                          style={{ backgroundColor: swatch.hex }}
+                          aria-hidden="true"
+                        />
+                        <div className="flex flex-col gap-1 px-3 py-2 text-xs text-muted-foreground">
+                          <span className="font-medium text-slate-700">{swatch.hex}</span>
+                          {typeof swatch.percent === 'number' && (
+                            <span>{swatch.percent.toFixed(2)}% of sampled pixels</span>
+                          )}
+                          {typeof swatch.count === 'number' && swatch.count > 0 && (
+                            <span>{swatch.count} samples</span>
+                          )}
+                          <span>
+                            RGB {`(${swatch.rgb[0]}, ${swatch.rgb[1]}, ${swatch.rgb[2]})`}
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+                <h4 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+                  Notes
+                </h4>
+                <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-muted-foreground">
+                  {analysis.quality.notes.map((note) => (
+                    <li key={note}>{note}</li>
+                  ))}
+                </ul>
+              </div>
+
+              <div className="h-[600px]">
+                <ArtworkChat
+                  quality={analysis.quality}
+                  colors={analysis.colors}
+                  workerUrl="/api"
+                />
+              </div>
+            </section>
+          ) : null}
+        </>
+      ) : (
+        <section className="w-full max-w-5xl grid gap-6 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+          <header className="space-y-1">
+            <h3 className="text-2xl font-semibold">Admin configuration</h3>
+            <p className="text-sm text-muted-foreground">
+              Update AI provider settings and manage RAG documents. API keys are stored encrypted in KV; leave the field blank to keep the current key unchanged.
+            </p>
+          </header>
+
+          <div className="grid gap-6 rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+            {configLoading ? (
+              <p className="text-sm text-slate-500">Loading configuration...</p>
+            ) : adminConfig ? (
+              <div className="grid gap-4">
+                <label className="flex flex-col gap-1 text-sm">
+                  <span className="font-medium text-slate-700">Admin token</span>
+                  <input
+                    className="rounded-md border border-slate-200 bg-white px-3 py-2 text-sm"
+                    value={adminToken}
+                    onChange={(event) => {
+                      setAdminToken(event.target.value)
+                      if (rememberToken) {
+                        if (event.target.value.trim()) {
+                          window.localStorage.setItem('artwork-admin-token', event.target.value.trim())
+                        } else {
+                          window.localStorage.removeItem('artwork-admin-token')
+                        }
+                      }
+                    }}
+                    placeholder="Enter admin token to access secured endpoints"
+                    type="password"
+                  />
+                  <label className="mt-1 inline-flex items-center gap-2 text-xs text-slate-500">
+                    <input
+                      type="checkbox"
+                      checked={rememberToken}
+                      onChange={(event) => {
+                        setRememberToken(event.target.checked)
+                        if (!event.target.checked) {
+                          window.localStorage.removeItem('artwork-admin-token')
+                        } else if (adminToken.trim()) {
+                          window.localStorage.setItem('artwork-admin-token', adminToken.trim())
+                        }
+                      }}
+                    />
+                    Remember token in this browser
+                  </label>
+                </label>
+                <div className="grid gap-2 sm:grid-cols-2">
+                  <label className="flex flex-col gap-1 text-sm">
+                    <span className="font-medium text-slate-700">Provider</span>
+                    <select
+                      className="rounded-md border border-slate-200 bg-white px-3 py-2 text-sm"
+                      value={adminConfig.provider}
+                      onChange={(event) =>
+                        setAdminConfig((current) =>
+                          current
+                            ? {
+                                ...current,
+                                provider: event.target.value as 'claude' | 'openai',
+                              }
+                            : current
+                        )
+                      }
+                    >
+                      {providerOptions.map((option) => (
+                        <option key={option.value} value={option.value} disabled={option.disabled}>
+                          {option.label}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <label className="flex flex-col gap-1 text-sm">
+                    <span className="font-medium text-slate-700">Chat model</span>
+                    <input
+                      className="rounded-md border border-slate-200 bg-white px-3 py-2 text-sm"
+                      value={adminConfig.model}
+                      onChange={(event) =>
+                        setAdminConfig((current) =>
+                          current ? { ...current, model: event.target.value } : current
+                        )
+                      }
+                    />
+                  </label>
+                  <label className="flex flex-col gap-1 text-sm">
+                    <span className="font-medium text-slate-700">Embedding model</span>
+                    <input
+                      className="rounded-md border border-slate-200 bg-white px-3 py-2 text-sm"
+                      value={adminConfig.embeddingModel}
+                      onChange={(event) =>
+                        setAdminConfig((current) =>
+                          current
+                            ? { ...current, embeddingModel: event.target.value }
+                            : current
+                        )
+                      }
+                    />
+                  </label>
+                  <label className="flex flex-col gap-1 text-sm">
+                    <span className="font-medium text-slate-700">API key</span>
+                    <input
+                      className="rounded-md border border-slate-200 bg-white px-3 py-2 text-sm"
+                      value={apiKeyInput}
+                      onChange={(event) => setApiKeyInput(event.target.value)}
+                      placeholder={adminConfig.apiKey ? 'Current key hidden - enter to replace' : 'Enter provider API key'}
+                      type="password"
+                    />
+                  </label>
+                </div>
+                <label className="flex flex-col gap-1 text-sm">
+                  <span className="font-medium text-slate-700">System prompt</span>
+                  <textarea
+                    className="min-h-[120px] rounded-md border border-slate-200 bg-white px-3 py-2 text-sm"
+                    value={adminConfig.systemPrompt}
+                    onChange={(event) =>
+                      setAdminConfig((current) =>
+                        current
+                          ? { ...current, systemPrompt: event.target.value }
+                          : current
+                      )
+                    }
+                  />
+                </label>
+                <div className="flex flex-wrap items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={() => void handleSaveConfig()}
+                    disabled={configSaving}
+                    className="inline-flex items-center rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow transition hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    {configSaving ? 'Saving…' : 'Save configuration'}
+                  </button>
+                  {adminMessage && <span className="text-sm text-slate-500">{adminMessage}</span>}
+                  {adminError && (
+                    <span className="text-sm text-destructive" role="alert">
+                      {adminError}
+                    </span>
+                  )}
+                </div>
+              </div>
+            ) : (
+              <p className="text-sm text-rose-600" role="alert">
+                {adminError ?? 'No configuration loaded.'}
+              </p>
+            )}
+          </div>
+
+          <div className="grid gap-4 rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+            <div className="flex flex-wrap items-center justify-between gap-4">
+              <div>
+                <h4 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+                  Knowledge-base documents
+                </h4>
+                <p className="text-xs text-slate-500">
+                  Upload Markdown or plain text files; they will be chunked, embedded, and added to the RAG store.
+                </p>
+              </div>
+              <div className="flex items-center gap-2 text-xs">
+                <input
+                  ref={docInputRef}
+                  type="file"
+                  accept=".txt,.md,.markdown,.TXT,.MD,.MARKDOWN"
+                  onChange={handleDocFileChange}
+                  className="text-xs text-muted-foreground"
+                />
+                <button
+                  type="button"
+                  onClick={() => void handleUploadDocument()}
+                  disabled={docUploading || !docFile}
+                  className="inline-flex items-center rounded-md border border-slate-200 bg-white px-3 py-1 text-xs font-medium transition hover:border-indigo-300 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {docUploading
+                    ? `Uploading${docProgress !== null ? ` ${docProgress}%` : '...'}`
+                    : 'Upload'}
+                </button>
+              </div>
+
+              {docProgress !== null && (
+                <div className="h-2 w-full overflow-hidden rounded bg-slate-200">
+                  <div
+                    className="h-full bg-primary transition-[width] duration-200"
+                    style={{ width: `${Math.max(0, Math.min(100, docProgress))}%` }}
+                  />
+                </div>
+              )}
+            </div>
+
+            {docMessage && (
+              <span className={`text-xs ${docMessageClass}`}>
+                {docMessage}
+              </span>
+            )}
+
+            <div className="overflow-hidden rounded-lg border border-slate-200">
+              <table className="min-w-full divide-y divide-border/70 text-sm">
+                <thead className="bg-muted/30">
+                  <tr>
+                    <th className="px-3 py-2 text-left font-medium text-muted-foreground">Document</th>
+                    <th className="px-3 py-2 text-left font-medium text-muted-foreground">Chunks</th>
+                    <th className="px-3 py-2 text-left font-medium text-muted-foreground">Updated</th>
+                    <th className="px-3 py-2 text-right font-medium text-muted-foreground">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border/70 bg-background/60">
+                  {docsLoading ? (
+                    <tr>
+                      <td colSpan={4} className="px-3 py-4 text-center text-muted-foreground">
+                        Loading documents...
+                      </td>
+                    </tr>
+                  ) : docs.length ? (
+                    docs.map((doc) => (
+                      <tr key={doc.source}>
+                        <td className="px-3 py-2 font-medium text-slate-700">{doc.source}</td>
+                        <td className="px-3 py-2 text-muted-foreground">{doc.chunks}</td>
+                        <td className="px-3 py-2 text-muted-foreground">{formatTimestamp(doc.updated_at)}</td>
+                        <td className="px-3 py-2 text-right">
+                          <button
+                            type="button"
+                            onClick={() => void handleDeleteDocument(doc.source)}
+                            className="rounded-md border border-slate-200 px-2 py-1 text-xs text-destructive transition hover:border-destructive"
+                          >
+                            Remove
+                          </button>
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan={4} className="px-3 py-4 text-center text-muted-foreground">
+                        No documents uploaded yet.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+      )}
+    </AppShell>
+  )
+}
+
+export default App
+

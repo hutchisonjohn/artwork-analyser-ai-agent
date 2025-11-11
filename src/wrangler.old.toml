@@ -1,0 +1,23 @@
+name = "artwork-analyser-worker"
+main = "src/worker/src/index.ts"
+compatibility_date = "2025-11-09"
+
+[vars]
+APP_NAME = "Artwork Analyzer AI Agent"
+
+[[kv_namespaces]]
+binding = "APP_CONFIG"
+id = ""
+preview_id = ""
+
+[[d1_databases]]
+binding = "DOCS_DB"
+database_name = "artwork_ai_db"
+database_id = ""
+
+[ai]
+binding = "WORKERS_AI"
+
+[observability]
+enabled = true
+

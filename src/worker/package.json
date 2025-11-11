@@ -1,0 +1,30 @@
+{
+  "name": "worker",
+  "version": "1.0.0",
+  "description": "Artwork Analyzer AI Agent worker",
+  "scripts": {
+    "dev": "wrangler dev src/index.ts",
+    "deploy": "wrangler deploy",
+    "types": "wrangler types",
+    "check": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "type": "module",
+  "dependencies": {
+    "hono": "^4.10.4",
+    "jose": "^6.1.0",
+    "zod": "^4.1.12"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20251109.0",
+    "miniflare": "^3.20241106.0",
+    "tsx": "^4.20.6",
+    "typescript": "^5.9.3",
+    "vitest": "^2.1.8",
+    "wrangler": "^4.46.0"
+  }
+}
