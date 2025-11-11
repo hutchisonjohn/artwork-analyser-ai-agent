@@ -234,6 +234,7 @@ git push origin main
 | Pages build fails | Check GitHub Actions: https://github.com/hutchisonjohn/artwork-analyser-ai-agent/actions |
 | Frontend shows API errors | Make sure `VITE_WORKER_URL` is set correctly in Pages environment variables |
 | Admin panel shows "JSON error" | Make sure you've deployed the worker first |
+| `npm ci` fails with "Missing: ... from lock file" | Delete workspace lockfiles (`src/frontend/package-lock.json`, `src/worker/package-lock.json`), run `npm install` to refresh the root `package-lock.json`, then commit the updated lockfile |
 
 ---
 
