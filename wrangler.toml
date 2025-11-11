@@ -1,15 +1,16 @@
 name = "artwork-analyser-worker"
 main = "src/worker/src/index.ts"
 compatibility_date = "2025-11-09"
+account_id = "bdae5675df8798965f82b99226c94d11"
 
 [vars]
 APP_NAME = "Artwork Analyzer AI Agent"
-ADMIN_TOKEN = "test-admin-token-12345"
-APP_SECRET_KEY = "test-secret-key-12345"
+ADMIN_TOKEN = "artwork-admin-abc123xyz789def456ghi"
+APP_SECRET_KEY = "artwork-secret-key987xyz654def321abc"
 
 [[kv_namespaces]]
 binding = "APP_CONFIG"
-id = "4c59e5e7046d414f81df825c277d153c"
+id = "a8de729b63f340c2948395867d0efe9d"
 preview_id = "4c59e5e7046d414f81df825c277d153c"
 
 [[d1_databases]]
