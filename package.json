@@ -5,6 +5,9 @@
     "src/frontend",
     "src/worker"
   ],
+  "devDependencies": {
+    "jiti": "^1.21.7"
+  },
   "scripts": {
     "dev:frontend": "npm --prefix src/frontend run dev",
     "dev:worker": "npm --prefix src/worker run dev",
