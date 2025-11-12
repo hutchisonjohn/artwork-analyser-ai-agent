@@ -733,31 +733,34 @@ function App() {
       {activeTab === 'analyze' ? (
         <>
           <section className="space-y-6">
-            <div className="w-full max-w-5xl rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-              <div className="flex flex-col gap-3">
-                <h2 className="text-2xl font-semibold text-slate-900">Check Your Image Quality</h2>
-                <p className="max-w-3xl text-base text-slate-600">
-                  Upload your artwork file to see instant print-readiness insights.
-                </p>
-              </div>
+            {/* Two-column layout: Upload on left, AI Chat on right */}
+            <div className="grid gap-6 lg:grid-cols-2">
+              {/* Left column - Upload area */}
+              <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+                <div className="flex flex-col gap-3">
+                  <h2 className="text-2xl font-semibold text-slate-900">Check Your Image Quality</h2>
+                  <p className="text-base text-slate-600">
+                    Upload your artwork file to see instant print-readiness insights.
+                  </p>
+                </div>
 
-              {uploadError && (
-                <p className="mt-3 rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive">
-                  {uploadError}
-                </p>
-              )}
+                {uploadError && (
+                  <p className="mt-3 rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+                    {uploadError}
+                  </p>
+                )}
 
-              <div className="mt-6 grid gap-6 lg:justify-items-center">
-                <div
-                  onDragOver={handleDragOver}
-                  onDragLeave={handleDragLeave}
-                  onDrop={handleDrop}
-                  className={`flex w-full max-w-xl flex-col items-center justify-center rounded-xl border-2 border-dashed px-6 py-10 text-center transition ${
-                    isDragActive
-                      ? 'border-indigo-400 bg-indigo-50'
-                      : 'border-slate-300 bg-slate-50 hover:border-indigo-300 hover:bg-white'
-                  }`}
-                >
+                <div className="mt-6">
+                  <div
+                    onDragOver={handleDragOver}
+                    onDragLeave={handleDragLeave}
+                    onDrop={handleDrop}
+                    className={`flex w-full flex-col items-center justify-center rounded-xl border-2 border-dashed px-6 py-10 text-center transition ${
+                      isDragActive
+                        ? 'border-indigo-400 bg-indigo-50'
+                        : 'border-slate-300 bg-slate-50 hover:border-indigo-300 hover:bg-white'
+                    }`}
+                  >
                   {showPreview ? (
                     <>
                       {previewDisplay && (
@@ -817,16 +820,39 @@ function App() {
                     onChange={(event) => handleFilesSelected(event.target.files)}
                     disabled={isLoading}
                   />
+                  </div>
                 </div>
 
+                {error && (
+                  <div className="mt-4 rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">
+                    {error}
+                  </div>
+                )}
+              </div>
+
+              {/* Right column - AI Chat */}
+              <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+                <div className="flex flex-col gap-3 mb-6">
+                  <h2 className="text-2xl font-semibold text-slate-900">AI Assistant</h2>
+                  <p className="text-base text-slate-600">
+                    {analysis ? 'Ask questions about your artwork analysis.' : 'Upload an artwork to chat with the AI assistant.'}
+                  </p>
+                </div>
+                {analysis ? (
+                  <div className="h-[500px]">
+                    <ArtworkChat
+                      quality={analysis.quality}
+                      colors={analysis.colors}
+                      workerUrl={workerBaseUrl}
+                    />
+                  </div>
+                ) : (
+                  <div className="flex h-[500px] items-center justify-center rounded-lg border-2 border-dashed border-slate-200 bg-slate-50">
+                    <p className="text-sm text-slate-500">Upload artwork to start chatting</p>
+                  </div>
+                )}
               </div>
             </div>
-
-            {error && (
-              <div className="rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">
-                {error}
-              </div>
-            )}
           </section>
 
           {analysis ? (
@@ -1034,14 +1060,6 @@ function App() {
                     <li key={note}>{note}</li>
                   ))}
                 </ul>
-              </div>
-
-              <div className="h-[600px]">
-                <ArtworkChat
-                  quality={analysis.quality}
-                  colors={analysis.colors}
-                  workerUrl={workerBaseUrl}
-                />
               </div>
             </section>
           ) : null}
