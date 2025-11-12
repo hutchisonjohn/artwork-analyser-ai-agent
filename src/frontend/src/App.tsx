@@ -740,10 +740,10 @@ function App() {
       {activeTab === 'analyze' ? (
         <>
           <section className="space-y-6">
-            {/* Two-column layout: Upload on left, AI Chat on right */}
-            <div className="grid gap-6 lg:grid-cols-2">
+            {/* Two-column layout: Upload on left, AI Chat on right (only when analysis exists) */}
+            <div className={`grid gap-6 ${analysis ? 'lg:grid-cols-2' : ''}`}>
               {/* Left column - Upload area */}
-              <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+              <div className={`rounded-2xl border border-slate-200 bg-white p-6 shadow-sm ${!analysis ? 'max-w-5xl mx-auto' : ''}`}>
                 <div className="flex flex-col gap-3">
                   <h2 className="text-2xl font-semibold text-slate-900">Check Your Image Quality</h2>
                   <p className="text-base text-slate-600">
@@ -837,9 +837,9 @@ function App() {
                 )}
               </div>
 
-              {/* Right column - AI Chat */}
-              <div className="rounded-2xl border border-slate-200 bg-white shadow-sm">
-                {analysis ? (
+              {/* Right column - AI Chat (only shown when analysis exists) */}
+              {analysis && (
+                <div className="rounded-2xl border border-slate-200 bg-white shadow-sm">
                   <div className="h-[600px]">
                     <ArtworkChat
                       quality={analysis.quality}
@@ -847,20 +847,8 @@ function App() {
                       workerUrl={workerBaseUrl}
                     />
                   </div>
-                ) : (
-                  <div className="flex h-[600px] flex-col items-center justify-center rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50 p-6">
-                    <div className="text-center">
-                      <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-indigo-100">
-                        <svg className="h-8 w-8 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
-                        </svg>
-                      </div>
-                      <h3 className="text-lg font-semibold text-slate-900">AI Assistant</h3>
-                      <p className="mt-2 text-sm text-slate-500">Upload artwork to start chatting with the AI</p>
-                    </div>
-                  </div>
-                )}
-              </div>
+                </div>
+              )}
             </div>
           </section>
 
