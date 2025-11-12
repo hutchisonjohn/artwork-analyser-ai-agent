@@ -1,4 +1,5 @@
 import { Hono } from 'hono'
+import { cors } from 'hono/cors'
 import type { Context } from 'hono'
 import { z } from 'zod'
 import {
@@ -46,6 +47,17 @@ function requireAdmin(c: Context<{ Bindings: Bindings }>) {
 }
 
 export const router = new Hono<{ Bindings: Bindings }>()
+
+router.use(
+  '*',
+  cors({
+    origin: (origin) => origin ?? '*',
+    allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowHeaders: ['Content-Type', 'Authorization', 'X-Admin-Token'],
+    exposeHeaders: ['Content-Type'],
+    maxAge: 86400,
+  })
+)
 
 router.get('/health', (c) =>
   c.json({ status: 'ok', timestamp: new Date().toISOString() })
