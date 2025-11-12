@@ -74,6 +74,39 @@ async function callWorkersAI(env: Bindings, config: AppConfig, payload: ChatRequ
   )
 }
 
+async function callClaudeAPI(config: AppConfig, payload: ChatRequestPayload): Promise<string> {
+  if (!config.apiKey) {
+    throw new Error('Claude API key is required but not configured')
+  }
+
+  const body = {
+    model: config.model,
+    max_tokens: 2048,
+    messages: [
+      { role: 'user', content: buildUserMessage(payload) },
+    ],
+    system: buildSystemMessage(config),
+  }
+
+  const response = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': config.apiKey,
+      'anthropic-version': '2023-06-01',
+    },
+    body: JSON.stringify(body),
+  })
+
+  if (!response.ok) {
+    const text = await response.text()
+    throw new Error(`Claude API request failed: ${response.status} ${text}`)
+  }
+
+  const data = await response.json() as any
+  return data.content?.[0]?.text || ''
+}
+
 export async function runChatCompletion(
   env: Bindings,
   config: AppConfig,
@@ -83,6 +116,10 @@ export async function runChatCompletion(
     throw new Error(`Provider ${config.provider} not yet implemented`)
   }
 
-  const answer = await callWorkersAI(env, config, payload)
+  // Use Claude API if key is configured, otherwise fall back to Workers AI
+  const answer = config.apiKey 
+    ? await callClaudeAPI(config, payload)
+    : await callWorkersAI(env, config, payload)
+  
   return { answer }
 }
