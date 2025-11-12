@@ -8,7 +8,7 @@ export const providerSchema = z.enum(PROVIDERS)
 
 export const configSchema = z.object({
   provider: providerSchema.default('claude'),
-  model: z.string().min(1).default('claude-3-5-sonnet-latest'),
+  model: z.string().min(1).default('claude-3-5-sonnet-20241022'),
   embeddingModel: z.string().min(1).default('text-embedding-3-large'),
   apiKey: z.string().optional(),
   systemPrompt: z
