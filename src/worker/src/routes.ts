@@ -96,24 +96,32 @@ router.put('/config', async (c) => {
 })
 
 router.post('/ai/chat', async (c) => {
-  const raw = await c.req.json()
-  const parsed = chatRequestSchema.safeParse(raw)
-  if (!parsed.success) {
-    return c.json({ error: parsed.error.message }, 400)
+  try {
+    const raw = await c.req.json()
+    const parsed = chatRequestSchema.safeParse(raw)
+    if (!parsed.success) {
+      return c.json({ error: parsed.error.message }, 400)
+    }
+
+    const config = await getAppConfig(c.env)
+    const context = await fetchContextSnippet(c.env, config, parsed.data.question)
+
+    const payload: ChatRequestPayload = {
+      question: parsed.data.question,
+      quality: parsed.data.quality,
+      colors: parsed.data.colors,
+      context: context ?? undefined,
+    }
+
+    const result = await runChatCompletion(c.env, config, payload)
+    return c.json(result)
+  } catch (err) {
+    console.error('Chat error:', err)
+    return c.json({ 
+      error: err instanceof Error ? err.message : 'Internal server error',
+      answer: 'Sorry, I encountered an error processing your question. Please try again.'
+    }, 500)
   }
-
-  const config = await getAppConfig(c.env)
-  const context = await fetchContextSnippet(c.env, config, parsed.data.question)
-
-  const payload: ChatRequestPayload = {
-    question: parsed.data.question,
-    quality: parsed.data.quality,
-    colors: parsed.data.colors,
-    context: context ?? undefined,
-  }
-
-  const result = await runChatCompletion(c.env, config, payload)
-  return c.json(result)
 })
 
 router.get('/docs', async (c) => {
