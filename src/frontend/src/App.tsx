@@ -407,8 +407,11 @@ function App() {
     async (path: string, init?: RequestInit) => {
       const headers = new Headers(init?.headers)
       if (adminToken.trim()) {
-        headers.set('Authorization', `Bearer ${adminToken.trim()}`)
+        const trimmed = adminToken.trim()
+        headers.set('Authorization', `Bearer ${trimmed}`)
+        headers.set('x-admin-token', trimmed)
       }
+      headers.set('Accept', 'application/json')
       return fetch(buildWorkerUrl(path), { ...init, headers })
     },
     [adminToken, buildWorkerUrl]
