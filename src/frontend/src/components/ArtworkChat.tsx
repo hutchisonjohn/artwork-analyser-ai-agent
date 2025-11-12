@@ -28,12 +28,17 @@ export default function ArtworkChat({ quality, colors, workerUrl }: ArtworkChatP
   }, [workerUrl])
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
   }
 
   useEffect(() => {
     scrollToBottom()
   }, [messages])
+
+  // Clear messages when a new artwork is uploaded
+  useEffect(() => {
+    setMessages([])
+  }, [quality.pixels?.w, quality.pixels?.h, quality.fileSizeMB])
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault()

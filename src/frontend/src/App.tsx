@@ -883,9 +883,19 @@ function App() {
                           : 'Vector / N/A'}
                       </dd>
                     </div>
-                    <div className="flex justify-between text-slate-600">
-                      <dt>DPI</dt>
-                      <dd>{analysis.quality.dpi ?? 'Not embedded'}</dd>
+                    <div className="flex justify-between items-center text-slate-600">
+                      <dt className="font-semibold">Embedded DPI</dt>
+                      <dd className="text-base font-bold text-primary">
+                        {analysis.quality.dpi ?? 'Not embedded'}
+                      </dd>
+                    </div>
+                    <div className="flex justify-between items-center text-slate-600">
+                      <dt className="font-semibold">Calculated DPI</dt>
+                      <dd className="text-base font-bold text-primary">
+                        {analysis.quality.pixels 
+                          ? Math.round((analysis.quality.pixels.w / analysis.quality.recommendedSizes.at300dpi.w_in) || 0)
+                          : 'N/A'}
+                      </dd>
                     </div>
                     <div className="flex justify-between text-slate-600">
                       <dt>Aspect ratio</dt>

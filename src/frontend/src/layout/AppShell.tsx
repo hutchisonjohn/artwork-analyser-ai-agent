@@ -158,8 +158,8 @@ const AppShell: React.FC<AppShellProps> = ({
           </div>
         </header>
 
-        <main className="flex-1 bg-slate-50 px-4 pb-12 pt-6 sm:px-6 lg:px-8">
-          <div className="space-y-10">{children}</div>
+        <main className="flex-1 overflow-auto bg-slate-50 px-4 pb-12 pt-6 sm:px-6 lg:px-8">
+          <div className="space-y-10" style={{ scrollBehavior: 'auto' }}>{children}</div>
         </main>
       </div>
     </div>
