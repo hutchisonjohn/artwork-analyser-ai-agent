@@ -671,56 +671,7 @@ function App() {
 
   const showPreview = Boolean(preview && previewDisplay)
 
-  const pixelDimensions = useMemo(() => {
-    if (analysis?.quality?.pixels) {
-      return analysis.quality.pixels
-    }
-    if (preview?.width && preview?.height) {
-      return { w: preview.width, h: preview.height }
-    }
-    return null
-  }, [analysis?.quality?.pixels?.w, analysis?.quality?.pixels?.h, preview?.width, preview?.height])
-
-  const fileSummary = useMemo(() => {
-    if (!analysis) {
-      return null
-    }
-    const type = analysis.quality.fileType?.toUpperCase?.() ?? analysis.quality.fileType ?? 'FILE'
-    const parts: string[] = [type]
-    const size = formatFileSizeMB(analysis.quality.fileSizeMB)
-    if (size !== 'N/A') {
-      parts.push(size)
-    }
-    // Show calculated DPI for raster images
-    if (analysis.quality.pixels && analysis.quality.recommendedSizes) {
-      const calculatedDPI = Math.round(analysis.quality.pixels.w / analysis.quality.recommendedSizes.at300dpi.w_in)
-      if (calculatedDPI > 0) {
-        parts.push(`${calculatedDPI} DPI`)
-      }
-    }
-    if (analysis.quality.rating) {
-      parts.push(`Rating: ${analysis.quality.rating}`)
-    }
-    return parts.join(' • ')
-  }, [analysis])
-
-  const originalSize = useMemo(() => {
-    if (!pixelDimensions) {
-      return null
-    }
-    const { w, h } = pixelDimensions
-    const dpi = 300
-    const wIn = w / dpi
-    const hIn = h / dpi
-    const wCm = wIn * 2.54
-    const hCm = hIn * 2.54
-    const formatInches = (value: number) => {
-      const rounded = Math.round(value)
-      return Math.abs(value - rounded) < 0.05 ? `${rounded}` : value.toFixed(1)
-    }
-    const formatCentimetres = (value: number) => value.toFixed(2)
-    return `Original size: ${w}px × ${h}px (${formatInches(wIn)}" × ${formatInches(hIn)}" (${formatCentimetres(wCm)}cm × ${formatCentimetres(hCm)} cm))`
-  }, [pixelDimensions])
+  // Removed pixelDimensions, fileSummary and originalSize - now using styled info box instead
 
   useEffect(() => {
     return () => {
@@ -781,17 +732,38 @@ function App() {
                           }}
                         />
                       )}
-                      {fileSummary && (
-                        <p className="mt-4 text-sm font-medium text-slate-700">{fileSummary}</p>
-                      )}
-                      {originalSize && (
-                        <p className="mt-1 text-sm text-slate-500">{originalSize}</p>
-                      )}
-                      {previewDisplay && (
-                        <p className="mt-1 text-xs text-slate-500">
-                          Displayed at approximately {previewDisplay.scalePercent}% scale.
-                        </p>
-                      )}
+                      {/* Styled info box */}
+                      <div className="mt-6 w-full max-w-lg rounded-lg border border-blue-200 bg-blue-50 p-4">
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <h4 className="text-sm font-semibold text-blue-900 mb-2">Image Information:</h4>
+                            <p className="text-sm text-blue-800">
+                              {analysis?.quality.pixels 
+                                ? `${analysis.quality.pixels.w} × ${analysis.quality.pixels.h} pixels`
+                                : 'Vector / N/A'}
+                            </p>
+                            {analysis?.quality.recommendedSizes && (
+                              <p className="text-sm text-blue-800 mt-1">
+                                Optimal print size: {analysis.quality.recommendedSizes.at300dpi.w_in}" × {analysis.quality.recommendedSizes.at300dpi.h_in}" at 300 DPI
+                              </p>
+                            )}
+                          </div>
+                          <div className="text-right">
+                            <div className="text-4xl font-bold text-blue-600">
+                              {analysis?.quality.pixels && analysis?.quality.recommendedSizes
+                                ? Math.round(analysis.quality.pixels.w / analysis.quality.recommendedSizes.at300dpi.w_in)
+                                : '—'} DPI
+                            </div>
+                            <div className={`mt-1 text-sm font-semibold ${
+                              analysis?.quality.rating === 'Optimal' ? 'text-green-600' :
+                              analysis?.quality.rating === 'Good' ? 'text-blue-600' :
+                              'text-orange-600'
+                            }`}>
+                              {analysis?.quality.rating || 'Unknown'} Quality
+                            </div>
+                          </div>
+                        </div>
+                      </div>
                       <button
                         type="button"
                         onClick={handleBrowseClick}
