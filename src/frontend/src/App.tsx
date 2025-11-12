@@ -691,8 +691,15 @@ function App() {
     if (size !== 'N/A') {
       parts.push(size)
     }
+    // Show calculated DPI for raster images
+    if (analysis.quality.pixels && analysis.quality.recommendedSizes) {
+      const calculatedDPI = Math.round(analysis.quality.pixels.w / analysis.quality.recommendedSizes.at300dpi.w_in)
+      if (calculatedDPI > 0) {
+        parts.push(`${calculatedDPI} DPI`)
+      }
+    }
     if (analysis.quality.rating) {
-      parts.push(`DPI Rating: ${analysis.quality.rating}`)
+      parts.push(`Rating: ${analysis.quality.rating}`)
     }
     return parts.join(' • ')
   }, [analysis])
@@ -831,15 +838,9 @@ function App() {
               </div>
 
               {/* Right column - AI Chat */}
-              <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-                <div className="flex flex-col gap-3 mb-6">
-                  <h2 className="text-2xl font-semibold text-slate-900">AI Assistant</h2>
-                  <p className="text-base text-slate-600">
-                    {analysis ? 'Ask questions about your artwork analysis.' : 'Upload an artwork to chat with the AI assistant.'}
-                  </p>
-                </div>
+              <div className="rounded-2xl border border-slate-200 bg-white shadow-sm">
                 {analysis ? (
-                  <div className="h-[500px]">
+                  <div className="h-[600px]">
                     <ArtworkChat
                       quality={analysis.quality}
                       colors={analysis.colors}
@@ -847,8 +848,16 @@ function App() {
                     />
                   </div>
                 ) : (
-                  <div className="flex h-[500px] items-center justify-center rounded-lg border-2 border-dashed border-slate-200 bg-slate-50">
-                    <p className="text-sm text-slate-500">Upload artwork to start chatting</p>
+                  <div className="flex h-[600px] flex-col items-center justify-center rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50 p-6">
+                    <div className="text-center">
+                      <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-indigo-100">
+                        <svg className="h-8 w-8 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+                        </svg>
+                      </div>
+                      <h3 className="text-lg font-semibold text-slate-900">AI Assistant</h3>
+                      <p className="mt-2 text-sm text-slate-500">Upload artwork to start chatting with the AI</p>
+                    </div>
                   </div>
                 )}
               </div>
