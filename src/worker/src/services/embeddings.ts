@@ -14,26 +14,14 @@ export async function generateEmbedding(
   config: AppConfig,
   text: string
 ): Promise<number[]> {
-  const body = {
-    model: config.embeddingModel,
-    input: [text],
-  }
-
-  const response = await env.WORKERS_AI.fetch('/v1/embeddings', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
+  // Use Workers AI run method instead of fetch
+  const response = await (env.WORKERS_AI as any).run('@cf/baai/bge-base-en-v1.5', {
+    text: [text],
   })
 
-  if (!response.ok) {
-    const payload = await response.text()
-    throw new Error(`Embedding request failed: ${response.status} ${payload}`)
-  }
-
-  const data = (await response.json()) as EmbeddingResponse
-  const vector = data.result?.embedding || data.data?.[0]?.embedding
-  if (!vector || !vector.length) {
-    throw new Error('No embedding returned from Workers AI')
+  const vector = response?.data?.[0] || response
+  if (!vector || !Array.isArray(vector)) {
+    throw new Error('No valid embedding returned from Workers AI')
   }
 
   return vector
