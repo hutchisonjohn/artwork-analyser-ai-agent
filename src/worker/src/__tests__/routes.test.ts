@@ -31,25 +31,26 @@ function createMockEnv(overrides: Partial<Bindings> = {}): Bindings {
         },
       }
     },
-  }
+  } as unknown as D1PreparedStatement
 
-  const d1: D1Database = {
+  const d1 = {
     prepare() {
-      return statement as unknown as D1PreparedStatement
+      return statement
     },
-    async batch() {
-      return []
-    },
-  }
+    batch: async () => [],
+    dump: async () => new Response(),
+    exec: async () => ({ count: 0, duration: 0 }),
+  } as unknown as D1Database
 
-  const fetcher: Fetcher = {
-    async fetch() {
-      return new Response('{}', {
-        status: 200,
-        headers: { 'content-type': 'application/json' },
-      })
+  const fetcher = {
+    fetch: async () => new Response('{}', {
+      status: 200,
+      headers: { 'content-type': 'application/json' },
+    }),
+    connect: () => {
+      throw new Error('connect not implemented')
     },
-  }
+  } as unknown as Fetcher
 
   return {
     APP_CONFIG: kv,
@@ -57,7 +58,7 @@ function createMockEnv(overrides: Partial<Bindings> = {}): Bindings {
     WORKERS_AI: fetcher,
     ADMIN_TOKEN: 'test-token',
     ...overrides,
-  }
+  } as Bindings
 }
 
 describe('router', () => {
@@ -66,7 +67,7 @@ describe('router', () => {
     const request = new Request('http://localhost/health')
     const response = await router.fetch(request, env)
     expect(response.status).toBe(200)
-    const payload = await response.json()
+    const payload = await response.json() as { status: string }
     expect(payload.status).toBe('ok')
   })
 
@@ -86,7 +87,7 @@ describe('router', () => {
     })
     const response = await router.fetch(request, env)
     expect(response.status).toBe(200)
-    const payload = await response.json()
+    const payload = await response.json() as { provider: string }
     expect(payload.provider).toBe('claude')
   })
 })
