@@ -130,6 +130,7 @@ function App() {
   const [showMagnifier, setShowMagnifier] = useState(false)
   const [magnifierPosition, setMagnifierPosition] = useState({ x: 0, y: 0 })
   const [sliderWidth, setSliderWidth] = useState(0)
+  const [isZoomMode, setIsZoomMode] = useState(false)
 
   const [adminConfig, setAdminConfig] = useState<AdminConfigState | null>(null)
   const [apiKeyInput, setApiKeyInput] = useState('')
@@ -724,64 +725,90 @@ function App() {
                   >
                   {showPreview ? (
                     <>
-                      {previewDisplay && (
-                        <div
-                          className="relative inline-block"
-                          onMouseEnter={() => setShowMagnifier(true)}
-                          onMouseLeave={() => setShowMagnifier(false)}
-                          onMouseMove={(e) => {
-                            const elem = e.currentTarget
-                            const { left, top, width, height } = elem.getBoundingClientRect()
-                            // Allow magnifier to reach edges by clamping position
-                            let x = ((e.clientX - left) / width) * 100
-                            let y = ((e.clientY - top) / height) * 100
-                            // Clamp to 0-100 range to ensure edges are reachable
-                            x = Math.max(0, Math.min(100, x))
-                            y = Math.max(0, Math.min(100, y))
-                            setMagnifierPosition({ x, y })
-                          }}
-                        >
+                      {previewDisplay && !isZoomMode && (
+                        <div className="relative inline-block">
                           <img
                             src={preview?.url ?? ''}
                             alt={analysis?.fileName ? `Preview of ${analysis.fileName}` : 'Preview of uploaded artwork'}
-                            className="max-h-64 w-auto rounded-md border border-slate-200 bg-white object-contain shadow-sm cursor-crosshair"
+                            onClick={() => setIsZoomMode(true)}
+                            className="max-h-64 w-auto rounded-md border border-slate-200 bg-white object-contain shadow-sm cursor-pointer hover:border-indigo-400 transition"
                             style={{
                               width: previewDisplay.width ? `${previewDisplay.width}px` : undefined,
                               height: previewDisplay.height ? `${previewDisplay.height}px` : undefined,
                             }}
                           />
-                          {showMagnifier && (
-                            <div
-                              className="absolute inset-0 pointer-events-none border-4 border-indigo-500 rounded-md shadow-2xl overflow-hidden"
-                              style={{
-                                backgroundImage: `
-                                  linear-gradient(45deg, #e5e7eb 25%, transparent 25%),
-                                  linear-gradient(-45deg, #e5e7eb 25%, transparent 25%),
-                                  linear-gradient(45deg, transparent 75%, #e5e7eb 75%),
-                                  linear-gradient(-45deg, transparent 75%, #e5e7eb 75%),
-                                  url(${preview?.url ?? ''})
-                                `,
-                                backgroundPosition: `
-                                  0 0,
-                                  0 10px,
-                                  10px -10px,
-                                  -10px 0px,
-                                  ${magnifierPosition.x}% ${magnifierPosition.y}%
-                                `,
-                                backgroundSize: `
-                                  20px 20px,
-                                  20px 20px,
-                                  20px 20px,
-                                  20px 20px,
-                                  ${(previewDisplay.width || 0) * 3}px ${(previewDisplay.height || 0) * 3}px
-                                `,
-                                backgroundRepeat: 'repeat, repeat, repeat, repeat, no-repeat',
-                                backgroundColor: '#ffffff',
-                              }}
-                            >
-                              <div className="absolute inset-0 border-2 border-white rounded-md"></div>
-                            </div>
-                          )}
+                          <div className="absolute bottom-2 right-2 bg-slate-900/75 text-white text-xs px-2 py-1 rounded pointer-events-none">
+                            Click to zoom
+                          </div>
+                        </div>
+                      )}
+                      
+                      {/* Full Zoom Mode */}
+                      {isZoomMode && previewDisplay && (
+                        <div className="absolute inset-0 z-10 flex items-center justify-center bg-slate-900/95">
+                          {/* Close button */}
+                          <button
+                            onClick={() => setIsZoomMode(false)}
+                            className="absolute top-4 right-4 z-20 bg-white hover:bg-slate-100 text-slate-900 rounded-lg p-2 shadow-lg transition"
+                            aria-label="Close zoom"
+                          >
+                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                          </button>
+                          
+                          {/* Zoom container */}
+                          <div
+                            className="relative w-full h-full"
+                            onMouseEnter={() => setShowMagnifier(true)}
+                            onMouseLeave={() => setShowMagnifier(false)}
+                            onMouseMove={(e) => {
+                              const elem = e.currentTarget
+                              const { left, top, width, height } = elem.getBoundingClientRect()
+                              let x = ((e.clientX - left) / width) * 100
+                              let y = ((e.clientY - top) / height) * 100
+                              x = Math.max(0, Math.min(100, x))
+                              y = Math.max(0, Math.min(100, y))
+                              setMagnifierPosition({ x, y })
+                            }}
+                          >
+                            {showMagnifier ? (
+                              <div className="absolute inset-0 overflow-hidden" style={{ backgroundColor: '#ffffff' }}>
+                                {/* Checkerboard pattern background */}
+                                <div
+                                  className="absolute inset-0"
+                                  style={{
+                                    backgroundImage: `
+                                      linear-gradient(45deg, #e5e7eb 25%, transparent 25%),
+                                      linear-gradient(-45deg, #e5e7eb 25%, transparent 25%),
+                                      linear-gradient(45deg, transparent 75%, #e5e7eb 75%),
+                                      linear-gradient(-45deg, transparent 75%, #e5e7eb 75%)
+                                    `,
+                                    backgroundPosition: '0 0, 0 10px, 10px -10px, -10px 0px',
+                                    backgroundSize: '20px 20px',
+                                    backgroundRepeat: 'repeat',
+                                  }}
+                                />
+                                {/* Zoomed image on top */}
+                                <div
+                                  className="absolute inset-0"
+                                  style={{
+                                    backgroundImage: `url(${preview?.url ?? ''})`,
+                                    backgroundPosition: `${magnifierPosition.x}% ${magnifierPosition.y}%`,
+                                    backgroundSize: `${(previewDisplay.width || 0) * 3}px ${(previewDisplay.height || 0) * 3}px`,
+                                    backgroundRepeat: 'no-repeat',
+                                  }}
+                                />
+                                <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-slate-900/75 text-white text-sm px-3 py-2 rounded pointer-events-none">
+                                  Hover to explore • 3x zoom
+                                </div>
+                              </div>
+                            ) : (
+                              <div className="absolute inset-0 flex items-center justify-center text-white text-lg">
+                                Hover to zoom in
+                              </div>
+                            )}
+                          </div>
                         </div>
                       )}
                       {previewDisplay && analysis?.quality.recommendedSizes && (
@@ -951,17 +978,19 @@ function App() {
                       const { w: pixelW, h: pixelH } = analysis.quality.pixels
                       const aspectRatio = pixelW / pixelH
                       
-                      // Calculate starting size at optimal DPI (300 DPI)
-                      const startWidthCm = (pixelW / 300) * 2.54
-                      const startDPI = 300
+                      // Calculate min size at optimal DPI (300 DPI)
+                      const minWidthCm = (pixelW / 300) * 2.54
                       
                       // Calculate max width: either 60cm OR where DPI drops to 72 (whichever comes first)
                       const maxWidthAt72DPI = (pixelW / 72) * 2.54
                       const maxWidthCm = Math.min(60, maxWidthAt72DPI)
                       
-                      // Initialize slider to starting size (smallest, highest DPI) on first render
+                      // Calculate width at DPI = 250 (green|orange border)
+                      const widthAt250DPI = (pixelW / 250) * 2.54
+                      
+                      // Initialize slider to green|orange border (DPI 250) on first render
                       if (sliderWidth === 0) {
-                        setSliderWidth(startWidthCm)
+                        setSliderWidth(widthAt250DPI)
                       }
                       
                       // Calculate DPI at slider position
@@ -977,6 +1006,9 @@ function App() {
                       } else if (sliderDPI >= 200) {
                         sliderQuality = 'Good'
                       }
+                      
+                      // Calculate slider position percentage
+                      const sliderPercent = ((sliderWidth - minWidthCm) / (maxWidthCm - minWidthCm)) * 100
                       
                       return (
                         <div className="mt-6">
@@ -1005,33 +1037,44 @@ function App() {
                           {/* Slider - Rectangle with equal color sections */}
                           <div className="relative">
                             <div className="flex h-10">
-                              {/* Green section (Optimal) */}
+                              {/* Green section (Optimal ≥250 DPI) */}
                               <div className="flex-1 bg-green-500"></div>
-                              {/* Amber section (Good) */}
+                              {/* Amber section (Good 200-249 DPI) */}
                               <div className="flex-1 bg-orange-500"></div>
-                              {/* Red section (Poor) */}
+                              {/* Red section (Poor <200 DPI) */}
                               <div className="flex-1 bg-red-500"></div>
                             </div>
                             <input
                               type="range"
-                              min={startWidthCm}
+                              min={minWidthCm}
                               max={maxWidthCm}
                               step={0.1}
                               value={sliderWidth}
                               onChange={(e) => setSliderWidth(parseFloat(e.target.value))}
                               className="absolute inset-0 w-full h-10 opacity-0 cursor-pointer"
                             />
+                            {/* Slider control with arrows */}
                             <div 
-                              className="absolute top-0 w-1 h-10 bg-slate-900 shadow-lg pointer-events-none"
+                              className="absolute top-0 h-10 flex items-center pointer-events-none"
                               style={{
-                                left: `calc(${((sliderWidth - startWidthCm) / (maxWidthCm - startWidthCm)) * 100}% - 0.125rem)`
+                                left: `calc(${sliderPercent}% - 12px)`,
                               }}
-                            />
+                            >
+                              <div className="flex items-center bg-slate-900 text-white h-10 px-1 shadow-lg">
+                                <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                  <path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" />
+                                </svg>
+                                <div className="w-0.5 h-10 bg-white mx-0.5"></div>
+                                <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                  <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
+                                </svg>
+                              </div>
+                            </div>
                           </div>
                           
                           {/* Slider labels */}
                           <div className="flex justify-between mt-2 text-xs text-slate-500">
-                            <span>{startWidthCm.toFixed(1)} cm (DPI {startDPI})</span>
+                            <span>{minWidthCm.toFixed(1)} cm (DPI 300)</span>
                             <span>{maxWidthCm.toFixed(1)} cm (DPI {Math.round(pixelW / (maxWidthCm / 2.54))})</span>
                           </div>
                         </div>
