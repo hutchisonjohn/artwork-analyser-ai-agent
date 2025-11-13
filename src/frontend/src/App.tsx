@@ -34,6 +34,8 @@ interface AdminConfigState {
   embeddingModel: string
   systemPrompt: string
   apiKey?: string
+  aiName?: string
+  greetingMessage?: string
 }
 
 interface DocSummary {
@@ -1148,11 +1150,13 @@ function App() {
               {/* AI Assistant - appears to the right when open */}
               {analysis && isAiChatOpen && (
                 <div className="w-96 flex-shrink-0">
-                  <div className="sticky top-20">
+                  <div className="sticky top-20 h-[600px]">
                     <ArtworkChat
                       quality={analysis.quality}
                       colors={analysis.colors}
                       workerUrl={workerBaseUrl}
+                      aiName={adminConfig?.aiName || 'McCarthy AI Artwork Assistant'}
+                      greetingMessage={adminConfig?.greetingMessage || 'Hello! I\'m McCarthy, your AI artwork assistant. I\'m here to help you understand your artwork\'s print quality, DPI, colors, and file specifications. Feel free to ask me anything about your artwork!'}
                     />
                   </div>
                 </div>
@@ -1552,6 +1556,36 @@ function App() {
                           : current
                       )
                     }
+                  />
+                </label>
+                <label className="flex flex-col gap-1 text-sm">
+                  <span className="font-medium text-slate-700">AI Assistant Name</span>
+                  <input
+                    className="rounded-md border border-slate-200 bg-white px-3 py-2 text-sm"
+                    value={adminConfig.aiName || 'McCarthy AI Artwork Assistant'}
+                    onChange={(event) =>
+                      setAdminConfig((current) =>
+                        current
+                          ? { ...current, aiName: event.target.value }
+                          : current
+                      )
+                    }
+                    placeholder="McCarthy AI Artwork Assistant"
+                  />
+                </label>
+                <label className="flex flex-col gap-1 text-sm">
+                  <span className="font-medium text-slate-700">Greeting Message</span>
+                  <textarea
+                    className="min-h-[80px] rounded-md border border-slate-200 bg-white px-3 py-2 text-sm"
+                    value={adminConfig.greetingMessage || 'Hello! I\'m McCarthy, your AI artwork assistant. I\'m here to help you understand your artwork\'s print quality, DPI, colors, and file specifications. Feel free to ask me anything about your artwork!'}
+                    onChange={(event) =>
+                      setAdminConfig((current) =>
+                        current
+                          ? { ...current, greetingMessage: event.target.value }
+                          : current
+                      )
+                    }
+                    placeholder="Hello! I'm McCarthy, your AI artwork assistant..."
                   />
                 </label>
                 <div className="flex flex-wrap items-center gap-3">
