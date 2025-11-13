@@ -716,69 +716,72 @@ function App() {
                     onDragOver={handleDragOver}
                     onDragLeave={handleDragLeave}
                     onDrop={handleDrop}
-                    onMouseEnter={() => showPreview && setShowMagnifier(true)}
-                    onMouseLeave={() => setShowMagnifier(false)}
-                    onMouseMove={(e) => {
-                      if (!showPreview) return
-                      const elem = e.currentTarget
-                      const { left, top, width, height } = elem.getBoundingClientRect()
-                      // Allow magnifier to reach edges by clamping position
-                      let x = ((e.clientX - left) / width) * 100
-                      let y = ((e.clientY - top) / height) * 100
-                      // Clamp to 0-100 range to ensure edges are reachable
-                      x = Math.max(0, Math.min(100, x))
-                      y = Math.max(0, Math.min(100, y))
-                      setMagnifierPosition({ x, y })
-                    }}
                     className={`relative flex w-full flex-col items-center justify-center rounded-xl border-2 border-dashed px-6 py-10 text-center transition ${
                       isDragActive
                         ? 'border-indigo-400 bg-indigo-50'
                         : 'border-slate-300 bg-slate-50 hover:border-indigo-300 hover:bg-white'
-                    } ${showPreview ? 'cursor-crosshair' : ''}`}
+                    }`}
                   >
                   {showPreview ? (
                     <>
                       {previewDisplay && (
-                        <img
-                          src={preview?.url ?? ''}
-                          alt={analysis?.fileName ? `Preview of ${analysis.fileName}` : 'Preview of uploaded artwork'}
-                          className="max-h-64 w-auto rounded-md border border-slate-200 bg-white object-contain shadow-sm"
-                          style={{
-                            width: previewDisplay.width ? `${previewDisplay.width}px` : undefined,
-                            height: previewDisplay.height ? `${previewDisplay.height}px` : undefined,
-                          }}
-                        />
-                      )}
-                      {showMagnifier && previewDisplay && (
                         <div
-                          className="absolute inset-0 pointer-events-none border-4 border-indigo-500 rounded-xl shadow-2xl overflow-hidden"
-                          style={{
-                            backgroundImage: `
-                              linear-gradient(45deg, #e5e7eb 25%, transparent 25%),
-                              linear-gradient(-45deg, #e5e7eb 25%, transparent 25%),
-                              linear-gradient(45deg, transparent 75%, #e5e7eb 75%),
-                              linear-gradient(-45deg, transparent 75%, #e5e7eb 75%),
-                              url(${preview?.url ?? ''})
-                            `,
-                            backgroundPosition: `
-                              0 0,
-                              0 10px,
-                              10px -10px,
-                              -10px 0px,
-                              ${magnifierPosition.x}% ${magnifierPosition.y}%
-                            `,
-                            backgroundSize: `
-                              20px 20px,
-                              20px 20px,
-                              20px 20px,
-                              20px 20px,
-                              ${(previewDisplay.width || 0) * 3}px ${(previewDisplay.height || 0) * 3}px
-                            `,
-                            backgroundRepeat: 'repeat, repeat, repeat, repeat, no-repeat',
-                            backgroundColor: '#ffffff',
+                          className="relative inline-block"
+                          onMouseEnter={() => setShowMagnifier(true)}
+                          onMouseLeave={() => setShowMagnifier(false)}
+                          onMouseMove={(e) => {
+                            const elem = e.currentTarget
+                            const { left, top, width, height } = elem.getBoundingClientRect()
+                            // Allow magnifier to reach edges by clamping position
+                            let x = ((e.clientX - left) / width) * 100
+                            let y = ((e.clientY - top) / height) * 100
+                            // Clamp to 0-100 range to ensure edges are reachable
+                            x = Math.max(0, Math.min(100, x))
+                            y = Math.max(0, Math.min(100, y))
+                            setMagnifierPosition({ x, y })
                           }}
                         >
-                          <div className="absolute inset-0 border-2 border-white rounded-xl"></div>
+                          <img
+                            src={preview?.url ?? ''}
+                            alt={analysis?.fileName ? `Preview of ${analysis.fileName}` : 'Preview of uploaded artwork'}
+                            className="max-h-64 w-auto rounded-md border border-slate-200 bg-white object-contain shadow-sm cursor-crosshair"
+                            style={{
+                              width: previewDisplay.width ? `${previewDisplay.width}px` : undefined,
+                              height: previewDisplay.height ? `${previewDisplay.height}px` : undefined,
+                            }}
+                          />
+                          {showMagnifier && (
+                            <div
+                              className="absolute inset-0 pointer-events-none border-4 border-indigo-500 rounded-md shadow-2xl overflow-hidden"
+                              style={{
+                                backgroundImage: `
+                                  linear-gradient(45deg, #e5e7eb 25%, transparent 25%),
+                                  linear-gradient(-45deg, #e5e7eb 25%, transparent 25%),
+                                  linear-gradient(45deg, transparent 75%, #e5e7eb 75%),
+                                  linear-gradient(-45deg, transparent 75%, #e5e7eb 75%),
+                                  url(${preview?.url ?? ''})
+                                `,
+                                backgroundPosition: `
+                                  0 0,
+                                  0 10px,
+                                  10px -10px,
+                                  -10px 0px,
+                                  ${magnifierPosition.x}% ${magnifierPosition.y}%
+                                `,
+                                backgroundSize: `
+                                  20px 20px,
+                                  20px 20px,
+                                  20px 20px,
+                                  20px 20px,
+                                  ${(previewDisplay.width || 0) * 3}px ${(previewDisplay.height || 0) * 3}px
+                                `,
+                                backgroundRepeat: 'repeat, repeat, repeat, repeat, no-repeat',
+                                backgroundColor: '#ffffff',
+                              }}
+                            >
+                              <div className="absolute inset-0 border-2 border-white rounded-md"></div>
+                            </div>
+                          )}
                         </div>
                       )}
                       {previewDisplay && analysis?.quality.recommendedSizes && (
