@@ -695,10 +695,11 @@ function App() {
     >
       {activeTab === 'analyze' ? (
         <>
-          <section className="space-y-6 relative">
-            {/* Upload area - always centered, max-w-7xl */}
-            <div className="max-w-7xl mx-auto">
-              <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+          <section className="space-y-6">
+            {/* Flex container to position upload area and AI side by side */}
+            <div className="flex gap-6 items-start justify-center">
+              {/* Upload area - always max-w-7xl */}
+              <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm w-full max-w-7xl">
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex flex-col gap-3 flex-1">
                 <h2 className="text-2xl font-semibold text-slate-900">Check Your Image Quality</h2>
@@ -1142,20 +1143,20 @@ function App() {
               </div>
             )}
               </div>
-            </div>
 
-            {/* AI Assistant - slides in from right as overlay */}
-            {analysis && isAiChatOpen && (
-              <div className="fixed top-16 right-0 bottom-0 w-96 bg-white border-l border-slate-200 shadow-2xl z-30 overflow-hidden">
-                <div className="h-full">
-                  <ArtworkChat
-                    quality={analysis.quality}
-                    colors={analysis.colors}
-                    workerUrl={workerBaseUrl}
-                  />
+              {/* AI Assistant - appears to the right when open */}
+              {analysis && isAiChatOpen && (
+                <div className="w-96 flex-shrink-0">
+                  <div className="sticky top-20">
+                    <ArtworkChat
+                      quality={analysis.quality}
+                      colors={analysis.colors}
+                      workerUrl={workerBaseUrl}
+                    />
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
+            </div>
           </section>
 
           {analysis ? (
