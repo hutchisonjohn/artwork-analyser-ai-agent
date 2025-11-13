@@ -732,10 +732,15 @@ function App() {
                           }}
                         />
                       )}
-                      {previewDisplay && (
-                        <p className="mt-4 text-sm text-slate-600">
-                          Displayed at {previewDisplay.scalePercent}% of original size
-                        </p>
+                      {previewDisplay && analysis?.quality.recommendedSizes && (
+                        <>
+                          <p className="mt-4 text-sm text-slate-600">
+                            Displayed at {previewDisplay.scalePercent}% of original size
+                          </p>
+                          <p className="text-xs text-slate-500 mt-1">
+                            Original: {analysis.quality.recommendedSizes.at300dpi.w_cm} × {analysis.quality.recommendedSizes.at300dpi.h_cm} cm ({analysis.quality.recommendedSizes.at300dpi.w_in}" × {analysis.quality.recommendedSizes.at300dpi.h_in}")
+                          </p>
+                        </>
                       )}
                       <button
                         type="button"
