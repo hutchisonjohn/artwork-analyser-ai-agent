@@ -1005,7 +1005,7 @@ function App() {
                       
                       // Poor: DPI <200 (largest size)
                       const maxWidthAt72DPI = (pixelW / 72) * 2.54
-                      const maxWidthCm = Math.min(60, maxWidthAt72DPI)  // Max at 60cm or 72 DPI
+                      const maxWidthCm = Math.min(40, maxWidthAt72DPI)  // Max at 40cm or 72 DPI
                       
                       // Initialize slider to BEST OPTIMAL SIZE (DPI 250 - largest size in green zone) on first render
                       if (sliderWidth === 0) {
@@ -1099,8 +1099,8 @@ function App() {
                           
                           {/* Slider labels */}
                           <div className="flex justify-between mt-2 text-xs text-slate-500">
-                            <span>{minWidthCm.toFixed(1)} cm (DPI 300)</span>
-                            <span>{maxWidthCm.toFixed(1)} cm (DPI {Math.round(pixelW / (maxWidthCm / 2.54))})</span>
+                            <span>{minWidthCm.toFixed(1)} cm ({(minWidthCm / 2.54).toFixed(1)}") - DPI 300</span>
+                            <span>{maxWidthCm.toFixed(1)} cm ({(maxWidthCm / 2.54).toFixed(1)}") - DPI {Math.round(pixelW / (maxWidthCm / 2.54))}</span>
                           </div>
                         </div>
                       )
