@@ -247,7 +247,7 @@ export default function ArtworkChat({ quality, colors, workerUrl, aiName = 'McCa
 
       {/* Input */}
       <form onSubmit={handleSubmit} className="border-t border-slate-200 p-4">
-        <div className="flex gap-2">
+        <div className="flex gap-2 items-center">
           <textarea
             ref={textareaRef}
             value={input}
@@ -256,7 +256,8 @@ export default function ArtworkChat({ quality, colors, workerUrl, aiName = 'McCa
             placeholder=""
             disabled={isLoading}
             className="flex-1 resize-none rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 disabled:cursor-not-allowed disabled:bg-slate-50"
-            rows={2}
+            rows={1}
+            style={{ height: '40px', minHeight: '40px', maxHeight: '40px' }}
           />
           <button
             type="submit"
