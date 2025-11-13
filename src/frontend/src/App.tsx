@@ -727,11 +727,27 @@ function App() {
                     <>
                       {previewDisplay && !isZoomMode && (
                         <div className="relative inline-block">
+                          {/* Transparent checkerboard background */}
+                          <div 
+                            className="absolute inset-0 rounded-md"
+                            style={{
+                              backgroundImage: `
+                                linear-gradient(45deg, #e5e7eb 25%, transparent 25%),
+                                linear-gradient(-45deg, #e5e7eb 25%, transparent 25%),
+                                linear-gradient(45deg, transparent 75%, #e5e7eb 75%),
+                                linear-gradient(-45deg, transparent 75%, #e5e7eb 75%)
+                              `,
+                              backgroundPosition: '0 0, 0 10px, 10px -10px, -10px 0px',
+                              backgroundSize: '20px 20px',
+                              backgroundRepeat: 'repeat',
+                              backgroundColor: '#ffffff',
+                            }}
+                          />
                           <img
                             src={preview?.url ?? ''}
                             alt={analysis?.fileName ? `Preview of ${analysis.fileName}` : 'Preview of uploaded artwork'}
                             onClick={() => setIsZoomMode(true)}
-                            className="max-h-64 w-auto rounded-md border border-slate-200 bg-white object-contain shadow-sm cursor-pointer hover:border-indigo-400 transition"
+                            className="relative max-h-64 w-auto rounded-md border border-slate-200 object-contain shadow-sm cursor-pointer hover:border-indigo-400 transition"
                             style={{
                               width: previewDisplay.width ? `${previewDisplay.width}px` : undefined,
                               height: previewDisplay.height ? `${previewDisplay.height}px` : undefined,
