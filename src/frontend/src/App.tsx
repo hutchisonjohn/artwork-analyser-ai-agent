@@ -775,37 +775,107 @@ function App() {
 
                 {/* Styled info box - shown below upload area when analysis exists */}
                 {analysis && (
-                  <div className="mt-4 rounded-lg border border-blue-200 bg-blue-50 p-4">
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <h4 className="text-sm font-semibold text-blue-900 mb-2">Image Information:</h4>
-                        <p className="text-sm text-blue-800">
-                          {analysis.quality.pixels 
-                            ? `${analysis.quality.pixels.w} × ${analysis.quality.pixels.h} pixels`
-                            : 'Vector / N/A'}
-                        </p>
-                        {analysis.quality.recommendedSizes && (
-                          <p className="text-sm text-blue-800 mt-1">
-                            Optimal print size: {analysis.quality.recommendedSizes.at300dpi.w_in}" × {analysis.quality.recommendedSizes.at300dpi.h_in}" at 300 DPI
+                  <>
+                    <div className="mt-4 rounded-lg border border-blue-200 bg-blue-50 p-4">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <h4 className="text-sm font-semibold text-blue-900 mb-2">Image Information:</h4>
+                          <p className="text-sm text-blue-800">
+                            {analysis.quality.pixels 
+                              ? `${analysis.quality.pixels.w} × ${analysis.quality.pixels.h} pixels`
+                              : 'Vector / N/A'}
                           </p>
-                        )}
-                      </div>
-                      <div className="text-right">
-                        <div className="text-4xl font-bold text-blue-600">
-                          {analysis.quality.pixels && analysis.quality.recommendedSizes
-                            ? Math.round(analysis.quality.pixels.w / analysis.quality.recommendedSizes.at300dpi.w_in)
-                            : '—'} DPI
+                          {analysis.quality.recommendedSizes && (
+                            <p className="text-sm text-blue-800 mt-1">
+                              Optimal print size: {analysis.quality.recommendedSizes.at300dpi.w_in}" × {analysis.quality.recommendedSizes.at300dpi.h_in}" at 300 DPI
+                            </p>
+                          )}
                         </div>
-                        <div className={`mt-1 text-sm font-semibold ${
-                          analysis.quality.rating === 'Optimal' ? 'text-green-600' :
-                          analysis.quality.rating === 'Good' ? 'text-blue-600' :
-                          'text-orange-600'
-                        }`}>
-                          {analysis.quality.rating || 'Unknown'} Quality
+                        <div className="text-right">
+                          <div className="text-4xl font-bold text-blue-600">
+                            {analysis.quality.pixels && analysis.quality.recommendedSizes
+                              ? Math.round(analysis.quality.pixels.w / analysis.quality.recommendedSizes.at300dpi.w_in)
+                              : '—'} DPI
+                          </div>
+                          <div className={`mt-1 text-sm font-semibold ${
+                            analysis.quality.rating === 'Optimal' ? 'text-green-600' :
+                            analysis.quality.rating === 'Good' ? 'text-blue-600' :
+                            'text-orange-600'
+                          }`}>
+                            {analysis.quality.rating || 'Unknown'} Quality
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
+
+                    {/* DPI Calculator - Show DPI at different sizes */}
+                    {analysis.quality.pixels && (() => {
+                      const { w: pixelW, h: pixelH } = analysis.quality.pixels
+                      const aspectRatio = pixelW / pixelH
+                      const targetWidthsCm = [20, 25, 30]
+                      
+                      const calculateDpiAtSize = (widthCm: number) => {
+                        const widthInches = widthCm / 2.54
+                        const heightInches = widthInches / aspectRatio
+                        const heightCm = heightInches * 2.54
+                        const dpi = Math.round(pixelW / widthInches)
+                        
+                        let quality: string
+                        let colorClass: string
+                        if (dpi >= 250) {
+                          quality = 'Optimal'
+                          colorClass = 'bg-green-100 border-green-300 text-green-800'
+                        } else if (dpi >= 200) {
+                          quality = 'Good'
+                          colorClass = 'bg-orange-100 border-orange-300 text-orange-800'
+                        } else {
+                          quality = 'Poor'
+                          colorClass = 'bg-red-100 border-red-300 text-red-800'
+                        }
+                        
+                        return {
+                          widthCm: widthCm.toFixed(0),
+                          heightCm: heightCm.toFixed(0),
+                          widthIn: widthInches.toFixed(1),
+                          heightIn: heightInches.toFixed(1),
+                          dpi,
+                          quality,
+                          colorClass
+                        }
+                      }
+
+                      const sizes = targetWidthsCm.map(calculateDpiAtSize)
+
+                      return (
+                        <div className="mt-4">
+                          <h4 className="text-sm font-semibold text-slate-700 mb-3">DPI at Different Print Sizes:</h4>
+                          <div className="grid gap-3 sm:grid-cols-3">
+                            {sizes.map((size, idx) => (
+                              <div
+                                key={idx}
+                                className={`rounded-lg border-2 p-4 ${size.colorClass}`}
+                              >
+                                <div className="text-center">
+                                  <div className="text-lg font-bold">
+                                    {size.widthCm} × {size.heightCm} cm
+                                  </div>
+                                  <div className="text-xs mt-1 opacity-75">
+                                    ({size.widthIn}" × {size.heightIn}")
+                                  </div>
+                                  <div className="text-3xl font-bold mt-3">
+                                    {size.dpi} DPI
+                                  </div>
+                                  <div className="text-sm font-semibold mt-2">
+                                    {size.quality}
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )
+                    })()}
+                  </>
                 )}
 
                 {error && (
@@ -857,13 +927,7 @@ function App() {
                       </dd>
                     </div>
                     <div className="flex justify-between items-center text-slate-600">
-                      <dt className="font-semibold">Embedded DPI</dt>
-                      <dd className="text-base font-bold text-primary">
-                        {analysis.quality.dpi ?? 'Not embedded'}
-                      </dd>
-                    </div>
-                    <div className="flex justify-between items-center text-slate-600">
-                      <dt className="font-semibold">Calculated DPI</dt>
+                      <dt className="font-semibold">Current DPI</dt>
                       <dd className="text-base font-bold text-primary">
                         {analysis.quality.pixels 
                           ? Math.round((analysis.quality.pixels.w / analysis.quality.recommendedSizes.at300dpi.w_in) || 0)
@@ -1030,6 +1094,54 @@ function App() {
                         </div>
                       </div>
                     ))}
+                  </div>
+                </div>
+              )}
+
+              {/* DPI Calculator - What if you print at different sizes? */}
+              {analysis.quality.pixels && analysis.quality.recommendedSizes && (
+                <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+                  <h4 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground mb-3">
+                    DPI at Different Print Sizes
+                  </h4>
+                  <p className="text-xs text-slate-500 mb-4">
+                    See what DPI you'll get if you print at larger sizes (maintaining aspect ratio)
+                  </p>
+                  <div className="grid gap-3 sm:grid-cols-3">
+                    {[20, 25, 30].map((targetCm) => {
+                      if (!analysis.quality.pixels) return null
+                      
+                      // Calculate dimensions maintaining aspect ratio
+                      const aspectRatio = analysis.quality.pixels.w / analysis.quality.pixels.h
+                      const widthCm = targetCm
+                      const heightCm = targetCm / aspectRatio
+                      const widthIn = widthCm / 2.54
+                      const heightIn = heightCm / 2.54
+                      const dpi = Math.round(analysis.quality.pixels.w / widthIn)
+                      
+                      // Determine quality color
+                      const qualityColor = dpi >= 250 ? 'bg-green-100 border-green-300 text-green-800' :
+                                          dpi >= 200 ? 'bg-orange-100 border-orange-300 text-orange-800' :
+                                          'bg-red-100 border-red-300 text-red-800'
+                      const qualityText = dpi >= 250 ? 'Optimal' : dpi >= 200 ? 'Good' : 'Poor'
+                      const dotColor = dpi >= 250 ? 'bg-green-500' : dpi >= 200 ? 'bg-orange-500' : 'bg-red-500'
+                      
+                      return (
+                        <div key={targetCm} className={`rounded-lg border-2 p-3 ${qualityColor}`}>
+                          <div className="flex items-center gap-2 mb-2">
+                            <div className={`h-3 w-3 rounded-full ${dotColor}`}></div>
+                            <span className="text-xs font-semibold uppercase">{qualityText} Quality</span>
+                          </div>
+                          <div className="text-2xl font-bold mb-1">{dpi} DPI</div>
+                          <div className="text-sm font-medium">
+                            {widthCm.toFixed(1)}cm × {heightCm.toFixed(1)}cm
+                          </div>
+                          <div className="text-xs opacity-75 mt-1">
+                            ({widthIn.toFixed(1)}" × {heightIn.toFixed(1)}")
+                          </div>
+                        </div>
+                      )
+                    })}
                   </div>
                 </div>
               )}
