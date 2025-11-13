@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useMemo } from 'react'
-import { Send, Bot, User } from 'lucide-react'
+import { Send, Sparkles, User } from 'lucide-react'
 import type { QualityReport, ColorReport } from '@shared/types'
 
 interface Message {
@@ -172,7 +172,7 @@ export default function ArtworkChat({ quality, colors, workerUrl, aiName = 'McCa
     <div className="flex h-full flex-col rounded-xl border border-slate-200 bg-white shadow-sm">
       {/* Header */}
       <div className="flex items-center gap-2 border-b border-slate-200 px-4 py-3">
-        <Bot className="h-5 w-5 text-indigo-600" />
+        <Sparkles className="h-5 w-5 text-indigo-600" />
         <h3 className="font-semibold text-slate-900">{aiName}</h3>
       </div>
 
@@ -181,7 +181,7 @@ export default function ArtworkChat({ quality, colors, workerUrl, aiName = 'McCa
         {messages.length === 0 ? (
           <div className="flex h-full items-center justify-center">
             <div className="text-center">
-              <Bot className="mx-auto h-12 w-12 text-slate-300" />
+              <Sparkles className="mx-auto h-12 w-12 text-slate-300" />
               <p className="mt-3 text-sm text-slate-500">
                 Ask me anything about your artwork's print quality, DPI, colors, or file specifications.
               </p>
@@ -198,7 +198,7 @@ export default function ArtworkChat({ quality, colors, workerUrl, aiName = 'McCa
             >
               {message.role === 'assistant' && (
                 <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-indigo-100">
-                  <Bot className="h-4 w-4 text-indigo-600" />
+                  <Sparkles className="h-4 w-4 text-indigo-600" />
                 </div>
               )}
               <div
@@ -231,7 +231,7 @@ export default function ArtworkChat({ quality, colors, workerUrl, aiName = 'McCa
         {isLoading && (
           <div className="flex gap-3">
             <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-indigo-100">
-              <Bot className="h-4 w-4 text-indigo-600" />
+              <Sparkles className="h-4 w-4 text-indigo-600" />
             </div>
             <div className="flex items-center gap-2 rounded-lg bg-slate-100 px-4 py-3">
               <div className="flex gap-1 items-end">
