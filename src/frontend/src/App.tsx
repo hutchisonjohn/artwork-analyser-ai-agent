@@ -717,7 +717,7 @@ function App() {
                     onDragOver={handleDragOver}
                     onDragLeave={handleDragLeave}
                     onDrop={handleDrop}
-                    className={`relative flex w-full flex-col items-center justify-center rounded-xl border-2 border-dashed px-6 py-10 text-center transition ${
+                    className={`relative flex w-full flex-col items-center justify-center rounded-xl border-2 border-dashed px-6 py-10 text-center transition min-h-[400px] ${
                       isDragActive
                         ? 'border-indigo-400 bg-indigo-50'
                         : 'border-slate-300 bg-slate-50 hover:border-indigo-300 hover:bg-white'
@@ -749,7 +749,7 @@ function App() {
                           {/* Close button */}
                           <button
                             onClick={() => setIsZoomMode(false)}
-                            className="absolute top-2 right-2 z-20 bg-white hover:bg-slate-100 text-slate-900 rounded-lg p-2 shadow-lg transition"
+                            className="absolute top-4 right-4 z-20 bg-white hover:bg-slate-100 text-slate-900 rounded-lg p-2 shadow-lg transition"
                             aria-label="Close zoom"
                           >
                             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -757,9 +757,10 @@ function App() {
                             </svg>
                           </button>
                           
-                          {/* Zoom container - fills entire dashed area */}
+                          {/* Zoom container - fills entire dashed area including padding */}
                           <div
                             className="absolute inset-0 z-10 rounded-xl overflow-hidden"
+                            style={{ margin: '-2px' }}
                             onMouseEnter={() => setShowMagnifier(true)}
                             onMouseLeave={() => setShowMagnifier(false)}
                             onMouseMove={(e) => {
