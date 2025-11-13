@@ -979,12 +979,17 @@ function App() {
                       const { w: pixelW, h: pixelH } = analysis.quality.pixels
                       const aspectRatio = pixelW / pixelH
                       
-                      // Calculate min size at optimal DPI (300 DPI) - this is the STARTING point
-                      const minWidthCm = (pixelW / 300) * 2.54
+                      // Calculate actual DPI breakpoints
+                      // Optimal: DPI ≥250 (smallest size)
+                      const minWidthCm = (pixelW / 300) * 2.54  // Start at 300 DPI
+                      const widthAt250DPI = (pixelW / 250) * 2.54  // Green|Orange border
                       
-                      // Calculate max width: either 60cm OR where DPI drops to 72 (whichever comes first)
+                      // Good: DPI 200-249
+                      const widthAt200DPI = (pixelW / 200) * 2.54  // Orange|Red border
+                      
+                      // Poor: DPI <200 (largest size)
                       const maxWidthAt72DPI = (pixelW / 72) * 2.54
-                      const maxWidthCm = Math.min(60, maxWidthAt72DPI)
+                      const maxWidthCm = Math.min(60, maxWidthAt72DPI)  // Max at 60cm or 72 DPI
                       
                       // Initialize slider to SMALLEST size (highest DPI = 300) on first render
                       if (sliderWidth === 0) {
@@ -1005,8 +1010,14 @@ function App() {
                         sliderQuality = 'Good'
                       }
                       
-                      // Calculate slider position percentage (0% = left/min, 100% = right/max)
-                      const sliderPercent = ((sliderWidth - minWidthCm) / (maxWidthCm - minWidthCm)) * 100
+                      // Calculate color section widths based on ACTUAL DPI ranges
+                      const totalRange = maxWidthCm - minWidthCm
+                      const greenWidth = ((widthAt250DPI - minWidthCm) / totalRange) * 100  // 300-250 DPI
+                      const orangeWidth = ((widthAt200DPI - widthAt250DPI) / totalRange) * 100  // 250-200 DPI
+                      const redWidth = ((maxWidthCm - widthAt200DPI) / totalRange) * 100  // 200-72 DPI
+                      
+                      // Calculate slider position percentage
+                      const sliderPercent = ((sliderWidth - minWidthCm) / totalRange) * 100
                       
                       return (
                         <div className="mt-6">
@@ -1032,15 +1043,15 @@ function App() {
                             </div>
                           </div>
                           
-                          {/* Slider - Rectangle with equal color sections (visual guide only) */}
+                          {/* Slider - Color sections sized by ACTUAL DPI ranges */}
                           <div className="relative">
                             <div className="flex h-10">
-                              {/* Green section (visual guide for Optimal zone) */}
-                              <div className="flex-1 bg-green-500"></div>
-                              {/* Amber section (visual guide for Good zone) */}
-                              <div className="flex-1 bg-orange-500"></div>
-                              {/* Red section (visual guide for Poor zone) */}
-                              <div className="flex-1 bg-red-500"></div>
+                              {/* Green section: 300-250 DPI (Optimal) */}
+                              <div className="bg-green-500" style={{ width: `${greenWidth}%` }}></div>
+                              {/* Orange section: 250-200 DPI (Good) */}
+                              <div className="bg-orange-500" style={{ width: `${orangeWidth}%` }}></div>
+                              {/* Red section: 200-72 DPI (Poor) */}
+                              <div className="bg-red-500" style={{ width: `${redWidth}%` }}></div>
                             </div>
                             <input
                               type="range"
@@ -1051,7 +1062,7 @@ function App() {
                               onChange={(e) => setSliderWidth(parseFloat(e.target.value))}
                               className="absolute inset-0 w-full h-10 opacity-0 cursor-pointer"
                             />
-                            {/* Slider control - white line with arrows (no black background) */}
+                            {/* Slider control - white line with arrows */}
                             <div 
                               className="absolute top-0 h-10 flex items-center pointer-events-none"
                               style={{
