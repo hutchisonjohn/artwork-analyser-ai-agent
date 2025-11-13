@@ -699,13 +699,13 @@ function App() {
             {/* Two-column layout: Upload area and AI Chat (when open) */}
             <div className={`grid gap-6 ${analysis && isAiChatOpen ? 'lg:grid-cols-[75%_25%]' : ''}`}>
               {/* Upload area - full width when AI closed, 75% when AI open */}
-              <div className={`rounded-2xl border border-slate-200 bg-white p-6 shadow-sm ${!isAiChatOpen ? 'max-w-5xl mx-auto' : ''}`}>
+              <div className={`rounded-2xl border border-slate-200 bg-white p-6 shadow-sm ${!isAiChatOpen ? 'max-w-7xl mx-auto' : ''}`}>
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex flex-col gap-3 flex-1">
-                    <h2 className="text-2xl font-semibold text-slate-900">Check Your Image Quality</h2>
+                <h2 className="text-2xl font-semibold text-slate-900">Check Your Image Quality</h2>
                     <p className="text-base text-slate-600">
-                      Upload your artwork file to see instant print-readiness insights.
-                    </p>
+                  Upload your artwork file to see instant print-readiness insights.
+                </p>
                   </div>
                   
                   {/* AI Assistant Toggle Button */}
@@ -725,25 +725,25 @@ function App() {
                       <span className="text-sm font-medium">AI Assistant</span>
                     </button>
                   )}
-                </div>
+              </div>
 
-                {uploadError && (
-                  <p className="mt-3 rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive">
-                    {uploadError}
-                  </p>
-                )}
+              {uploadError && (
+                <p className="mt-3 rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+                  {uploadError}
+                </p>
+              )}
 
                 <div className="mt-6">
-                  <div
-                    onDragOver={handleDragOver}
-                    onDragLeave={handleDragLeave}
-                    onDrop={handleDrop}
+                <div
+                  onDragOver={handleDragOver}
+                  onDragLeave={handleDragLeave}
+                  onDrop={handleDrop}
                     className={`relative flex w-full flex-col items-center justify-center rounded-xl border-2 border-dashed px-6 py-10 text-center transition min-h-[400px] ${
-                      isDragActive
-                        ? 'border-indigo-400 bg-indigo-50'
-                        : 'border-slate-300 bg-slate-50 hover:border-indigo-300 hover:bg-white'
-                    }`}
-                  >
+                    isDragActive
+                      ? 'border-indigo-400 bg-indigo-50'
+                      : 'border-slate-300 bg-slate-50 hover:border-indigo-300 hover:bg-white'
+                  }`}
+                >
                   {showPreview ? (
                     <>
                       {previewDisplay && !isZoomMode && (
@@ -764,16 +764,16 @@ function App() {
                               backgroundColor: '#ffffff',
                             }}
                           />
-                          <img
-                            src={preview?.url ?? ''}
-                            alt={analysis?.fileName ? `Preview of ${analysis.fileName}` : 'Preview of uploaded artwork'}
+                        <img
+                          src={preview?.url ?? ''}
+                          alt={analysis?.fileName ? `Preview of ${analysis.fileName}` : 'Preview of uploaded artwork'}
                             onClick={() => setIsZoomMode(true)}
                             className="relative max-h-64 w-auto rounded-md border border-slate-200 object-contain shadow-sm cursor-pointer hover:border-indigo-400 transition"
-                            style={{
-                              width: previewDisplay.width ? `${previewDisplay.width}px` : undefined,
-                              height: previewDisplay.height ? `${previewDisplay.height}px` : undefined,
-                            }}
-                          />
+                          style={{
+                            width: previewDisplay.width ? `${previewDisplay.width}px` : undefined,
+                            height: previewDisplay.height ? `${previewDisplay.height}px` : undefined,
+                          }}
+                        />
                           <div className="absolute bottom-2 right-2 bg-slate-900/75 text-white text-xs px-2 py-1 rounded pointer-events-none">
                             Click to zoom
                           </div>
@@ -937,8 +937,8 @@ function App() {
                             {analysis.quality.rating || 'Unknown'} Quality
                           </div>
                         </div>
-                      </div>
-                    </div>
+              </div>
+            </div>
 
                     {/* DPI Calculator - Show DPI at different sizes */}
                     {analysis.quality.pixels && (() => {
@@ -1134,11 +1134,11 @@ function App() {
                   </>
                 )}
 
-                {error && (
+            {error && (
                   <div className="mt-4 rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">
-                    {error}
-                  </div>
-                )}
+                {error}
+              </div>
+            )}
               </div>
 
               {/* Right column - AI Chat (only shown when opened) */}
@@ -1425,32 +1425,32 @@ function App() {
           </header>
 
           <div className="grid gap-6 rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
-            <div className="grid gap-4">
-              <label className="flex flex-col gap-1 text-sm">
-                <span className="font-medium text-slate-700">Admin token</span>
-                <input
-                  className="rounded-md border border-slate-200 bg-white px-3 py-2 text-sm"
-                  value={adminToken}
-                  onChange={(event) => setAdminToken(event.target.value)}
-                  placeholder="Enter admin token to access secured endpoints"
-                  type="password"
-                />
-                <label className="mt-1 inline-flex items-center gap-2 text-xs text-slate-500">
+              <div className="grid gap-4">
+                <label className="flex flex-col gap-1 text-sm">
+                  <span className="font-medium text-slate-700">Admin token</span>
                   <input
-                    type="checkbox"
-                    checked={rememberToken}
-                    onChange={(event) => {
-                      setRememberToken(event.target.checked)
-                      if (!event.target.checked) {
-                        window.localStorage.removeItem('artwork-admin-token')
-                      } else if (adminToken.trim()) {
-                        window.localStorage.setItem('artwork-admin-token', adminToken.trim())
-                      }
-                    }}
+                    className="rounded-md border border-slate-200 bg-white px-3 py-2 text-sm"
+                    value={adminToken}
+                  onChange={(event) => setAdminToken(event.target.value)}
+                    placeholder="Enter admin token to access secured endpoints"
+                    type="password"
                   />
-                  Remember token in this browser
+                  <label className="mt-1 inline-flex items-center gap-2 text-xs text-slate-500">
+                    <input
+                      type="checkbox"
+                      checked={rememberToken}
+                      onChange={(event) => {
+                        setRememberToken(event.target.checked)
+                        if (!event.target.checked) {
+                          window.localStorage.removeItem('artwork-admin-token')
+                        } else if (adminToken.trim()) {
+                          window.localStorage.setItem('artwork-admin-token', adminToken.trim())
+                        }
+                      }}
+                    />
+                    Remember token in this browser
+                  </label>
                 </label>
-              </label>
               <div className="flex flex-wrap items-center gap-3">
                 <button
                   type="button"
