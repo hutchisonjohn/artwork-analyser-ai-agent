@@ -732,9 +732,11 @@ function App() {
                           }}
                         />
                       )}
-                      <p className="mt-4 text-sm text-slate-600">
-                        Dimensions: {analysis?.quality.pixels ? `${analysis.quality.pixels.w} × ${analysis.quality.pixels.h} pixels` : 'N/A'}
-                      </p>
+                      {previewDisplay && (
+                        <p className="mt-4 text-sm text-slate-600">
+                          Displayed at {previewDisplay.scalePercent}% of original size
+                        </p>
+                      )}
                       <button
                         type="button"
                         onClick={handleBrowseClick}
@@ -780,14 +782,22 @@ function App() {
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
                           <h4 className="text-sm font-semibold text-blue-900 mb-2">Image Information:</h4>
-                          <p className="text-sm text-blue-800">
+                          {analysis.quality.recommendedSizes && (
+                            <p className="text-sm text-blue-800">
+                              Optimal print size: {analysis.quality.recommendedSizes.at300dpi.w_cm} × {analysis.quality.recommendedSizes.at300dpi.h_cm} cm ({analysis.quality.recommendedSizes.at300dpi.w_in}" × {analysis.quality.recommendedSizes.at300dpi.h_in}")
+                            </p>
+                          )}
+                          <p className="text-sm text-blue-800 mt-1">
                             {analysis.quality.pixels 
                               ? `${analysis.quality.pixels.w} × ${analysis.quality.pixels.h} pixels`
                               : 'Vector / N/A'}
                           </p>
-                          {analysis.quality.recommendedSizes && (
+                          <p className="text-sm text-blue-800 mt-1">
+                            Aspect ratio: {analysis.quality.aspectRatio}
+                          </p>
+                          {analysis.quality.alphaStats && (
                             <p className="text-sm text-blue-800 mt-1">
-                              Optimal print size: {analysis.quality.recommendedSizes.at300dpi.w_in}" × {analysis.quality.recommendedSizes.at300dpi.h_in}" at 300 DPI
+                              Semi-transparent pixels: {analysis.quality.alphaStats.semiTransparentPercent.toFixed(2)}%
                             </p>
                           )}
                         </div>
@@ -861,6 +871,9 @@ function App() {
                                   </div>
                                   <div className="text-xs mt-1 opacity-75">
                                     ({size.widthIn}" × {size.heightIn}")
+                                  </div>
+                                  <div className="text-xs mt-1 opacity-75">
+                                    {analysis.quality.aspectRatio}
                                   </div>
                                   <div className="text-3xl font-bold mt-3">
                                     {size.dpi} DPI
