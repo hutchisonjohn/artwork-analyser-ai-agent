@@ -715,54 +715,46 @@ function App() {
                     onDragOver={handleDragOver}
                     onDragLeave={handleDragLeave}
                     onDrop={handleDrop}
-                    className={`flex w-full flex-col items-center justify-center rounded-xl border-2 border-dashed px-6 py-10 text-center transition ${
+                    onMouseEnter={() => showPreview && setShowMagnifier(true)}
+                    onMouseLeave={() => setShowMagnifier(false)}
+                    onMouseMove={(e) => {
+                      if (!showPreview) return
+                      const elem = e.currentTarget
+                      const { left, top, width, height } = elem.getBoundingClientRect()
+                      const x = ((e.clientX - left) / width) * 100
+                      const y = ((e.clientY - top) / height) * 100
+                      setMagnifierPosition({ x, y })
+                    }}
+                    className={`relative flex w-full flex-col items-center justify-center rounded-xl border-2 border-dashed px-6 py-10 text-center transition ${
                       isDragActive
                         ? 'border-indigo-400 bg-indigo-50'
                         : 'border-slate-300 bg-slate-50 hover:border-indigo-300 hover:bg-white'
-                    }`}
+                    } ${showPreview ? 'cursor-crosshair' : ''}`}
                   >
                   {showPreview ? (
                     <>
                       {previewDisplay && (
-                        <div 
-                          className="relative inline-block"
-                          onMouseEnter={() => setShowMagnifier(true)}
-                          onMouseLeave={() => setShowMagnifier(false)}
-                          onMouseMove={(e) => {
-                            const elem = e.currentTarget
-                            const { left, top, width, height } = elem.getBoundingClientRect()
-                            const x = ((e.clientX - left) / width) * 100
-                            const y = ((e.clientY - top) / height) * 100
-                            setMagnifierPosition({ x, y })
+                        <img
+                          src={preview?.url ?? ''}
+                          alt={analysis?.fileName ? `Preview of ${analysis.fileName}` : 'Preview of uploaded artwork'}
+                          className="max-h-64 w-auto rounded-md border border-slate-200 bg-white object-contain shadow-sm"
+                          style={{
+                            width: previewDisplay.width ? `${previewDisplay.width}px` : undefined,
+                            height: previewDisplay.height ? `${previewDisplay.height}px` : undefined,
+                          }}
+                        />
+                      )}
+                      {showMagnifier && previewDisplay && (
+                        <div
+                          className="absolute inset-0 pointer-events-none border-4 border-indigo-500 rounded-xl shadow-2xl overflow-hidden bg-white"
+                          style={{
+                            backgroundImage: `url(${preview?.url ?? ''})`,
+                            backgroundPosition: `${magnifierPosition.x}% ${magnifierPosition.y}%`,
+                            backgroundSize: `${(previewDisplay.width || 0) * 3}px ${(previewDisplay.height || 0) * 3}px`,
+                            backgroundRepeat: 'no-repeat',
                           }}
                         >
-                          <img
-                            src={preview?.url ?? ''}
-                            alt={analysis?.fileName ? `Preview of ${analysis.fileName}` : 'Preview of uploaded artwork'}
-                            className="max-h-64 w-auto rounded-md border border-slate-200 bg-white object-contain shadow-sm cursor-crosshair"
-                            style={{
-                              width: previewDisplay.width ? `${previewDisplay.width}px` : undefined,
-                              height: previewDisplay.height ? `${previewDisplay.height}px` : undefined,
-                            }}
-                          />
-                          {showMagnifier && (
-                            <div
-                              className="absolute pointer-events-none border-4 border-indigo-500 rounded-lg shadow-2xl overflow-hidden bg-white"
-                              style={{
-                                width: '450px',
-                                height: '450px',
-                                top: '50%',
-                                left: '50%',
-                                transform: 'translate(-50%, -50%)',
-                                backgroundImage: `url(${preview?.url ?? ''})`,
-                                backgroundPosition: `${magnifierPosition.x}% ${magnifierPosition.y}%`,
-                                backgroundSize: `${(previewDisplay.width || 0) * 3}px ${(previewDisplay.height || 0) * 3}px`,
-                                backgroundRepeat: 'no-repeat',
-                              }}
-                            >
-                              <div className="absolute inset-0 border-2 border-white rounded-lg"></div>
-                            </div>
-                          )}
+                          <div className="absolute inset-0 border-2 border-white rounded-xl"></div>
                         </div>
                       )}
                       {previewDisplay && analysis?.quality.recommendedSizes && (
