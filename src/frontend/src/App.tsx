@@ -696,9 +696,10 @@ function App() {
       {activeTab === 'analyze' ? (
         <>
           <section className="space-y-6">
-            {/* Upload area - always full width */}
-            <div className="max-w-7xl mx-auto">
-              <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+            {/* Two-column layout: Upload area and AI Chat (when open) */}
+            <div className={`grid gap-6 ${analysis && isAiChatOpen ? 'lg:grid-cols-[75%_25%]' : ''}`}>
+              {/* Upload area - full width when AI closed, 75% when AI open */}
+              <div className={`rounded-2xl border border-slate-200 bg-white p-6 shadow-sm ${!isAiChatOpen ? 'max-w-7xl mx-auto' : ''}`}>
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex flex-col gap-3 flex-1">
                 <h2 className="text-2xl font-semibold text-slate-900">Check Your Image Quality</h2>
@@ -1139,11 +1140,9 @@ function App() {
               </div>
             )}
               </div>
-            </div>
 
-            {/* AI Assistant - separate section below upload area */}
-            {analysis && isAiChatOpen && (
-              <div className="max-w-7xl mx-auto">
+              {/* Right column - AI Chat (only shown when opened) */}
+              {analysis && isAiChatOpen && (
                 <div className="h-[600px]">
                   <ArtworkChat
                     quality={analysis.quality}
@@ -1151,8 +1150,8 @@ function App() {
                     workerUrl={workerBaseUrl}
                   />
                 </div>
-              </div>
-            )}
+              )}
+            </div>
           </section>
 
           {analysis ? (
