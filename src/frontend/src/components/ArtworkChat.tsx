@@ -21,6 +21,7 @@ export default function ArtworkChat({ quality, colors, workerUrl, aiName = 'McCa
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState('')
   const [isLoading, setIsLoading] = useState(false)
+  const [isShowingGreeting, setIsShowingGreeting] = useState(false)
   const [hasShownGreeting, setHasShownGreeting] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
@@ -55,14 +56,14 @@ export default function ArtworkChat({ quality, colors, workerUrl, aiName = 'McCa
         "Feel free to ask me anything about your artwork!"
       ]
 
-      // Show typing indicator first
-      setIsLoading(true)
+      // Show typing indicator first (but don't disable input)
+      setIsShowingGreeting(true)
 
       const timers: number[] = []
 
       // First message after 1-2 seconds
       timers.push(setTimeout(() => {
-        setIsLoading(false)
+        setIsShowingGreeting(false)
         setMessages([{
           id: crypto.randomUUID(),
           role: 'assistant',
@@ -70,12 +71,12 @@ export default function ArtworkChat({ quality, colors, workerUrl, aiName = 'McCa
           timestamp: new Date(),
         }])
         // Show typing for next message
-        setIsLoading(true)
+        setIsShowingGreeting(true)
       }, 1500))
 
       // Second message after 3-4 more seconds
       timers.push(setTimeout(() => {
-        setIsLoading(false)
+        setIsShowingGreeting(false)
         setMessages(prev => [...prev, {
           id: crypto.randomUUID(),
           role: 'assistant',
@@ -83,12 +84,12 @@ export default function ArtworkChat({ quality, colors, workerUrl, aiName = 'McCa
           timestamp: new Date(),
         }])
         // Show typing for next message
-        setIsLoading(true)
+        setIsShowingGreeting(true)
       }, 5000))
 
       // Third message after 3-4 more seconds
       timers.push(setTimeout(() => {
-        setIsLoading(false)
+        setIsShowingGreeting(false)
         setMessages(prev => [...prev, {
           id: crypto.randomUUID(),
           role: 'assistant',
@@ -228,7 +229,7 @@ export default function ArtworkChat({ quality, colors, workerUrl, aiName = 'McCa
             </div>
           ))
         )}
-        {isLoading && (
+        {(isLoading || isShowingGreeting) && (
           <div className="flex gap-3">
             <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-indigo-100">
               <Sparkles className="h-4 w-4 text-indigo-600" />

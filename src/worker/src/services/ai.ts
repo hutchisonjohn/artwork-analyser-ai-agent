@@ -32,16 +32,42 @@ function buildSystemMessage(config: AppConfig): string {
   return config.systemPrompt
 }
 
+function isGreetingOrGeneral(question: string): boolean {
+  const lower = question.toLowerCase().trim()
+  const greetingPatterns = [
+    /^(hi|hello|hey|howdy|greetings|good morning|good afternoon|good evening)/i,
+    /^(i have|i've got|i got) (some )?questions?$/i,
+    /^(tell me|let me know|i('d| would) like to know) more$/i,
+    /^(what can you|can you help)/i,
+    /^(i'm|i am|my name is) \w+/i,
+  ]
+  return greetingPatterns.some(pattern => pattern.test(lower)) || lower.length < 20
+}
+
 function buildUserMessage({ quality, colors, question, context }: ChatRequestPayload): string {
   const sections: string[] = []
-  sections.push('USER QUESTION:')
-  sections.push(question.trim())
-  sections.push('\nANALYSIS SUMMARY:')
-  sections.push(JSON.stringify({ quality, colors }, null, 2))
-  if (context) {
-    sections.push('\nKNOWLEDGE CONTEXT:')
-    sections.push(context)
+  
+  // Check if this is a greeting or general question
+  const isGreeting = isGreetingOrGeneral(question)
+  
+  if (isGreeting) {
+    // For greetings, DON'T send the full analysis - just the question
+    sections.push('🚫 DO NOT AUTO-ANALYZE. The user is just greeting you or asking a general question.')
+    sections.push('\nUSER QUESTION:')
+    sections.push(question.trim())
+    sections.push('\nINSTRUCTION: Say hi back and ask what SPECIFIC thing they want to know. Do NOT analyze the artwork yet.')
+  } else {
+    // For specific questions, send the full analysis
+    sections.push('USER QUESTION:')
+    sections.push(question.trim())
+    sections.push('\nANALYSIS SUMMARY:')
+    sections.push(JSON.stringify({ quality, colors }, null, 2))
+    if (context) {
+      sections.push('\nKNOWLEDGE CONTEXT:')
+      sections.push(context)
+    }
   }
+  
   return sections.join('\n')
 }
 
