@@ -60,7 +60,7 @@ export default function ArtworkChat({ quality, colors, workerUrl, aiName = 'McCa
 
       const timers: number[] = []
 
-      // First message after 1.5 seconds
+      // First message after 1-2 seconds
       timers.push(setTimeout(() => {
         setIsLoading(false)
         setMessages([{
@@ -73,7 +73,7 @@ export default function ArtworkChat({ quality, colors, workerUrl, aiName = 'McCa
         setIsLoading(true)
       }, 1500))
 
-      // Second message after 2.5 more seconds
+      // Second message after 3-4 more seconds
       timers.push(setTimeout(() => {
         setIsLoading(false)
         setMessages(prev => [...prev, {
@@ -84,9 +84,9 @@ export default function ArtworkChat({ quality, colors, workerUrl, aiName = 'McCa
         }])
         // Show typing for next message
         setIsLoading(true)
-      }, 4000))
+      }, 5000))
 
-      // Third message after 2.5 more seconds
+      // Third message after 3-4 more seconds
       timers.push(setTimeout(() => {
         setIsLoading(false)
         setMessages(prev => [...prev, {
@@ -96,7 +96,7 @@ export default function ArtworkChat({ quality, colors, workerUrl, aiName = 'McCa
           timestamp: new Date(),
         }])
         setHasShownGreeting(true)
-      }, 6500))
+      }, 8500))
 
       return () => {
         timers.forEach(timer => clearTimeout(timer))
@@ -234,10 +234,10 @@ export default function ArtworkChat({ quality, colors, workerUrl, aiName = 'McCa
               <Bot className="h-4 w-4 text-indigo-600" />
             </div>
             <div className="flex items-center gap-2 rounded-lg bg-slate-100 px-4 py-3">
-              <div className="flex gap-1">
-                <div className="h-2 w-2 rounded-full bg-slate-600 animate-bounce" style={{ animationDelay: '0ms' }}></div>
-                <div className="h-2 w-2 rounded-full bg-slate-600 animate-bounce" style={{ animationDelay: '150ms' }}></div>
-                <div className="h-2 w-2 rounded-full bg-slate-600 animate-bounce" style={{ animationDelay: '300ms' }}></div>
+              <div className="flex gap-1 items-end">
+                <div className="h-2.5 w-2.5 rounded-full bg-slate-600 animate-bounce" style={{ animationDelay: '0ms', animationDuration: '0.8s' }}></div>
+                <div className="h-2.5 w-2.5 rounded-full bg-slate-600 animate-bounce" style={{ animationDelay: '200ms', animationDuration: '0.8s' }}></div>
+                <div className="h-2.5 w-2.5 rounded-full bg-slate-600 animate-bounce" style={{ animationDelay: '400ms', animationDuration: '0.8s' }}></div>
               </div>
             </div>
           </div>
