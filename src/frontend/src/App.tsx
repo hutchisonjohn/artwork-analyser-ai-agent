@@ -732,38 +732,9 @@ function App() {
                           }}
                         />
                       )}
-                      {/* Styled info box */}
-                      <div className="mt-6 w-full max-w-lg rounded-lg border border-blue-200 bg-blue-50 p-4">
-                        <div className="flex items-start justify-between">
-                          <div className="flex-1">
-                            <h4 className="text-sm font-semibold text-blue-900 mb-2">Image Information:</h4>
-                            <p className="text-sm text-blue-800">
-                              {analysis?.quality.pixels 
-                                ? `${analysis.quality.pixels.w} × ${analysis.quality.pixels.h} pixels`
-                                : 'Vector / N/A'}
-                            </p>
-                            {analysis?.quality.recommendedSizes && (
-                              <p className="text-sm text-blue-800 mt-1">
-                                Optimal print size: {analysis.quality.recommendedSizes.at300dpi.w_in}" × {analysis.quality.recommendedSizes.at300dpi.h_in}" at 300 DPI
-                              </p>
-                            )}
-                          </div>
-                          <div className="text-right">
-                            <div className="text-4xl font-bold text-blue-600">
-                              {analysis?.quality.pixels && analysis?.quality.recommendedSizes
-                                ? Math.round(analysis.quality.pixels.w / analysis.quality.recommendedSizes.at300dpi.w_in)
-                                : '—'} DPI
-                            </div>
-                            <div className={`mt-1 text-sm font-semibold ${
-                              analysis?.quality.rating === 'Optimal' ? 'text-green-600' :
-                              analysis?.quality.rating === 'Good' ? 'text-blue-600' :
-                              'text-orange-600'
-                            }`}>
-                              {analysis?.quality.rating || 'Unknown'} Quality
-                            </div>
-                          </div>
-                        </div>
-                      </div>
+                      <p className="mt-4 text-sm text-slate-600">
+                        Dimensions: {analysis?.quality.pixels ? `${analysis.quality.pixels.w} × ${analysis.quality.pixels.h} pixels` : 'N/A'}
+                      </p>
                       <button
                         type="button"
                         onClick={handleBrowseClick}
@@ -801,6 +772,41 @@ function App() {
                   />
                   </div>
                 </div>
+
+                {/* Styled info box - shown below upload area when analysis exists */}
+                {analysis && (
+                  <div className="mt-4 rounded-lg border border-blue-200 bg-blue-50 p-4">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <h4 className="text-sm font-semibold text-blue-900 mb-2">Image Information:</h4>
+                        <p className="text-sm text-blue-800">
+                          {analysis.quality.pixels 
+                            ? `${analysis.quality.pixels.w} × ${analysis.quality.pixels.h} pixels`
+                            : 'Vector / N/A'}
+                        </p>
+                        {analysis.quality.recommendedSizes && (
+                          <p className="text-sm text-blue-800 mt-1">
+                            Optimal print size: {analysis.quality.recommendedSizes.at300dpi.w_in}" × {analysis.quality.recommendedSizes.at300dpi.h_in}" at 300 DPI
+                          </p>
+                        )}
+                      </div>
+                      <div className="text-right">
+                        <div className="text-4xl font-bold text-blue-600">
+                          {analysis.quality.pixels && analysis.quality.recommendedSizes
+                            ? Math.round(analysis.quality.pixels.w / analysis.quality.recommendedSizes.at300dpi.w_in)
+                            : '—'} DPI
+                        </div>
+                        <div className={`mt-1 text-sm font-semibold ${
+                          analysis.quality.rating === 'Optimal' ? 'text-green-600' :
+                          analysis.quality.rating === 'Good' ? 'text-blue-600' :
+                          'text-orange-600'
+                        }`}>
+                          {analysis.quality.rating || 'Unknown'} Quality
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
 
                 {error && (
                   <div className="mt-4 rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">
