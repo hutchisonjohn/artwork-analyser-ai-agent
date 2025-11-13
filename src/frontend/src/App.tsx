@@ -743,13 +743,13 @@ function App() {
                         </div>
                       )}
                       
-                      {/* Full Zoom Mode */}
+                      {/* Full Zoom Mode - overlays the entire dashed container */}
                       {isZoomMode && previewDisplay && (
-                        <div className="absolute inset-0 z-10 flex items-center justify-center bg-slate-900/95">
+                        <>
                           {/* Close button */}
                           <button
                             onClick={() => setIsZoomMode(false)}
-                            className="absolute top-4 right-4 z-20 bg-white hover:bg-slate-100 text-slate-900 rounded-lg p-2 shadow-lg transition"
+                            className="absolute top-2 right-2 z-20 bg-white hover:bg-slate-100 text-slate-900 rounded-lg p-2 shadow-lg transition"
                             aria-label="Close zoom"
                           >
                             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -757,9 +757,9 @@ function App() {
                             </svg>
                           </button>
                           
-                          {/* Zoom container */}
+                          {/* Zoom container - fills entire dashed area */}
                           <div
-                            className="relative w-full h-full"
+                            className="absolute inset-0 z-10 rounded-xl overflow-hidden"
                             onMouseEnter={() => setShowMagnifier(true)}
                             onMouseLeave={() => setShowMagnifier(false)}
                             onMouseMove={(e) => {
@@ -804,12 +804,12 @@ function App() {
                                 </div>
                               </div>
                             ) : (
-                              <div className="absolute inset-0 flex items-center justify-center text-white text-lg">
+                              <div className="absolute inset-0 flex items-center justify-center bg-slate-900/95 text-white text-lg">
                                 Hover to zoom in
                               </div>
                             )}
                           </div>
-                        </div>
+                        </>
                       )}
                       {previewDisplay && analysis?.quality.recommendedSizes && (
                         <>
@@ -978,28 +978,25 @@ function App() {
                       const { w: pixelW, h: pixelH } = analysis.quality.pixels
                       const aspectRatio = pixelW / pixelH
                       
-                      // Calculate min size at optimal DPI (300 DPI)
+                      // Calculate min size at optimal DPI (300 DPI) - this is the STARTING point
                       const minWidthCm = (pixelW / 300) * 2.54
                       
                       // Calculate max width: either 60cm OR where DPI drops to 72 (whichever comes first)
                       const maxWidthAt72DPI = (pixelW / 72) * 2.54
                       const maxWidthCm = Math.min(60, maxWidthAt72DPI)
                       
-                      // Calculate width at DPI = 250 (green|orange border)
-                      const widthAt250DPI = (pixelW / 250) * 2.54
-                      
-                      // Initialize slider to green|orange border (DPI 250) on first render
+                      // Initialize slider to SMALLEST size (highest DPI = 300) on first render
                       if (sliderWidth === 0) {
-                        setSliderWidth(widthAt250DPI)
+                        setSliderWidth(minWidthCm)
                       }
                       
-                      // Calculate DPI at slider position
+                      // Calculate DPI at current slider position
                       const sliderHeightCm = sliderWidth / aspectRatio
                       const sliderWidthIn = sliderWidth / 2.54
                       const sliderHeightIn = sliderHeightCm / 2.54
                       const sliderDPI = Math.round(pixelW / sliderWidthIn)
                       
-                      // Determine quality at slider position
+                      // Determine quality based on actual DPI at slider position
                       let sliderQuality = 'Poor'
                       if (sliderDPI >= 250) {
                         sliderQuality = 'Optimal'
@@ -1007,7 +1004,7 @@ function App() {
                         sliderQuality = 'Good'
                       }
                       
-                      // Calculate slider position percentage
+                      // Calculate slider position percentage (0% = left/min, 100% = right/max)
                       const sliderPercent = ((sliderWidth - minWidthCm) / (maxWidthCm - minWidthCm)) * 100
                       
                       return (
@@ -1034,14 +1031,14 @@ function App() {
                             </div>
                           </div>
                           
-                          {/* Slider - Rectangle with equal color sections */}
+                          {/* Slider - Rectangle with equal color sections (visual guide only) */}
                           <div className="relative">
                             <div className="flex h-10">
-                              {/* Green section (Optimal ≥250 DPI) */}
+                              {/* Green section (visual guide for Optimal zone) */}
                               <div className="flex-1 bg-green-500"></div>
-                              {/* Amber section (Good 200-249 DPI) */}
+                              {/* Amber section (visual guide for Good zone) */}
                               <div className="flex-1 bg-orange-500"></div>
-                              {/* Red section (Poor <200 DPI) */}
+                              {/* Red section (visual guide for Poor zone) */}
                               <div className="flex-1 bg-red-500"></div>
                             </div>
                             <input
@@ -1053,19 +1050,19 @@ function App() {
                               onChange={(e) => setSliderWidth(parseFloat(e.target.value))}
                               className="absolute inset-0 w-full h-10 opacity-0 cursor-pointer"
                             />
-                            {/* Slider control with arrows */}
+                            {/* Slider control - white line with arrows (no black background) */}
                             <div 
                               className="absolute top-0 h-10 flex items-center pointer-events-none"
                               style={{
                                 left: `calc(${sliderPercent}% - 12px)`,
                               }}
                             >
-                              <div className="flex items-center bg-slate-900 text-white h-10 px-1 shadow-lg">
-                                <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                              <div className="flex items-center h-10 px-1">
+                                <svg className="w-3 h-3 text-white drop-shadow-lg" fill="currentColor" viewBox="0 0 20 20">
                                   <path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" />
                                 </svg>
-                                <div className="w-0.5 h-10 bg-white mx-0.5"></div>
-                                <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                <div className="w-1 h-10 bg-white shadow-lg mx-0.5"></div>
+                                <svg className="w-3 h-3 text-white drop-shadow-lg" fill="currentColor" viewBox="0 0 20 20">
                                   <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
                                 </svg>
                               </div>
