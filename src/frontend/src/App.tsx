@@ -751,12 +751,31 @@ function App() {
                       )}
                       {showMagnifier && previewDisplay && (
                         <div
-                          className="absolute inset-0 pointer-events-none border-4 border-indigo-500 rounded-xl shadow-2xl overflow-hidden bg-white"
+                          className="absolute inset-0 pointer-events-none border-4 border-indigo-500 rounded-xl shadow-2xl overflow-hidden"
                           style={{
-                            backgroundImage: `url(${preview?.url ?? ''})`,
-                            backgroundPosition: `${magnifierPosition.x}% ${magnifierPosition.y}%`,
-                            backgroundSize: `${(previewDisplay.width || 0) * 3}px ${(previewDisplay.height || 0) * 3}px`,
-                            backgroundRepeat: 'no-repeat',
+                            backgroundImage: `
+                              linear-gradient(45deg, #e5e7eb 25%, transparent 25%),
+                              linear-gradient(-45deg, #e5e7eb 25%, transparent 25%),
+                              linear-gradient(45deg, transparent 75%, #e5e7eb 75%),
+                              linear-gradient(-45deg, transparent 75%, #e5e7eb 75%),
+                              url(${preview?.url ?? ''})
+                            `,
+                            backgroundPosition: `
+                              0 0,
+                              0 10px,
+                              10px -10px,
+                              -10px 0px,
+                              ${magnifierPosition.x}% ${magnifierPosition.y}%
+                            `,
+                            backgroundSize: `
+                              20px 20px,
+                              20px 20px,
+                              20px 20px,
+                              20px 20px,
+                              ${(previewDisplay.width || 0) * 3}px ${(previewDisplay.height || 0) * 3}px
+                            `,
+                            backgroundRepeat: 'repeat, repeat, repeat, repeat, no-repeat',
+                            backgroundColor: '#ffffff',
                           }}
                         >
                           <div className="absolute inset-0 border-2 border-white rounded-xl"></div>
