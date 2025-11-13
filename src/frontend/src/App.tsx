@@ -747,10 +747,10 @@ function App() {
                           />
                           {showMagnifier && (
                             <div
-                              className="absolute pointer-events-none border-4 border-indigo-500 rounded-lg shadow-2xl overflow-hidden"
+                              className="absolute pointer-events-none border-4 border-indigo-500 rounded-lg shadow-2xl overflow-hidden bg-white"
                               style={{
-                                width: '150px',
-                                height: '150px',
+                                width: '450px',
+                                height: '450px',
                                 top: '50%',
                                 left: '50%',
                                 transform: 'translate(-50%, -50%)',
