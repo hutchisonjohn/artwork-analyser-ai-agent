@@ -1123,6 +1123,11 @@ function App() {
                             <span>{minWidthCm.toFixed(1)} cm ({(minWidthCm / 2.54).toFixed(1)}") - DPI 300</span>
                             <span>{maxWidthCm.toFixed(1)} cm ({(maxWidthCm / 2.54).toFixed(1)}") - DPI {Math.round(pixelW / (maxWidthCm / 2.54))}</span>
                           </div>
+                          
+                          {/* Helper text */}
+                          <p className="mt-3 text-center text-sm text-slate-600">
+                            Find your optimal DPI and size by adjusting the slider
+                          </p>
                         </div>
                       )
                     })()}
