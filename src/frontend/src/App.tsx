@@ -696,10 +696,10 @@ function App() {
       {activeTab === 'analyze' ? (
         <>
           <section className="space-y-6">
-            {/* Two-column layout: Upload area and AI Chat (when open) */}
-            <div className={`grid gap-6 ${analysis && isAiChatOpen ? 'lg:grid-cols-[75%_25%]' : ''}`}>
-              {/* Upload area - full width when AI closed, 75% when AI open */}
-              <div className={`rounded-2xl border border-slate-200 bg-white p-6 shadow-sm ${!isAiChatOpen ? 'max-w-7xl mx-auto' : ''}`}>
+            {/* Two-column layout: Upload area (always same size) and AI Chat (when open) */}
+            <div className={`flex gap-6 ${!isAiChatOpen ? 'justify-center' : ''}`}>
+              {/* Upload area - always max-w-7xl, never shrinks */}
+              <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm w-full max-w-7xl flex-shrink-0">
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex flex-col gap-3 flex-1">
                 <h2 className="text-2xl font-semibold text-slate-900">Check Your Image Quality</h2>
@@ -1141,9 +1141,9 @@ function App() {
             )}
               </div>
 
-              {/* Right column - AI Chat (only shown when opened) */}
+              {/* Right column - AI Chat (only shown when opened) - fixed width */}
               {analysis && isAiChatOpen && (
-                <div className="h-[600px]">
+                <div className="h-[600px] w-96 flex-shrink-0">
                   <ArtworkChat
                     quality={analysis.quality}
                     colors={analysis.colors}
