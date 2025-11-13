@@ -9,20 +9,13 @@ import type {
 } from '@cloudflare/workers-types'
 
 function createMockEnv(overrides: Partial<Bindings> = {}): Bindings {
-  const kv: KVNamespace = {
-    async get() {
-      return null
-    },
-    async put() {
-      return undefined
-    },
-    async delete() {
-      return undefined
-    },
-    async list() {
-      return { keys: [], list_complete: true }
-    },
-  }
+  const kv = {
+    get: async () => null,
+    put: async () => undefined,
+    delete: async () => undefined,
+    list: async () => ({ keys: [], list_complete: true, cacheStatus: null }),
+    getWithMetadata: async () => ({ value: null, metadata: null, cacheStatus: null }),
+  } as unknown as KVNamespace
 
   const statement = {
     bind() {
