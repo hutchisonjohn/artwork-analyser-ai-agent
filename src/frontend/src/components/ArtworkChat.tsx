@@ -253,7 +253,7 @@ export default function ArtworkChat({ quality, colors, workerUrl, aiName = 'McCa
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="Ask about your artwork... (Press Enter to send)"
+            placeholder=""
             disabled={isLoading}
             className="flex-1 resize-none rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 disabled:cursor-not-allowed disabled:bg-slate-50"
             rows={2}
