@@ -803,9 +803,9 @@ function App() {
                         </div>
                         <div className="text-right">
                           <div className="text-4xl font-bold text-blue-600">
-                            {analysis.quality.pixels && analysis.quality.recommendedSizes
+                            DPI {analysis.quality.pixels && analysis.quality.recommendedSizes
                               ? Math.round(analysis.quality.pixels.w / analysis.quality.recommendedSizes.at300dpi.w_in)
-                              : '—'} DPI
+                              : '—'}
                           </div>
                           <div className={`mt-1 text-sm font-semibold ${
                             analysis.quality.rating === 'Optimal' ? 'text-green-600' :
@@ -876,7 +876,7 @@ function App() {
                                     {analysis.quality.aspectRatio}
                                   </div>
                                   <div className="text-3xl font-bold mt-3">
-                                    {size.dpi} DPI
+                                    DPI {size.dpi}
                                   </div>
                                   <div className="text-sm font-semibold mt-2">
                                     {size.quality}
@@ -940,7 +940,7 @@ function App() {
                       </dd>
                     </div>
                     <div className="flex justify-between items-center text-slate-600">
-                      <dt className="font-semibold">Current DPI</dt>
+                      <dt className="font-semibold">DPI</dt>
                       <dd className="text-base font-bold text-primary">
                         {analysis.quality.pixels 
                           ? Math.round((analysis.quality.pixels.w / analysis.quality.recommendedSizes.at300dpi.w_in) || 0)
