@@ -17,7 +17,7 @@ interface ArtworkChatProps {
   greetingMessage?: string
 }
 
-export default function ArtworkChat({ quality, colors, workerUrl, aiName = 'McCarthy AI Artwork Assistant', greetingMessage = 'Hello! I\'m McCarthy, your AI artwork assistant. I\'m here to help you understand your artwork\'s print quality, DPI, colors, and file specifications. Feel free to ask me anything about your artwork!' }: ArtworkChatProps) {
+export default function ArtworkChat({ quality, colors, workerUrl, aiName = 'McCarthy AI Artwork Assistant', greetingMessage = "Hello! I'm McCarthy, your AI artwork assistant.\n\nI'm here to help you understand your artwork's print quality, DPI, colors, and file specifications.\n\nFeel free to ask me anything about your artwork!" }: ArtworkChatProps) {
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState('')
   const [isLoading, setIsLoading] = useState(false)
@@ -44,21 +44,63 @@ export default function ArtworkChat({ quality, colors, workerUrl, aiName = 'McCa
     setHasShownGreeting(false)
   }, [quality.pixels?.w, quality.pixels?.h, quality.fileSizeMB])
 
-  // Show greeting message after 1-2 seconds delay when chat opens
+  // Show greeting messages in 3 parts with typing delays
   useEffect(() => {
     if (!hasShownGreeting && greetingMessage) {
-      const timer = setTimeout(() => {
-        const welcomeMessage: Message = {
+      // Parse greeting into 3 parts (split by line breaks)
+      const parts = greetingMessage.split('\n\n').filter(p => p.trim())
+      const greetingParts = parts.length >= 3 ? parts : [
+        "Hello! I'm McCarthy, your AI artwork assistant.",
+        "I'm here to help you understand your artwork's print quality, DPI, colors, and file specifications.",
+        "Feel free to ask me anything about your artwork!"
+      ]
+
+      // Show typing indicator first
+      setIsLoading(true)
+
+      const timers: number[] = []
+
+      // First message after 1.5 seconds
+      timers.push(setTimeout(() => {
+        setIsLoading(false)
+        setMessages([{
           id: crypto.randomUUID(),
           role: 'assistant',
-          content: greetingMessage,
+          content: greetingParts[0],
           timestamp: new Date(),
-        }
-        setMessages([welcomeMessage])
-        setHasShownGreeting(true)
-      }, 1500) // 1.5 second delay
+        }])
+        // Show typing for next message
+        setIsLoading(true)
+      }, 1500))
 
-      return () => clearTimeout(timer)
+      // Second message after 2.5 more seconds
+      timers.push(setTimeout(() => {
+        setIsLoading(false)
+        setMessages(prev => [...prev, {
+          id: crypto.randomUUID(),
+          role: 'assistant',
+          content: greetingParts[1],
+          timestamp: new Date(),
+        }])
+        // Show typing for next message
+        setIsLoading(true)
+      }, 4000))
+
+      // Third message after 2.5 more seconds
+      timers.push(setTimeout(() => {
+        setIsLoading(false)
+        setMessages(prev => [...prev, {
+          id: crypto.randomUUID(),
+          role: 'assistant',
+          content: greetingParts[2] || greetingParts[1],
+          timestamp: new Date(),
+        }])
+        setHasShownGreeting(true)
+      }, 6500))
+
+      return () => {
+        timers.forEach(timer => clearTimeout(timer))
+      }
     }
   }, [hasShownGreeting, greetingMessage])
 

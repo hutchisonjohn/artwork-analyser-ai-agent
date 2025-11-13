@@ -1156,7 +1156,7 @@ function App() {
                       colors={analysis.colors}
                       workerUrl={workerBaseUrl}
                       aiName={adminConfig?.aiName || 'McCarthy AI Artwork Assistant'}
-                      greetingMessage={adminConfig?.greetingMessage || 'Hello! I\'m McCarthy, your AI artwork assistant. I\'m here to help you understand your artwork\'s print quality, DPI, colors, and file specifications. Feel free to ask me anything about your artwork!'}
+                      greetingMessage={adminConfig?.greetingMessage || "Hello! I'm McCarthy, your AI artwork assistant.\n\nI'm here to help you understand your artwork's print quality, DPI, colors, and file specifications.\n\nFeel free to ask me anything about your artwork!"}
                     />
                   </div>
                 </div>
@@ -1576,8 +1576,8 @@ function App() {
                 <label className="flex flex-col gap-1 text-sm">
                   <span className="font-medium text-slate-700">Greeting Message</span>
                   <textarea
-                    className="min-h-[80px] rounded-md border border-slate-200 bg-white px-3 py-2 text-sm"
-                    value={adminConfig.greetingMessage || 'Hello! I\'m McCarthy, your AI artwork assistant. I\'m here to help you understand your artwork\'s print quality, DPI, colors, and file specifications. Feel free to ask me anything about your artwork!'}
+                    className="min-h-[120px] rounded-md border border-slate-200 bg-white px-3 py-2 text-sm"
+                    value={adminConfig.greetingMessage || "Hello! I'm McCarthy, your AI artwork assistant.\n\nI'm here to help you understand your artwork's print quality, DPI, colors, and file specifications.\n\nFeel free to ask me anything about your artwork!"}
                     onChange={(event) =>
                       setAdminConfig((current) =>
                         current
@@ -1585,8 +1585,9 @@ function App() {
                           : current
                       )
                     }
-                    placeholder="Hello! I'm McCarthy, your AI artwork assistant..."
+                    placeholder="Separate 3 messages with double line breaks (\\n\\n)"
                   />
+                  <p className="text-xs text-slate-500">Tip: Separate your greeting into 3 parts using double line breaks. Each part will appear 2-3 seconds apart with typing animation.</p>
                 </label>
                 <div className="flex flex-wrap items-center gap-3">
                   <button
