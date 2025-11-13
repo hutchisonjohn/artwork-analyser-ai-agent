@@ -129,6 +129,7 @@ function App() {
   const [isDragActive, setIsDragActive] = useState(false)
   const [showMagnifier, setShowMagnifier] = useState(false)
   const [magnifierPosition, setMagnifierPosition] = useState({ x: 0, y: 0 })
+  const [sliderWidth, setSliderWidth] = useState(0)
 
   const [adminConfig, setAdminConfig] = useState<AdminConfigState | null>(null)
   const [apiKeyInput, setApiKeyInput] = useState('')
@@ -721,8 +722,12 @@ function App() {
                       if (!showPreview) return
                       const elem = e.currentTarget
                       const { left, top, width, height } = elem.getBoundingClientRect()
-                      const x = ((e.clientX - left) / width) * 100
-                      const y = ((e.clientY - top) / height) * 100
+                      // Allow magnifier to reach edges by clamping position
+                      let x = ((e.clientX - left) / width) * 100
+                      let y = ((e.clientY - top) / height) * 100
+                      // Clamp to 0-100 range to ensure edges are reachable
+                      x = Math.max(0, Math.min(100, x))
+                      y = Math.max(0, Math.min(100, y))
                       setMagnifierPosition({ x, y })
                     }}
                     className={`relative flex w-full flex-col items-center justify-center rounded-xl border-2 border-dashed px-6 py-10 text-center transition ${
@@ -914,6 +919,112 @@ function App() {
                                 </div>
                               </div>
                             ))}
+                          </div>
+                        </div>
+                      )
+                    })()}
+
+                    {/* Interactive DPI Slider */}
+                    {analysis.quality.pixels && (() => {
+                      const { w: pixelW, h: pixelH } = analysis.quality.pixels
+                      const aspectRatio = pixelW / pixelH
+                      
+                      // Calculate current size at optimal DPI
+                      const currentWidthCm = (pixelW / 300) * 2.54
+                      const currentDPI = Math.round(pixelW / (currentWidthCm / 2.54))
+                      
+                      // Calculate max width: either 60cm OR where DPI drops to 72 (whichever comes first)
+                      const maxWidthAt72DPI = (pixelW / 72) * 2.54
+                      const maxWidthCm = Math.min(60, maxWidthAt72DPI)
+                      
+                      // Initialize slider to current size on first render
+                      if (sliderWidth === 0) {
+                        setSliderWidth(currentWidthCm)
+                      }
+                      
+                      // Calculate DPI at slider position
+                      const sliderHeightCm = sliderWidth / aspectRatio
+                      const sliderWidthIn = sliderWidth / 2.54
+                      const sliderHeightIn = sliderHeightCm / 2.54
+                      const sliderDPI = Math.round(pixelW / sliderWidthIn)
+                      
+                      // Determine quality at slider position
+                      let sliderQuality = 'Poor'
+                      if (sliderDPI >= 250) {
+                        sliderQuality = 'Optimal'
+                      } else if (sliderDPI >= 200) {
+                        sliderQuality = 'Good'
+                      }
+                      
+                      // Calculate gradient stops for slider track
+                      // Green zone: from current to where DPI = 250
+                      const greenEndWidthCm = (pixelW / 250) * 2.54
+                      const greenPercent = Math.min(100, ((greenEndWidthCm - currentWidthCm) / (maxWidthCm - currentWidthCm)) * 100)
+                      
+                      // Amber zone: from DPI 250 to DPI 200
+                      const amberEndWidthCm = (pixelW / 200) * 2.54
+                      const amberPercent = Math.min(100, ((amberEndWidthCm - currentWidthCm) / (maxWidthCm - currentWidthCm)) * 100)
+                      
+                      return (
+                        <div className="mt-6">
+                          <h4 className="text-sm font-semibold text-slate-700 mb-3">Interactive Size Calculator:</h4>
+                          
+                          {/* Display current slider values */}
+                          <div className="mb-4 text-center p-4 rounded-lg bg-slate-50 border border-slate-200">
+                            <div className="text-lg font-bold text-slate-800">
+                              {sliderWidth.toFixed(1)} × {sliderHeightCm.toFixed(1)} cm
+                            </div>
+                            <div className="text-sm text-slate-600 mt-1">
+                              ({sliderWidthIn.toFixed(2)}" × {sliderHeightIn.toFixed(2)}")
+                            </div>
+                            <div className="mt-2">
+                              <span className="text-2xl font-bold text-slate-900">DPI {sliderDPI}</span>
+                              <span className={`ml-3 text-sm font-semibold ${
+                                sliderQuality === 'Optimal' ? 'text-green-600' :
+                                sliderQuality === 'Good' ? 'text-orange-600' :
+                                'text-red-600'
+                              }`}>
+                                {sliderQuality}
+                              </span>
+                            </div>
+                          </div>
+                          
+                          {/* Slider */}
+                          <div className="relative">
+                            <div 
+                              className="h-8 rounded-full overflow-hidden"
+                              style={{
+                                background: `linear-gradient(to right, 
+                                  rgb(34 197 94) 0%, 
+                                  rgb(34 197 94) ${greenPercent}%, 
+                                  rgb(249 115 22) ${greenPercent}%, 
+                                  rgb(249 115 22) ${amberPercent}%, 
+                                  rgb(239 68 68) ${amberPercent}%, 
+                                  rgb(239 68 68) 100%
+                                )`
+                              }}
+                            />
+                            <input
+                              type="range"
+                              min={currentWidthCm}
+                              max={maxWidthCm}
+                              step={0.1}
+                              value={sliderWidth}
+                              onChange={(e) => setSliderWidth(parseFloat(e.target.value))}
+                              className="absolute inset-0 w-full h-8 opacity-0 cursor-pointer"
+                            />
+                            <div 
+                              className="absolute top-0 w-4 h-8 bg-white border-2 border-slate-800 rounded-md shadow-lg pointer-events-none"
+                              style={{
+                                left: `calc(${((sliderWidth - currentWidthCm) / (maxWidthCm - currentWidthCm)) * 100}% - 0.5rem)`
+                              }}
+                            />
+                          </div>
+                          
+                          {/* Slider labels */}
+                          <div className="flex justify-between mt-2 text-xs text-slate-500">
+                            <span>{currentWidthCm.toFixed(1)} cm (DPI {currentDPI})</span>
+                            <span>{maxWidthCm.toFixed(1)} cm (DPI {Math.round(pixelW / (maxWidthCm / 2.54))})</span>
                           </div>
                         </div>
                       )
