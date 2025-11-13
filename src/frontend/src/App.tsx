@@ -997,8 +997,8 @@ function App() {
                       
                       // Calculate actual DPI breakpoints
                       // Optimal: DPI ≥250 (smallest size)
-                      const minWidthCm = (pixelW / 300) * 2.54  // Start at 300 DPI
-                      const widthAt250DPI = (pixelW / 250) * 2.54  // Green|Orange border
+                      const minWidthCm = (pixelW / 300) * 2.54  // Minimum size at 300 DPI
+                      const widthAt250DPI = (pixelW / 250) * 2.54  // Green|Orange border - BEST OPTIMAL SIZE
                       
                       // Good: DPI 200-249
                       const widthAt200DPI = (pixelW / 200) * 2.54  // Orange|Red border
@@ -1007,9 +1007,9 @@ function App() {
                       const maxWidthAt72DPI = (pixelW / 72) * 2.54
                       const maxWidthCm = Math.min(60, maxWidthAt72DPI)  // Max at 60cm or 72 DPI
                       
-                      // Initialize slider to SMALLEST size (highest DPI = 300) on first render
+                      // Initialize slider to BEST OPTIMAL SIZE (DPI 250 - largest size in green zone) on first render
                       if (sliderWidth === 0) {
-                        setSliderWidth(minWidthCm)
+                        setSliderWidth(widthAt250DPI)
                       }
                       
                       // Calculate DPI at current slider position
