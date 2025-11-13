@@ -817,14 +817,12 @@ function App() {
 
               {/* Right column - AI Chat (only shown when analysis exists) */}
               {analysis && (
-                <div className="rounded-2xl border border-slate-200 bg-white shadow-sm">
-                  <div className="h-[600px]">
-                    <ArtworkChat
-                      quality={analysis.quality}
-                      colors={analysis.colors}
-                      workerUrl={workerBaseUrl}
-                    />
-                  </div>
+                <div className="h-[600px]">
+                  <ArtworkChat
+                    quality={analysis.quality}
+                    colors={analysis.colors}
+                    workerUrl={workerBaseUrl}
+                  />
                 </div>
               )}
             </div>
