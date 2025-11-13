@@ -127,6 +127,8 @@ function App() {
   const [uploads, setUploads] = useState<UploadItem[]>([])
   const [uploadError, setUploadError] = useState<string | null>(null)
   const [isDragActive, setIsDragActive] = useState(false)
+  const [showMagnifier, setShowMagnifier] = useState(false)
+  const [magnifierPosition, setMagnifierPosition] = useState({ x: 0, y: 0 })
 
   const [adminConfig, setAdminConfig] = useState<AdminConfigState | null>(null)
   const [apiKeyInput, setApiKeyInput] = useState('')
@@ -722,15 +724,46 @@ function App() {
                   {showPreview ? (
                     <>
                       {previewDisplay && (
-                        <img
-                          src={preview?.url ?? ''}
-                          alt={analysis?.fileName ? `Preview of ${analysis.fileName}` : 'Preview of uploaded artwork'}
-                          className="max-h-64 w-auto rounded-md border border-slate-200 bg-white object-contain shadow-sm"
-                          style={{
-                            width: previewDisplay.width ? `${previewDisplay.width}px` : undefined,
-                            height: previewDisplay.height ? `${previewDisplay.height}px` : undefined,
+                        <div 
+                          className="relative inline-block"
+                          onMouseEnter={() => setShowMagnifier(true)}
+                          onMouseLeave={() => setShowMagnifier(false)}
+                          onMouseMove={(e) => {
+                            const elem = e.currentTarget
+                            const { left, top, width, height } = elem.getBoundingClientRect()
+                            const x = ((e.clientX - left) / width) * 100
+                            const y = ((e.clientY - top) / height) * 100
+                            setMagnifierPosition({ x, y })
                           }}
-                        />
+                        >
+                          <img
+                            src={preview?.url ?? ''}
+                            alt={analysis?.fileName ? `Preview of ${analysis.fileName}` : 'Preview of uploaded artwork'}
+                            className="max-h-64 w-auto rounded-md border border-slate-200 bg-white object-contain shadow-sm cursor-crosshair"
+                            style={{
+                              width: previewDisplay.width ? `${previewDisplay.width}px` : undefined,
+                              height: previewDisplay.height ? `${previewDisplay.height}px` : undefined,
+                            }}
+                          />
+                          {showMagnifier && (
+                            <div
+                              className="absolute pointer-events-none border-4 border-indigo-500 rounded-lg shadow-2xl overflow-hidden"
+                              style={{
+                                width: '150px',
+                                height: '150px',
+                                top: '50%',
+                                left: '50%',
+                                transform: 'translate(-50%, -50%)',
+                                backgroundImage: `url(${preview?.url ?? ''})`,
+                                backgroundPosition: `${magnifierPosition.x}% ${magnifierPosition.y}%`,
+                                backgroundSize: `${(previewDisplay.width || 0) * 3}px ${(previewDisplay.height || 0) * 3}px`,
+                                backgroundRepeat: 'no-repeat',
+                              }}
+                            >
+                              <div className="absolute inset-0 border-2 border-white rounded-lg"></div>
+                            </div>
+                          )}
+                        </div>
                       )}
                       {previewDisplay && analysis?.quality.recommendedSizes && (
                         <>
