@@ -235,9 +235,9 @@ export default function ArtworkChat({ quality, colors, workerUrl, aiName = 'McCa
             </div>
             <div className="flex items-center gap-2 rounded-lg bg-slate-100 px-4 py-3">
               <div className="flex gap-1 items-end">
-                <div className="h-2.5 w-2.5 rounded-full bg-slate-600 animate-bounce" style={{ animationDelay: '0ms', animationDuration: '0.8s' }}></div>
-                <div className="h-2.5 w-2.5 rounded-full bg-slate-600 animate-bounce" style={{ animationDelay: '200ms', animationDuration: '0.8s' }}></div>
-                <div className="h-2.5 w-2.5 rounded-full bg-slate-600 animate-bounce" style={{ animationDelay: '400ms', animationDuration: '0.8s' }}></div>
+                <div className="h-1.5 w-1.5 rounded-full bg-slate-600 animate-bounce" style={{ animationDelay: '0ms', animationDuration: '0.8s' }}></div>
+                <div className="h-1.5 w-1.5 rounded-full bg-slate-600 animate-bounce" style={{ animationDelay: '200ms', animationDuration: '0.8s' }}></div>
+                <div className="h-1.5 w-1.5 rounded-full bg-slate-600 animate-bounce" style={{ animationDelay: '400ms', animationDuration: '0.8s' }}></div>
               </div>
             </div>
           </div>
