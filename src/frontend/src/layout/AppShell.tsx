@@ -28,7 +28,7 @@ const AppShell: React.FC<AppShellProps> = ({
   children,
 }) => {
   const [isDesktop, setIsDesktop] = useState(() => (typeof window !== 'undefined' ? window.innerWidth >= 1024 : true))
-  const [isExpanded, setIsExpanded] = useState(true)
+  const [isExpanded, setIsExpanded] = useState(false) // Start collapsed/hidden
   const [isMobileOpen, setIsMobileOpen] = useState(false)
 
   useEffect(() => {

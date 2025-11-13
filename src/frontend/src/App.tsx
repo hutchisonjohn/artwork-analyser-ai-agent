@@ -131,6 +131,7 @@ function App() {
   const [magnifierPosition, setMagnifierPosition] = useState({ x: 0, y: 0 })
   const [sliderWidth, setSliderWidth] = useState(0)
   const [isZoomMode, setIsZoomMode] = useState(false)
+  const [isAiChatOpen, setIsAiChatOpen] = useState(false)
 
   const [adminConfig, setAdminConfig] = useState<AdminConfigState | null>(null)
   const [apiKeyInput, setApiKeyInput] = useState('')
@@ -695,15 +696,35 @@ function App() {
       {activeTab === 'analyze' ? (
         <>
           <section className="space-y-6">
-            {/* Two-column layout: Upload on left, AI Chat on right (only when analysis exists) */}
-            <div className={`grid gap-6 ${analysis ? 'lg:grid-cols-2' : ''}`}>
-              {/* Left column - Upload area */}
-              <div className={`rounded-2xl border border-slate-200 bg-white p-6 shadow-sm ${!analysis ? 'max-w-5xl mx-auto' : ''}`}>
-                <div className="flex flex-col gap-3">
-                  <h2 className="text-2xl font-semibold text-slate-900">Check Your Image Quality</h2>
-                  <p className="text-base text-slate-600">
-                    Upload your artwork file to see instant print-readiness insights.
-                  </p>
+            {/* Two-column layout: Upload area and AI Chat (when open) */}
+            <div className={`grid gap-6 ${analysis && isAiChatOpen ? 'lg:grid-cols-[75%_25%]' : ''}`}>
+              {/* Upload area - full width when AI closed, 75% when AI open */}
+              <div className={`rounded-2xl border border-slate-200 bg-white p-6 shadow-sm ${!isAiChatOpen ? 'max-w-5xl mx-auto' : ''}`}>
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex flex-col gap-3 flex-1">
+                    <h2 className="text-2xl font-semibold text-slate-900">Check Your Image Quality</h2>
+                    <p className="text-base text-slate-600">
+                      Upload your artwork file to see instant print-readiness insights.
+                    </p>
+                  </div>
+                  
+                  {/* AI Assistant Toggle Button */}
+                  {analysis && (
+                    <button
+                      onClick={() => setIsAiChatOpen(!isAiChatOpen)}
+                      className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all ${
+                        isAiChatOpen 
+                          ? 'bg-indigo-100 text-indigo-700 hover:bg-indigo-200' 
+                          : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                      }`}
+                      title={isAiChatOpen ? 'Close AI Assistant' : 'Open AI Assistant'}
+                    >
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+                      </svg>
+                      <span className="text-sm font-medium">AI Assistant</span>
+                    </button>
+                  )}
                 </div>
 
                 {uploadError && (
@@ -1115,8 +1136,8 @@ function App() {
                 )}
               </div>
 
-              {/* Right column - AI Chat (only shown when analysis exists) */}
-              {analysis && (
+              {/* Right column - AI Chat (only shown when opened) */}
+              {analysis && isAiChatOpen && (
                 <div className="h-[600px]">
                   <ArtworkChat
                     quality={analysis.quality}
