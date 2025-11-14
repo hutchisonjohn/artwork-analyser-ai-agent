@@ -1115,9 +1115,9 @@ function App() {
                       <dt>Artwork file format</dt>
                       <dd>{analysis.quality.pixels ? 'Raster' : 'Vector'}</dd>
                     </div>
-                    <div className="flex justify-between items-center text-slate-600">
-                      <dt className="font-semibold">DPI</dt>
-                      <dd className="text-base font-bold text-primary">
+                    <div className="flex justify-between text-slate-600">
+                      <dt>DPI</dt>
+                      <dd>
                         {analysis.quality.pixels 
                           ? Math.round((analysis.quality.pixels.w / analysis.quality.recommendedSizes.at300dpi.w_in) || 0)
                           : 'N/A'}
@@ -1198,6 +1198,18 @@ function App() {
                     Alpha Channel Details
                   </h4>
                   <dl className="mt-2 grid gap-2 text-sm sm:grid-cols-3">
+                    <div className="flex flex-col text-slate-600">
+                      <dt className="font-medium">Sample size</dt>
+                      <dd className="ml-0">{alphaStats.sampleSize.toLocaleString()}</dd>
+                    </div>
+                    <div className="flex flex-col text-slate-600">
+                      <dt className="font-medium">Minimum value</dt>
+                      <dd className="ml-0">{alphaStats.min}</dd>
+                    </div>
+                    <div className="flex flex-col text-slate-600">
+                      <dt className="font-medium">Maximum value</dt>
+                      <dd className="ml-0">{alphaStats.max}</dd>
+                    </div>
                   </dl>
                   <div className="mt-3 overflow-x-auto">
                     <table className="min-w-full divide-y divide-border/60 text-sm">
