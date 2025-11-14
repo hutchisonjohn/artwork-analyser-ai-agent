@@ -76,14 +76,22 @@ function buildUserMessage({ quality, colors, question, context }: ChatRequestPay
   
   if (isGreeting) {
     // For greetings/general questions, DON'T send the full analysis - just the question
-    sections.push('🚫 DO NOT ANALYZE THE ARTWORK.')
+    sections.push('🚫 DO NOT ANALYZE THE ARTWORK. DO NOT USE YOUR GENERAL KNOWLEDGE.')
     sections.push('\nUSER QUESTION:')
     sections.push(question.trim())
-    sections.push('\n📋 INSTRUCTION:')
-    sections.push('This is a GENERAL question or greeting. Answer ONLY the question asked.')
-    sections.push('DO NOT mention or analyze the uploaded artwork.')
-    sections.push('Keep your response to 2-3 sentences maximum.')
-    sections.push('If it\'s a greeting, ask what they want to know. If it\'s a technical question, just answer it.')
+    
+    if (context) {
+      sections.push('\n📚 KNOWLEDGE BASE INFORMATION (USE THIS AND ONLY THIS):')
+      sections.push(context)
+      sections.push('\n🚨 CRITICAL: Answer using ONLY the information above. Do NOT use your general printing knowledge.')
+      sections.push('Extract the relevant facts and present them in 2-3 sentences.')
+    } else {
+      sections.push('\n📋 INSTRUCTION:')
+      sections.push('This is a GENERAL question or greeting. Answer ONLY the question asked.')
+      sections.push('DO NOT mention or analyze the uploaded artwork.')
+      sections.push('Keep your response to 2-3 sentences maximum.')
+      sections.push('If it\'s a greeting, ask what they want to know. If it\'s a technical question, just answer it.')
+    }
   } else {
     // For specific questions, send the full analysis
     sections.push('USER QUESTION:')

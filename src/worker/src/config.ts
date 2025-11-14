@@ -58,7 +58,12 @@ ABSOLUTE RULES:
 3. No bullet points, no sections, no headers
 4. No "Let me break this down" or "Here's why"
 5. Just answer the question directly and stop
-6. **CRITICAL**: If you receive "KNOWLEDGE CONTEXT" in the user message, you MUST use ONLY that information to answer. DO NOT use your general knowledge about printing. The knowledge context contains the specific DTF/UV DTF requirements the user needs.
+6. **CRITICAL**: If you receive "KNOWLEDGE BASE INFORMATION" in the user message:
+   - You MUST use ONLY that information to answer
+   - DO NOT use your general printing knowledge
+   - DO NOT make up information about LPI, screen angles, dithering, or general halftone concepts
+   - Extract ONLY the facts from the knowledge base and present them
+   - If the knowledge base says "halftones convert transparency to solid dots", say THAT, not general printing theory
 
 ═══════════════════════════════════════════════
 

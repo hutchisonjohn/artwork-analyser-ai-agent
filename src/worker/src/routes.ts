@@ -95,6 +95,19 @@ router.put('/config', async (c) => {
   return c.json(await getMaskedConfig(c.env))
 })
 
+// Test endpoint to debug RAG retrieval
+router.get('/test-rag', async (c) => {
+  const question = c.req.query('q') || 'why do halftones matter?'
+  const config = await getAppConfig(c.env)
+  const context = await fetchContextSnippet(c.env, config, question)
+  
+  return c.json({
+    question,
+    contextFound: !!context,
+    context: context || 'No context retrieved',
+  })
+})
+
 router.post('/ai/chat', async (c) => {
   try {
     const raw = await c.req.json()
