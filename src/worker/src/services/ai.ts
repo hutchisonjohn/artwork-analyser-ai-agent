@@ -48,18 +48,24 @@ function isGreetingOrGeneral(question: string): boolean {
     return true
   }
   
-  // General technical questions that DON'T need artwork analysis
-  const generalQuestions = [
-    /what (is|are) (the )?(minimum|maximum|required|recommended)/i,
-    /can i use/i,
-    /how (do|does|can|should)/i,
-    /tell me about/i,
-    /explain/i,
-    /what('s| is) (dtf|uv dtf|printing)/i,
-    /(dtf|uv dtf|printing) (requirements?|guidelines?|specs?|specifications?)/i,
+  // Check if question is specifically about THEIR artwork
+  // Only these patterns should trigger artwork analysis
+  const artworkSpecificPatterns = [
+    /(my|this|the) (artwork|image|file|design|graphic)/i,
+    /what('s| is) (my|the) (dpi|resolution|size)/i,
+    /can (i|this) (print|be printed)/i,
+    /how (big|large|small) can (i|this)/i,
+    /(analyze|check|review|look at) (my|this|the)/i,
   ]
   
-  return generalQuestions.some(pattern => pattern.test(lower))
+  // If it mentions their specific artwork, it's NOT general
+  if (artworkSpecificPatterns.some(pattern => pattern.test(lower))) {
+    return false
+  }
+  
+  // Everything else is considered general
+  // This is the key change - default to general unless explicitly about their artwork
+  return true
 }
 
 function buildUserMessage({ quality, colors, question, context }: ChatRequestPayload): string {
