@@ -1089,7 +1089,7 @@ function App() {
               {/* AI Assistant - appears to the right when open */}
               {analysis && isAiChatOpen && (
                 <div className="w-96 flex-shrink-0">
-                  <div className="sticky top-20 h-[600px]">
+                  <div className="sticky top-4 h-[calc(100vh-2rem)] max-h-[800px]">
                     <ArtworkChat
                       quality={analysis.quality}
                       colors={analysis.colors}
