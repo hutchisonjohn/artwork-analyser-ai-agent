@@ -1112,36 +1112,36 @@ function App() {
                     Artwork Specifications
                   </h4>
                   <dl className="mt-2 space-y-1 text-sm">
-                    <div className="flex justify-between text-slate-600">
-                      <dt>Artwork file format</dt>
+                    <div className="flex items-baseline gap-2 text-slate-600">
+                      <dt className="font-medium whitespace-nowrap">Artwork file format</dt>
                       <dd>{analysis.quality.pixels ? 'Raster' : 'Vector'}</dd>
                     </div>
-                    <div className="flex justify-between text-slate-600">
-                      <dt>DPI</dt>
+                    <div className="flex items-baseline gap-2 text-slate-600">
+                      <dt className="font-medium whitespace-nowrap">DPI</dt>
                       <dd>
                         {analysis.quality.pixels 
                           ? Math.round((analysis.quality.pixels.w / analysis.quality.recommendedSizes.at300dpi.w_in) || 0)
                           : 'N/A'}
                       </dd>
                     </div>
-                    <div className="flex justify-between text-slate-600">
-                      <dt>Pixels</dt>
+                    <div className="flex items-baseline gap-2 text-slate-600">
+                      <dt className="font-medium whitespace-nowrap">Pixels</dt>
                       <dd>
                         {analysis.quality.pixels
                           ? `${analysis.quality.pixels.w}×${analysis.quality.pixels.h}`
                           : 'Vector / N/A'}
                       </dd>
                     </div>
-                    <div className="flex justify-between text-slate-600">
-                      <dt>Aspect ratio</dt>
+                    <div className="flex items-baseline gap-2 text-slate-600">
+                      <dt className="font-medium whitespace-nowrap">Aspect ratio</dt>
                       <dd>{analysis.quality.aspectRatio}</dd>
                     </div>
-                    <div className="flex justify-between text-slate-600">
-                      <dt>Bit depth</dt>
+                    <div className="flex items-baseline gap-2 text-slate-600">
+                      <dt className="font-medium whitespace-nowrap">Bit depth</dt>
                       <dd>{analysis.quality.bitDepth ?? 'N/A'}</dd>
                     </div>
-                    <div className="flex justify-between text-slate-600">
-                      <dt>Alpha channel</dt>
+                    <div className="flex items-baseline gap-2 text-slate-600">
+                      <dt className="font-medium whitespace-nowrap">Alpha channel</dt>
                       <dd>{analysis.quality.hasAlpha ? 'Yes' : 'No'}</dd>
                     </div>
                   </dl>
