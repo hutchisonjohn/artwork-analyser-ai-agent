@@ -997,8 +997,8 @@ function App() {
                       const sliderPercent = ((sliderWidth - minWidthCm) / totalRange) * 100
                       
                       return (
-                        <div className="mt-6">
-                          <h4 className="text-sm font-semibold text-slate-700 mb-3">Interactive Size Calculator:</h4>
+                        <div className="mt-6 rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+                          <h4 className="text-sm font-semibold text-slate-700 mb-3">Interactive Size Calculator</h4>
                           
                           {/* Display current slider values */}
                           <div className="mb-4 text-center p-4 rounded-lg bg-slate-50 border border-slate-200">
@@ -1099,11 +1099,12 @@ function App() {
           </section>
 
           {analysis ? (
-            <section className="grid gap-6 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+            <section className="grid gap-6 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm w-full max-w-7xl mx-auto">
+              <h2 className="text-2xl font-semibold text-slate-900">Technical Specifications</h2>
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
                   <h4 className="text-sm font-semibold tracking-wide text-slate-500">
-                    Artwork Technical Specs
+                    Artwork Specifications
                   </h4>
                   <dl className="mt-2 space-y-1 text-sm">
                     <div className="flex justify-between text-slate-600">
