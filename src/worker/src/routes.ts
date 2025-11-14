@@ -106,6 +106,12 @@ router.post('/ai/chat', async (c) => {
     const config = await getAppConfig(c.env)
     const context = await fetchContextSnippet(c.env, config, parsed.data.question)
 
+    console.log(`[CHAT] Question: "${parsed.data.question}"`)
+    console.log(`[CHAT] RAG context retrieved: ${context ? 'YES' : 'NO'}`)
+    if (context) {
+      console.log(`[CHAT] Context preview: ${context.substring(0, 200)}...`)
+    }
+
     const payload: ChatRequestPayload = {
       question: parsed.data.question,
       quality: parsed.data.quality,

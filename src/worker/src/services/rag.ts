@@ -68,20 +68,23 @@ export async function fetchContextSnippet(
     .sort((a, b) => b.score - a.score)
     .slice(0, limit)
 
-  console.log(`[RAG] Top ${scored.length} matches:`, scored.map(s => ({ score: s.score.toFixed(3), preview: s.text.substring(0, 100) })))
+  console.log(`[RAG] Top ${scored.length} matches:`)
+  scored.slice(0, 3).forEach((s, i) => {
+    console.log(`  ${i + 1}. Score: ${s.score.toFixed(3)} | Preview: ${s.text.substring(0, 150)}...`)
+  })
 
   if (!scored.length) {
     console.log('[RAG] No scored results')
     return null
   }
 
-  // Lower threshold to 0.3 (30% similarity) for better recall
-  if (scored[0].score < 0.3) {
-    console.log(`[RAG] Best match score too low: ${scored[0].score.toFixed(3)} (threshold: 0.3)`)
+  // Lower threshold to 0.2 (20% similarity) for even better recall
+  if (scored[0].score < 0.2) {
+    console.log(`[RAG] Best match score too low: ${scored[0].score.toFixed(3)} (threshold: 0.2)`)
     return null
   }
 
-  console.log(`[RAG] Returning ${scored.length} context chunks`)
+  console.log(`[RAG] ✅ Returning ${scored.length} context chunks to AI`)
   return scored
     .map(
       (entry, index) =>
