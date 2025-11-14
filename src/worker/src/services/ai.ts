@@ -146,7 +146,7 @@ async function callClaudeAPI(config: AppConfig, payload: ChatRequestPayload): Pr
 
   const body = {
     model: config.model,
-    max_tokens: 300, // Reduced from 2048 to force shorter responses (roughly 2-3 sentences)
+    max_tokens: 150, // Further reduced to force even shorter responses
     messages: [
       { role: 'user', content: buildUserMessage(payload) },
     ],
