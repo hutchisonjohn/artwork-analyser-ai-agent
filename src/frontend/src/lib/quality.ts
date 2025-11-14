@@ -75,20 +75,10 @@ export function createBaseNotes(): string[] {
   return [...DTF_GUIDELINES]
 }
 
-function gcd(a: number, b: number): number {
-  return b === 0 ? a : gcd(b, a % b)
-}
-
 export function formatAspectRatio(width: number, height: number): string {
   if (!width || !height) {
     return 'N/A'
   }
-  const scale = 1000
-  const widthScaled = Math.round(width * scale)
-  const heightScaled = Math.round(height * scale)
-  const divisor = gcd(widthScaled, heightScaled)
-  const ratioWidth = Math.round(widthScaled / divisor)
-  const ratioHeight = Math.round(heightScaled / divisor)
   const decimal = roundTo(width / height, 2)
-  return `${ratioWidth}:${ratioHeight} (${decimal}:1)`
+  return `${decimal}:1`
 }
