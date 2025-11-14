@@ -130,6 +130,7 @@ function App() {
   const [sliderWidth, setSliderWidth] = useState(0)
   const [isZoomMode, setIsZoomMode] = useState(false)
   const [isAiChatOpen, setIsAiChatOpen] = useState(false)
+  const [activeNotesTab, setActiveNotesTab] = useState<'dtf' | 'uvdtf'>('dtf')
 
   const [adminConfig, setAdminConfig] = useState<AdminConfigState | null>(null)
   const [apiKeyInput, setApiKeyInput] = useState('')
@@ -1217,28 +1218,28 @@ function App() {
                         <tr>
                           <th className="px-3 py-2">Alpha Range</th>
                           <th className="px-3 py-2">Transparency</th>
-                          <th className="px-3 py-2 text-right">Pixels</th>
-                          <th className="px-3 py-2 text-right">Percent</th>
+                          <th className="px-3 py-2">Pixels</th>
+                          <th className="px-3 py-2">Percent</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-border/60">
                         <tr>
                           <td className="px-3 py-2 font-medium text-slate-700">0</td>
                           <td className="px-3 py-2">Fully transparent</td>
-                          <td className="px-3 py-2 text-right">{alphaStats.transparentCount.toLocaleString()}</td>
-                          <td className="px-3 py-2 text-right">{alphaStats.transparentPercent.toFixed(2)}%</td>
+                          <td className="px-3 py-2">{alphaStats.transparentCount.toLocaleString()}</td>
+                          <td className="px-3 py-2">{alphaStats.transparentPercent.toFixed(2)}%</td>
                         </tr>
                         <tr>
                           <td className="px-3 py-2 font-medium text-slate-700">1-254</td>
                           <td className="px-3 py-2">Semi transparent</td>
-                          <td className="px-3 py-2 text-right">{alphaStats.semiTransparentCount.toLocaleString()}</td>
-                          <td className="px-3 py-2 text-right">{alphaStats.semiTransparentPercent.toFixed(2)}%</td>
+                          <td className="px-3 py-2">{alphaStats.semiTransparentCount.toLocaleString()}</td>
+                          <td className="px-3 py-2">{alphaStats.semiTransparentPercent.toFixed(2)}%</td>
                         </tr>
                         <tr>
                           <td className="px-3 py-2 font-medium text-slate-700">255</td>
                           <td className="px-3 py-2">Fully opaque</td>
-                          <td className="px-3 py-2 text-right">{alphaStats.opaqueCount.toLocaleString()}</td>
-                          <td className="px-3 py-2 text-right">{alphaStats.opaquePercent.toFixed(2)}%</td>
+                          <td className="px-3 py-2">{alphaStats.opaqueCount.toLocaleString()}</td>
+                          <td className="px-3 py-2">{alphaStats.opaquePercent.toFixed(2)}%</td>
                         </tr>
                       </tbody>
                     </table>
@@ -1311,31 +1312,59 @@ function App() {
                   Important Notes
                 </h4>
                 
-                {/* DTF Section */}
+                {/* Tabs */}
                 <div className="mb-4">
-                  <h5 className="text-sm font-semibold text-slate-700 mb-2">DTF (Direct-to-Film) Printing</h5>
-                  <ul className="list-disc space-y-1.5 pl-5 text-sm text-muted-foreground">
-                    <li><strong>Minimum Text Size:</strong> 8pt (≈2.5mm x-height). Smaller text breaks easily due to anti-aliasing and white underbase choking.</li>
-                    <li><strong>Minimum Line Thickness:</strong> 1mm. Thinner lines become weak, patchy, or disappear when the white underbase is choked inward.</li>
-                    <li><strong>Transparency:</strong> 100% opaque pixels required. Semi-transparent pixels (1-99% opacity) cause washed-out colors, poor adhesion, feathered edges, and patchy drop shadows.</li>
-                    <li><strong>Gradients & Fades:</strong> Soft gradients that fade to zero opacity do not work. Use halftone dots (solid 100% opacity) for smooth transitions.</li>
-                    <li><strong>Resolution:</strong> Minimum 300 DPI. Low-resolution artwork creates fuzzy edges with partial-opacity pixels that don't receive white underbase.</li>
-                    <li><strong>Color Profiles:</strong> RGB or CMYK recommended. Avoid unsupported embedded profiles for consistent vibrancy.</li>
-                </ul>
-              </div>
-
-                {/* UV DTF Section */}
-                <div>
-                  <h5 className="text-sm font-semibold text-slate-700 mb-2">UV DTF Printing</h5>
-                  <ul className="list-disc space-y-1.5 pl-5 text-sm text-muted-foreground">
-                    <li><strong>Minimum Text Size:</strong> 2mm x-height. Slightly finer than DTF, but extremely small text becomes brittle and may chip during transfer.</li>
-                    <li><strong>Minimum Line Thickness:</strong> 0.5-1mm. Lines below 0.5mm may not release cleanly and can flake at the edges.</li>
-                    <li><strong>Transparency:</strong> Partial transparency acceptable in CMYK-only areas, but NOT when white underbase is required. Transparency over white will crack, lift, or chip.</li>
-                    <li><strong>Gradients & Fades:</strong> More forgiving than DTF but still not suited for soft digital fades. Use halftones for safe transitions to avoid edge cracking and flaking during peel.</li>
-                    <li><strong>Resolution:</strong> 300 DPI recommended. Low-resolution artwork leads to brittle edges due to anti-aliasing.</li>
-                    <li><strong>Varnish Layer:</strong> UV-cured varnish amplifies color contrast but creates tension that can cause feathered alpha edges to crack easily.</li>
-                  </ul>
+                  <div className="flex border-b border-slate-200">
+                    <button
+                      onClick={() => setActiveNotesTab('dtf')}
+                      className={`px-4 py-2 text-sm font-medium transition-colors ${
+                        activeNotesTab === 'dtf'
+                          ? 'border-b-2 border-blue-600 text-blue-600'
+                          : 'text-slate-600 hover:text-slate-900'
+                      }`}
+                    >
+                      DTF (Direct-to-Film)
+                    </button>
+                    <button
+                      onClick={() => setActiveNotesTab('uvdtf')}
+                      className={`px-4 py-2 text-sm font-medium transition-colors ${
+                        activeNotesTab === 'uvdtf'
+                          ? 'border-b-2 border-blue-600 text-blue-600'
+                          : 'text-slate-600 hover:text-slate-900'
+                      }`}
+                    >
+                      UV DTF
+                    </button>
+                  </div>
                 </div>
+
+                {/* DTF Tab Content */}
+                {activeNotesTab === 'dtf' && (
+                  <div>
+                    <ul className="list-disc space-y-1.5 pl-5 text-sm text-muted-foreground">
+                      <li><strong>Minimum Text Size:</strong> 8pt (≈2.5mm x-height). Smaller text breaks easily due to anti-aliasing and white underbase choking.</li>
+                      <li><strong>Minimum Line Thickness:</strong> 1mm. Thinner lines become weak, patchy, or disappear when the white underbase is choked inward.</li>
+                      <li><strong>Transparency:</strong> 100% opaque pixels required. Semi-transparent pixels (1-99% opacity) cause washed-out colors, poor adhesion, feathered edges, and patchy drop shadows.</li>
+                      <li><strong>Gradients & Fades:</strong> Soft gradients that fade to zero opacity do not work. Use halftone dots (solid 100% opacity) for smooth transitions.</li>
+                      <li><strong>Resolution:</strong> Minimum 300 DPI. Low-resolution artwork creates fuzzy edges with partial-opacity pixels that don't receive white underbase.</li>
+                      <li><strong>Color Profiles:</strong> RGB or CMYK recommended. Avoid unsupported embedded profiles for consistent vibrancy.</li>
+                    </ul>
+                  </div>
+                )}
+
+                {/* UV DTF Tab Content */}
+                {activeNotesTab === 'uvdtf' && (
+                  <div>
+                    <ul className="list-disc space-y-1.5 pl-5 text-sm text-muted-foreground">
+                      <li><strong>Minimum Text Size:</strong> 2mm x-height. Slightly finer than DTF, but extremely small text becomes brittle and may chip during transfer.</li>
+                      <li><strong>Minimum Line Thickness:</strong> 0.5-1mm. Lines below 0.5mm may not release cleanly and can flake at the edges.</li>
+                      <li><strong>Transparency:</strong> Partial transparency acceptable in CMYK-only areas, but NOT when white underbase is required. Transparency over white will crack, lift, or chip.</li>
+                      <li><strong>Gradients & Fades:</strong> More forgiving than DTF but still not suited for soft digital fades. Use halftones for safe transitions to avoid edge cracking and flaking during peel.</li>
+                      <li><strong>Resolution:</strong> 300 DPI recommended. Low-resolution artwork leads to brittle edges due to anti-aliasing.</li>
+                      <li><strong>Varnish Layer:</strong> UV-cured varnish amplifies color contrast but creates tension that can cause feathered alpha edges to crack easily.</li>
+                    </ul>
+                  </div>
+                )}
               </div>
             </section>
           ) : null}
@@ -1617,6 +1646,13 @@ function App() {
           </div>
         </section>
       )}
+
+      {/* Copyright Footer */}
+      <footer className="w-full py-6 text-center">
+        <p className="text-sm text-slate-500">
+          © Copyright 2025. All Rights Reserved.
+        </p>
+      </footer>
     </AppShell>
   )
 }
