@@ -1147,21 +1147,21 @@ function App() {
                     Recommended Print Sizes
                   </h4>
                   <dl className="mt-2 space-y-1 text-sm">
-                    <div className="flex justify-between text-slate-600">
-                      <dt>300 DPI</dt>
-                      <dd>
+                    <div className="text-slate-600">
+                      <dt className="font-medium">300 DPI</dt>
+                      <dd className="ml-0">
                         {`${analysis.quality.recommendedSizes.at300dpi.w_in}" × ${analysis.quality.recommendedSizes.at300dpi.h_in}" (${analysis.quality.recommendedSizes.at300dpi.w_cm} × ${analysis.quality.recommendedSizes.at300dpi.h_cm} cm)`}
                       </dd>
                     </div>
-                    <div className="flex justify-between text-slate-600">
-                      <dt>150 DPI</dt>
-                      <dd>
+                    <div className="text-slate-600">
+                      <dt className="font-medium">150 DPI</dt>
+                      <dd className="ml-0">
                         {`${analysis.quality.recommendedSizes.at150dpi.w_in}" × ${analysis.quality.recommendedSizes.at150dpi.h_in}" (${analysis.quality.recommendedSizes.at150dpi.w_cm} × ${analysis.quality.recommendedSizes.at150dpi.h_cm} cm)`}
                       </dd>
                     </div>
-                    <div className="flex justify-between text-slate-600">
-                      <dt>72 DPI</dt>
-                      <dd>
+                    <div className="text-slate-600">
+                      <dt className="font-medium">72 DPI</dt>
+                      <dd className="ml-0">
                         {analysis.quality.pixels && analysis.quality.recommendedSizes
                           ? `${((analysis.quality.pixels.w / 72)).toFixed(2)}" × ${((analysis.quality.pixels.h / 72)).toFixed(2)}" (${((analysis.quality.pixels.w / 72) * 2.54).toFixed(2)} × ${((analysis.quality.pixels.h / 72) * 2.54).toFixed(2)} cm)`
                           : 'N/A'}
