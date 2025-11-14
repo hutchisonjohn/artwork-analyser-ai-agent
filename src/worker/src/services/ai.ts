@@ -63,8 +63,11 @@ function buildUserMessage({ quality, colors, question, context }: ChatRequestPay
     sections.push('\nANALYSIS SUMMARY:')
     sections.push(JSON.stringify({ quality, colors }, null, 2))
     if (context) {
+      console.log('[AI] Including RAG context in message')
       sections.push('\nKNOWLEDGE CONTEXT:')
       sections.push(context)
+    } else {
+      console.log('[AI] No RAG context available for this question')
     }
   }
   

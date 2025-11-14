@@ -45,7 +45,11 @@ export async function fetchContextSnippet(
     .bind(MAX_FETCHED_ROWS)
     .all<DocRow>()
 
+  console.log(`[RAG] Question: "${question}"`)
+  console.log(`[RAG] Found ${result.results?.length || 0} chunks in database`)
+
   if (!result.success || !result.results.length) {
+    console.log('[RAG] No documents found in database')
     return null
   }
 
@@ -64,10 +68,20 @@ export async function fetchContextSnippet(
     .sort((a, b) => b.score - a.score)
     .slice(0, limit)
 
-  if (!scored.length || scored[0].score < 0.05) {
+  console.log(`[RAG] Top ${scored.length} matches:`, scored.map(s => ({ score: s.score.toFixed(3), preview: s.text.substring(0, 100) })))
+
+  if (!scored.length) {
+    console.log('[RAG] No scored results')
     return null
   }
 
+  // Lower threshold to 0.3 (30% similarity) for better recall
+  if (scored[0].score < 0.3) {
+    console.log(`[RAG] Best match score too low: ${scored[0].score.toFixed(3)} (threshold: 0.3)`)
+    return null
+  }
+
+  console.log(`[RAG] Returning ${scored.length} context chunks`)
   return scored
     .map(
       (entry, index) =>
