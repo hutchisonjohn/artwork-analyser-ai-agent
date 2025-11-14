@@ -17,6 +17,10 @@ const chatRequestSchema = z.object({
   question: z.string().min(1),
   quality: z.any(),
   colors: z.any().optional(),
+  history: z.array(z.object({
+    role: z.enum(['user', 'assistant']),
+    content: z.string()
+  })).optional(),
 })
 
 const partialConfigSchema = configSchema.partial()
@@ -130,6 +134,7 @@ router.post('/ai/chat', async (c) => {
       quality: parsed.data.quality,
       colors: parsed.data.colors,
       context: context ?? undefined,
+      history: parsed.data.history,
     }
 
     const result = await runChatCompletion(c.env, config, payload)

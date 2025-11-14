@@ -702,6 +702,7 @@ function App() {
             workerUrl={workerBaseUrl}
             aiName={adminConfig?.aiName || 'McCarthy AI Artwork Assistant'}
             greetingMessage={adminConfig?.greetingMessage || "Hello! I'm McCarthy, your AI artwork assistant.\n\nI'm here to help you understand your artwork's print quality, DPI, colors, and file specifications.\n\nFeel free to ask me anything about your artwork!"}
+            isOpen={isAiChatOpen}
           />
         </div>
       )}

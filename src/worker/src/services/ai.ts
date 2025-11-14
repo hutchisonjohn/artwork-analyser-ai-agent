@@ -6,6 +6,7 @@ export interface ChatRequestPayload {
   colors?: ColorReport
   question: string
   context?: string
+  history?: Array<{ role: 'user' | 'assistant'; content: string }>
 }
 
 export interface ChatResponse {
@@ -144,12 +145,21 @@ async function callClaudeAPI(config: AppConfig, payload: ChatRequestPayload): Pr
     throw new Error('Claude API key is required but not configured')
   }
 
+  // Build messages array with conversation history
+  const messages: Array<{ role: 'user' | 'assistant'; content: string }> = []
+  
+  // Add conversation history if present
+  if (payload.history && payload.history.length > 0) {
+    messages.push(...payload.history)
+  }
+  
+  // Add the current question
+  messages.push({ role: 'user', content: buildUserMessage(payload) })
+
   const body = {
     model: config.model,
     max_tokens: 100, // Reduced to 100 to physically cut off verbose responses
-    messages: [
-      { role: 'user', content: buildUserMessage(payload) },
-    ],
+    messages,
     system: buildSystemMessage(config),
   }
 

@@ -15,9 +15,10 @@ interface ArtworkChatProps {
   workerUrl?: string
   aiName?: string
   greetingMessage?: string
+  isOpen?: boolean // Track if chat is open to reset on close
 }
 
-export default function ArtworkChat({ quality, colors, workerUrl, aiName = 'McCarthy AI Artwork Assistant', greetingMessage = "Hello! I'm McCarthy, your AI artwork assistant.\n\nI'm here to help you understand your artwork's print quality, DPI, colors, and file specifications.\n\nFeel free to ask me anything about your artwork!" }: ArtworkChatProps) {
+export default function ArtworkChat({ quality, colors, workerUrl, aiName = 'McCarthy AI Artwork Assistant', greetingMessage = "Hello! I'm McCarthy, your AI artwork assistant.\n\nI'm here to help you understand your artwork's print quality, DPI, colors, and file specifications.\n\nFeel free to ask me anything about your artwork!", isOpen = true }: ArtworkChatProps) {
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState('')
   const [isLoading, setIsLoading] = useState(false)
@@ -38,6 +39,14 @@ export default function ArtworkChat({ quality, colors, workerUrl, aiName = 'McCa
   useEffect(() => {
     scrollToBottom()
   }, [messages])
+
+  // Clear messages when a new artwork is uploaded OR when chat is closed
+  useEffect(() => {
+    if (!isOpen) {
+      setMessages([])
+      setHasShownGreeting(false)
+    }
+  }, [isOpen])
 
   // Clear messages when a new artwork is uploaded
   useEffect(() => {
@@ -123,6 +132,12 @@ export default function ArtworkChat({ quality, colors, workerUrl, aiName = 'McCa
     setIsLoading(true)
 
     try {
+      // Get the last 10 messages (5 exchanges) for conversation history
+      const conversationHistory = messages.slice(-10).map(msg => ({
+        role: msg.role,
+        content: msg.content
+      }))
+
       const response = await fetch(`${apiBase}/ai/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -130,6 +145,7 @@ export default function ArtworkChat({ quality, colors, workerUrl, aiName = 'McCa
           question: userMessage.content,
           quality,
           colors,
+          history: conversationHistory, // Send conversation history
         }),
       })
 
