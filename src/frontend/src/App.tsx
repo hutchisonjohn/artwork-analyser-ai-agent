@@ -1111,38 +1111,38 @@ function App() {
                   <h4 className="text-sm font-semibold tracking-wide text-slate-500">
                     Artwork Specifications
                   </h4>
-                  <dl className="mt-2 space-y-1 text-sm">
-                    <div className="flex items-baseline gap-2 text-slate-600">
-                      <dt className="font-medium whitespace-nowrap">Artwork file format</dt>
-                      <dd>{analysis.quality.pixels ? 'Raster' : 'Vector'}</dd>
+                  <dl className="mt-2 space-y-2 text-sm">
+                    <div className="text-slate-600">
+                      <dt className="font-medium text-slate-500 mb-0.5">Artwork file format</dt>
+                      <dd className="text-slate-700">{analysis.quality.pixels ? 'Raster' : 'Vector'}</dd>
                     </div>
-                    <div className="flex items-baseline gap-2 text-slate-600">
-                      <dt className="font-medium whitespace-nowrap">DPI</dt>
-                      <dd>
+                    <div className="text-slate-600">
+                      <dt className="font-medium text-slate-500 mb-0.5">DPI</dt>
+                      <dd className="text-slate-700">
                         {analysis.quality.pixels 
                           ? Math.round((analysis.quality.pixels.w / analysis.quality.recommendedSizes.at300dpi.w_in) || 0)
                           : 'N/A'}
                       </dd>
                     </div>
-                    <div className="flex items-baseline gap-2 text-slate-600">
-                      <dt className="font-medium whitespace-nowrap">Pixels</dt>
-                      <dd>
+                    <div className="text-slate-600">
+                      <dt className="font-medium text-slate-500 mb-0.5">Pixels</dt>
+                      <dd className="text-slate-700">
                         {analysis.quality.pixels
                           ? `${analysis.quality.pixels.w}×${analysis.quality.pixels.h}`
                           : 'Vector / N/A'}
                       </dd>
                     </div>
-                    <div className="flex items-baseline gap-2 text-slate-600">
-                      <dt className="font-medium whitespace-nowrap">Aspect ratio</dt>
-                      <dd>{analysis.quality.aspectRatio}</dd>
+                    <div className="text-slate-600">
+                      <dt className="font-medium text-slate-500 mb-0.5">Aspect ratio</dt>
+                      <dd className="text-slate-700">{analysis.quality.aspectRatio}</dd>
                     </div>
-                    <div className="flex items-baseline gap-2 text-slate-600">
-                      <dt className="font-medium whitespace-nowrap">Bit depth</dt>
-                      <dd>{analysis.quality.bitDepth ?? 'N/A'}</dd>
+                    <div className="text-slate-600">
+                      <dt className="font-medium text-slate-500 mb-0.5">Bit depth</dt>
+                      <dd className="text-slate-700">{analysis.quality.bitDepth ?? 'N/A'}</dd>
                     </div>
-                    <div className="flex items-baseline gap-2 text-slate-600">
-                      <dt className="font-medium whitespace-nowrap">Alpha channel</dt>
-                      <dd>{analysis.quality.hasAlpha ? 'Yes' : 'No'}</dd>
+                    <div className="text-slate-600">
+                      <dt className="font-medium text-slate-500 mb-0.5">Alpha channel</dt>
+                      <dd className="text-slate-700">{analysis.quality.hasAlpha ? 'Yes' : 'No'}</dd>
                     </div>
                   </dl>
                 </div>
@@ -1151,22 +1151,22 @@ function App() {
                   <h4 className="text-sm font-semibold tracking-wide text-slate-500">
                     Recommended Print Sizes
                   </h4>
-                  <dl className="mt-2 space-y-1 text-sm">
-                    <div className="flex items-baseline gap-2 text-slate-600">
-                      <dt className="font-medium whitespace-nowrap">300 DPI</dt>
-                      <dd className="text-slate-600">
+                  <dl className="mt-2 space-y-2 text-sm">
+                    <div className="text-slate-600">
+                      <dt className="font-medium text-slate-500 mb-0.5">300 DPI</dt>
+                      <dd className="text-slate-700">
                         {`${analysis.quality.recommendedSizes.at300dpi.w_in}" × ${analysis.quality.recommendedSizes.at300dpi.h_in}" (${analysis.quality.recommendedSizes.at300dpi.w_cm} × ${analysis.quality.recommendedSizes.at300dpi.h_cm} cm)`}
                       </dd>
                     </div>
-                    <div className="flex items-baseline gap-2 text-slate-600">
-                      <dt className="font-medium whitespace-nowrap">150 DPI</dt>
-                      <dd className="text-slate-600">
+                    <div className="text-slate-600">
+                      <dt className="font-medium text-slate-500 mb-0.5">150 DPI</dt>
+                      <dd className="text-slate-700">
                         {`${analysis.quality.recommendedSizes.at150dpi.w_in}" × ${analysis.quality.recommendedSizes.at150dpi.h_in}" (${analysis.quality.recommendedSizes.at150dpi.w_cm} × ${analysis.quality.recommendedSizes.at150dpi.h_cm} cm)`}
                       </dd>
                     </div>
-                    <div className="flex items-baseline gap-2 text-slate-600">
-                      <dt className="font-medium whitespace-nowrap">72 DPI</dt>
-                      <dd className="text-slate-600">
+                    <div className="text-slate-600">
+                      <dt className="font-medium text-slate-500 mb-0.5">72 DPI</dt>
+                      <dd className="text-slate-700">
                         {analysis.quality.pixels && analysis.quality.recommendedSizes
                           ? `${((analysis.quality.pixels.w / 72)).toFixed(2)}" × ${((analysis.quality.pixels.h / 72)).toFixed(2)}" (${((analysis.quality.pixels.w / 72) * 2.54).toFixed(2)} × ${((analysis.quality.pixels.h / 72) * 2.54).toFixed(2)} cm)`
                           : 'N/A'}
