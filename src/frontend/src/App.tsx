@@ -933,15 +933,19 @@ function App() {
                           )}
                         </div>
                         <div className="text-right">
-                          <div className="text-4xl font-bold text-blue-600">
+                          <div className={`text-4xl font-bold ${
+                            analysis.quality.rating === 'Optimal' ? 'text-green-600' :
+                            analysis.quality.rating === 'Good' ? 'text-orange-500' :
+                            'text-red-600'
+                          }`}>
                             DPI {analysis.quality.pixels && analysis.quality.recommendedSizes
                               ? Math.round(analysis.quality.pixels.w / analysis.quality.recommendedSizes.at300dpi.w_in)
                               : '—'}
                           </div>
                           <div className={`mt-1 text-sm font-semibold ${
                             analysis.quality.rating === 'Optimal' ? 'text-green-600' :
-                            analysis.quality.rating === 'Good' ? 'text-blue-600' :
-                            'text-orange-600'
+                            analysis.quality.rating === 'Good' ? 'text-orange-500' :
+                            'text-red-600'
                           }`}>
                             {analysis.quality.rating || 'Unknown'} Quality
                           </div>
