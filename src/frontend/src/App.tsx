@@ -1086,25 +1086,24 @@ function App() {
             )}
               </div>
 
-              {/* AI Assistant - appears to the right when open */}
-              {analysis && isAiChatOpen && (
-                <div className="w-96 flex-shrink-0">
-                  <div className="sticky top-4 h-[600px]">
-                    <ArtworkChat
-                      quality={analysis.quality}
-                      colors={analysis.colors}
-                      workerUrl={workerBaseUrl}
-                      aiName={adminConfig?.aiName || 'McCarthy AI Artwork Assistant'}
-                      greetingMessage={adminConfig?.greetingMessage || "Hello! I'm McCarthy, your AI artwork assistant.\n\nI'm here to help you understand your artwork's print quality, DPI, colors, and file specifications.\n\nFeel free to ask me anything about your artwork!"}
-                    />
-                  </div>
-                </div>
-              )}
             </div>
           </section>
 
+          {/* AI Assistant - fixed to top right, doesn't scroll with page */}
+          {analysis && isAiChatOpen && (
+            <div className="fixed top-20 right-4 w-96 h-[600px] z-50">
+              <ArtworkChat
+                quality={analysis.quality}
+                colors={analysis.colors}
+                workerUrl={workerBaseUrl}
+                aiName={adminConfig?.aiName || 'McCarthy AI Artwork Assistant'}
+                greetingMessage={adminConfig?.greetingMessage || "Hello! I'm McCarthy, your AI artwork assistant.\n\nI'm here to help you understand your artwork's print quality, DPI, colors, and file specifications.\n\nFeel free to ask me anything about your artwork!"}
+              />
+            </div>
+          )}
+
           {analysis ? (
-            <section className="grid gap-6 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm w-full max-w-7xl mx-auto">
+            <section className={`grid gap-6 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm w-full mx-auto ${isAiChatOpen ? 'max-w-5xl mr-[420px]' : 'max-w-7xl'}`}>
               <h2 className="text-2xl font-semibold text-slate-900">Technical Specifications</h2>
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
