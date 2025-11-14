@@ -158,7 +158,7 @@ async function callClaudeAPI(config: AppConfig, payload: ChatRequestPayload): Pr
 
   const body = {
     model: config.model,
-    max_tokens: 100, // Reduced to 100 to physically cut off verbose responses
+    max_tokens: 200, // Increased to 200 to allow for calculations and complete answers
     messages,
     system: buildSystemMessage(config),
   }
