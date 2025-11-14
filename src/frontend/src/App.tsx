@@ -105,10 +105,6 @@ function isAcceptedDoc(fileName: string) {
   return ACCEPTED_DOC_TYPES.includes(parts.pop() as string)
 }
 
-function formatFileSizeMB(size: number | undefined) {
-  if (typeof size !== 'number' || Number.isNaN(size)) return 'N/A'
-  return `${size.toFixed(2)} MB`
-}
 
 function formatTimestamp(value: string) {
   const date = new Date(value)
@@ -1101,15 +1097,11 @@ function App() {
             <section className="grid gap-6 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
               <header className="space-y-1">
                 <h3 className="text-2xl font-semibold">{analysis.fileName}</h3>
-                <p className="text-sm text-slate-500">
-                  {analysis.quality.fileType.toUpperCase()} • {formatFileSizeMB(analysis.quality.fileSizeMB)} • Rating:{' '}
-                  <span className="font-medium text-primary">{analysis.quality.rating}</span>
-                </p>
               </header>
 
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
-                  <h4 className="text-sm font-semibold uppercase tracking-wide text-slate-500">
+                  <h4 className="text-sm font-semibold tracking-wide text-slate-500">
                     Artwork Technical Specs
                   </h4>
                   <dl className="mt-2 space-y-1 text-sm">
@@ -1149,7 +1141,7 @@ function App() {
                 </div>
 
                 <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
-                  <h4 className="text-sm font-semibold uppercase tracking-wide text-slate-500">
+                  <h4 className="text-sm font-semibold tracking-wide text-slate-500">
                     Recommended Print Sizes
                   </h4>
                   <dl className="mt-2 space-y-1 text-sm">
@@ -1179,24 +1171,24 @@ function App() {
 
               {/* ICC Profile Details - separate section */}
               <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
-                <h4 className="text-sm font-semibold uppercase tracking-wide text-slate-500">
+                <h4 className="text-sm font-semibold tracking-wide text-slate-500">
                   ICC Profile Details
                 </h4>
                 <dl className="mt-2 space-y-1 text-sm">
-                  <div className="flex justify-between text-slate-600">
-                    <dt>ICC profile</dt>
-                    <dd>
-                      {analysis.quality.hasICC
-                        ? analysis.quality.iccProfile ?? 'Embedded'
-                        : 'Not embedded'}
-                    </dd>
-                  </div>
-                </dl>
+                    <div className="flex justify-between text-slate-600">
+                      <dt>ICC profile</dt>
+                      <dd>
+                        {analysis.quality.hasICC
+                          ? analysis.quality.iccProfile ?? 'Embedded'
+                          : 'Not embedded'}
+                      </dd>
+                    </div>
+                  </dl>
               </div>
 
               {alphaStats && (
                 <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
-                  <h4 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+                  <h4 className="text-sm font-semibold tracking-wide text-muted-foreground">
                     Alpha Channel Details
                   </h4>
                   <dl className="mt-2 grid gap-2 text-sm sm:grid-cols-3">
@@ -1215,9 +1207,9 @@ function App() {
                   </dl>
                   <div className="mt-3 overflow-x-auto">
                     <table className="min-w-full divide-y divide-border/60 text-sm">
-                      <thead className="bg-muted/20 text-left text-xs uppercase tracking-wide text-muted-foreground">
+                      <thead className="bg-muted/20 text-left text-xs tracking-wide text-muted-foreground">
                         <tr>
-                          <th className="px-3 py-2">Alpha range</th>
+                          <th className="px-3 py-2">Alpha Range</th>
                           <th className="px-3 py-2">Transparency</th>
                           <th className="px-3 py-2 text-right">Pixels</th>
                           <th className="px-3 py-2 text-right">Percent</th>
@@ -1252,7 +1244,7 @@ function App() {
                 <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
                   <div className="flex items-center justify-between">
                     <div>
-                      <h4 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+                      <h4 className="text-sm font-semibold tracking-wide text-muted-foreground">
                         Colour Palette Overview
                       </h4>
                       <p className="text-xs text-muted-foreground">
@@ -1309,17 +1301,35 @@ function App() {
               )}
 
               <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
-                <h4 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+                <h4 className="text-sm font-semibold tracking-wide text-muted-foreground mb-3">
                   Important Notes
                 </h4>
-                <ul className="mt-2 list-disc space-y-2 pl-5 text-sm text-muted-foreground">
-                  <li><strong>Minimum Text Size:</strong> Text must be at least 8pt (≈2.5mm x-height) for DTF printing. Smaller text may break or become illegible.</li>
-                  <li><strong>Minimum Line Thickness:</strong> Lines should be at least 1mm thick for DTF, or 0.5-1mm for UV DTF to avoid patchy or weak areas.</li>
-                  <li><strong>Transparency Requirements:</strong> DTF requires 100% opaque pixels. Semi-transparent pixels (1-99% opacity) will cause washed-out colors, poor adhesion, and incomplete edges.</li>
-                  <li><strong>Gradients & Fades:</strong> Soft gradients that fade to zero opacity don't work in DTF/UV DTF. Use halftone dots (solid 100% opacity) for smooth transitions.</li>
-                  <li><strong>Resolution:</strong> Minimum 300 DPI required. Low-resolution artwork creates fuzzy edges with partial-opacity pixels that won't receive white underbase.</li>
-                  <li><strong>Color Profiles:</strong> RGB or CMYK recommended. Avoid unsupported embedded profiles or wide-gamut custom spaces for consistent vibrancy.</li>
-                </ul>
+                
+                {/* DTF Section */}
+                <div className="mb-4">
+                  <h5 className="text-sm font-semibold text-slate-700 mb-2">DTF (Direct-to-Film) Printing</h5>
+                  <ul className="list-disc space-y-1.5 pl-5 text-sm text-muted-foreground">
+                    <li><strong>Minimum Text Size:</strong> 8pt (≈2.5mm x-height). Smaller text breaks easily due to anti-aliasing and white underbase choking.</li>
+                    <li><strong>Minimum Line Thickness:</strong> 1mm. Thinner lines become weak, patchy, or disappear when the white underbase is choked inward.</li>
+                    <li><strong>Transparency:</strong> 100% opaque pixels required. Semi-transparent pixels (1-99% opacity) cause washed-out colors, poor adhesion, feathered edges, and patchy drop shadows.</li>
+                    <li><strong>Gradients & Fades:</strong> Soft gradients that fade to zero opacity do not work. Use halftone dots (solid 100% opacity) for smooth transitions.</li>
+                    <li><strong>Resolution:</strong> Minimum 300 DPI. Low-resolution artwork creates fuzzy edges with partial-opacity pixels that don't receive white underbase.</li>
+                    <li><strong>Color Profiles:</strong> RGB or CMYK recommended. Avoid unsupported embedded profiles for consistent vibrancy.</li>
+                  </ul>
+                </div>
+
+                {/* UV DTF Section */}
+                <div>
+                  <h5 className="text-sm font-semibold text-slate-700 mb-2">UV DTF Printing</h5>
+                  <ul className="list-disc space-y-1.5 pl-5 text-sm text-muted-foreground">
+                    <li><strong>Minimum Text Size:</strong> 2mm x-height. Slightly finer than DTF, but extremely small text becomes brittle and may chip during transfer.</li>
+                    <li><strong>Minimum Line Thickness:</strong> 0.5-1mm. Lines below 0.5mm may not release cleanly and can flake at the edges.</li>
+                    <li><strong>Transparency:</strong> Partial transparency acceptable in CMYK-only areas, but NOT when white underbase is required. Transparency over white will crack, lift, or chip.</li>
+                    <li><strong>Gradients & Fades:</strong> More forgiving than DTF but still not suited for soft digital fades. Use halftones for safe transitions to avoid edge cracking and flaking during peel.</li>
+                    <li><strong>Resolution:</strong> 300 DPI recommended. Low-resolution artwork leads to brittle edges due to anti-aliasing.</li>
+                    <li><strong>Varnish Layer:</strong> UV-cured varnish amplifies color contrast but creates tension that can cause feathered alpha edges to crack easily.</li>
+                  </ul>
+                </div>
               </div>
             </section>
           ) : null}
@@ -1510,8 +1520,8 @@ function App() {
           <div className="grid gap-4 rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
             <div className="flex flex-wrap items-center justify-between gap-4">
               <div>
-                <h4 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-                  Knowledge-base documents
+                <h4 className="text-sm font-semibold tracking-wide text-muted-foreground">
+                  Knowledge-Base Documents
                 </h4>
                 <p className="text-xs text-slate-500">
                   Upload Markdown or plain text files (max 2 MB); they will be chunked, embedded, and added to the RAG store.
