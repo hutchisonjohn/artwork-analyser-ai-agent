@@ -714,7 +714,7 @@ function App() {
       navItems={NAV_ITEMS}
     >
       {activeTab === 'analyze' ? (
-        <>
+        <div className={`${isAiChatOpen ? 'mr-[420px]' : ''}`}>
           <section className={`rounded-2xl border border-slate-200 bg-white p-6 shadow-sm w-full mx-auto ${isAiChatOpen ? 'max-w-4xl' : 'max-w-7xl'}`}>
             <div className="flex items-start justify-between gap-3">
               <div className="flex flex-col gap-3 flex-1">
@@ -967,8 +967,8 @@ function App() {
                           {analysis.quality.rating || 'Unknown'} Quality
                         </div>
                       </div>
-                    </div>
-                  </div>
+              </div>
+            </div>
 
 
                   {/* Interactive DPI Slider */}
@@ -1095,11 +1095,11 @@ function App() {
                 </>
               )}
 
-              {error && (
+            {error && (
                 <div className="mt-4 rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">
-                  {error}
-                </div>
-              )}
+                {error}
+              </div>
+            )}
             </div>
           </section>
 
@@ -1354,7 +1354,7 @@ function App() {
               </div>
             </section>
           ) : null}
-        </>
+        </div>
       ) : (
         <section className="w-full max-w-5xl grid gap-6 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
           <header className="space-y-1">
