@@ -34,6 +34,8 @@ function buildSystemMessage(config: AppConfig): string {
 
 function isGreetingOrGeneral(question: string): boolean {
   const lower = question.toLowerCase().trim()
+  
+  // Greetings and introductions
   const greetingPatterns = [
     /^(hi|hello|hey|howdy|greetings|good morning|good afternoon|good evening)/i,
     /^(i have|i've got|i got) (some )?questions?$/i,
@@ -41,7 +43,23 @@ function isGreetingOrGeneral(question: string): boolean {
     /^(what can you|can you help)/i,
     /^(i'm|i am|my name is) \w+/i,
   ]
-  return greetingPatterns.some(pattern => pattern.test(lower)) || lower.length < 20
+  
+  if (greetingPatterns.some(pattern => pattern.test(lower)) || lower.length < 20) {
+    return true
+  }
+  
+  // General technical questions that DON'T need artwork analysis
+  const generalQuestions = [
+    /what (is|are) (the )?(minimum|maximum|required|recommended)/i,
+    /can i use/i,
+    /how (do|does|can|should)/i,
+    /tell me about/i,
+    /explain/i,
+    /what('s| is) (dtf|uv dtf|printing)/i,
+    /(dtf|uv dtf|printing) (requirements?|guidelines?|specs?|specifications?)/i,
+  ]
+  
+  return generalQuestions.some(pattern => pattern.test(lower))
 }
 
 function buildUserMessage({ quality, colors, question, context }: ChatRequestPayload): string {
@@ -51,11 +69,15 @@ function buildUserMessage({ quality, colors, question, context }: ChatRequestPay
   const isGreeting = isGreetingOrGeneral(question)
   
   if (isGreeting) {
-    // For greetings, DON'T send the full analysis - just the question
-    sections.push('🚫 DO NOT AUTO-ANALYZE. The user is just greeting you or asking a general question.')
+    // For greetings/general questions, DON'T send the full analysis - just the question
+    sections.push('🚫 DO NOT ANALYZE THE ARTWORK.')
     sections.push('\nUSER QUESTION:')
     sections.push(question.trim())
-    sections.push('\nINSTRUCTION: Say hi back and ask what SPECIFIC thing they want to know. Do NOT analyze the artwork yet.')
+    sections.push('\n📋 INSTRUCTION:')
+    sections.push('This is a GENERAL question or greeting. Answer ONLY the question asked.')
+    sections.push('DO NOT mention or analyze the uploaded artwork.')
+    sections.push('Keep your response to 2-3 sentences maximum.')
+    sections.push('If it\'s a greeting, ask what they want to know. If it\'s a technical question, just answer it.')
   } else {
     // For specific questions, send the full analysis
     sections.push('USER QUESTION:')
