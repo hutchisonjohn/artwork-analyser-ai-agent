@@ -715,36 +715,32 @@ function App() {
     >
       {activeTab === 'analyze' ? (
         <>
-          <section className="space-y-6">
-            {/* Flex container to position upload area and AI side by side */}
-            <div className="flex gap-6 items-start justify-center">
-              {/* Upload area - match width with Technical Specifications section */}
-              <div className={`rounded-2xl border border-slate-200 bg-white p-6 shadow-sm w-full ${isAiChatOpen ? 'max-w-4xl' : 'max-w-7xl'}`}>
-                <div className="flex items-start justify-between gap-3">
-                  <div className="flex flex-col gap-3 flex-1">
+          <section className={`rounded-2xl border border-slate-200 bg-white p-6 shadow-sm w-full mx-auto ${isAiChatOpen ? 'max-w-4xl' : 'max-w-7xl'}`}>
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex flex-col gap-3 flex-1">
                 <h2 className="text-2xl font-semibold text-slate-900">Check Your Image Quality</h2>
-                    <p className="text-base text-slate-600">
+                <p className="text-base text-slate-600">
                   Upload your artwork file to see instant print-readiness insights.
                 </p>
-                  </div>
-                  
-                  {/* AI Assistant Toggle Button */}
-                  {analysis && (
-                    <button
-                      onClick={() => setIsAiChatOpen(!isAiChatOpen)}
-                      className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all ${
-                        isAiChatOpen 
-                          ? 'bg-indigo-100 text-indigo-700 hover:bg-indigo-200' 
-                          : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-                      }`}
-                      title={isAiChatOpen ? 'Close AI Assistant' : 'Open AI Assistant'}
-                    >
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
-                      </svg>
-                      <span className="text-sm font-medium">AI Assistant</span>
-                    </button>
-                  )}
+              </div>
+              
+              {/* AI Assistant Toggle Button */}
+              {analysis && (
+                <button
+                  onClick={() => setIsAiChatOpen(!isAiChatOpen)}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all ${
+                    isAiChatOpen 
+                      ? 'bg-indigo-100 text-indigo-700 hover:bg-indigo-200' 
+                      : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                  }`}
+                  title={isAiChatOpen ? 'Close AI Assistant' : 'Open AI Assistant'}
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+                  </svg>
+                  <span className="text-sm font-medium">AI Assistant</span>
+                </button>
+              )}
               </div>
 
               {uploadError && (
@@ -753,12 +749,12 @@ function App() {
                 </p>
               )}
 
-                <div className="mt-6">
+            <div className="mt-6">
                 <div
                   onDragOver={handleDragOver}
                   onDragLeave={handleDragLeave}
                   onDrop={handleDrop}
-                    className={`relative flex w-full flex-col items-center justify-center rounded-xl border-2 border-dashed px-6 py-10 text-center transition min-h-[400px] ${
+                className={`relative flex w-full flex-col items-center justify-center rounded-xl border-2 border-dashed px-6 py-10 text-center transition min-h-[400px] ${
                     isDragActive
                       ? 'border-indigo-400 bg-indigo-50'
                       : 'border-slate-300 bg-slate-50 hover:border-indigo-300 hover:bg-white'
@@ -922,62 +918,61 @@ function App() {
                     onChange={(event) => handleFilesSelected(event.target.files)}
                     disabled={isLoading}
                   />
-                  </div>
                 </div>
 
-                {/* Styled info box - shown below upload area when analysis exists */}
-                {analysis && (
-                  <>
-                    <div className="mt-4 rounded-lg border border-blue-200 bg-blue-50 p-4">
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <h4 className="text-sm font-semibold text-blue-900 mb-2">Image Information</h4>
-                          <p className="text-sm text-blue-800">
-                            Artwork file format: {analysis.quality.pixels ? 'Raster' : 'Vector'}
-                          </p>
-                          {analysis.quality.recommendedSizes && (
-                            <p className="text-sm text-blue-800 mt-1">
-                              Optimal print size: {analysis.quality.recommendedSizes.at300dpi.w_cm} × {analysis.quality.recommendedSizes.at300dpi.h_cm} cm ({analysis.quality.recommendedSizes.at300dpi.w_in}" × {analysis.quality.recommendedSizes.at300dpi.h_in}")
-                            </p>
-                          )}
+              {/* Styled info box - shown below upload area when analysis exists */}
+              {analysis && (
+                <>
+                  <div className="mt-4 rounded-lg border border-blue-200 bg-blue-50 p-4">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <h4 className="text-sm font-semibold text-blue-900 mb-2">Image Information</h4>
+                        <p className="text-sm text-blue-800">
+                          Artwork file format: {analysis.quality.pixels ? 'Raster' : 'Vector'}
+                        </p>
+                        {analysis.quality.recommendedSizes && (
                           <p className="text-sm text-blue-800 mt-1">
-                            Pixels: {analysis.quality.pixels 
-                              ? `${analysis.quality.pixels.w} × ${analysis.quality.pixels.h}`
-                              : 'Vector / N/A'}
+                            Optimal print size: {analysis.quality.recommendedSizes.at300dpi.w_cm} × {analysis.quality.recommendedSizes.at300dpi.h_cm} cm ({analysis.quality.recommendedSizes.at300dpi.w_in}" × {analysis.quality.recommendedSizes.at300dpi.h_in}")
                           </p>
+                        )}
+                        <p className="text-sm text-blue-800 mt-1">
+                          Pixels: {analysis.quality.pixels 
+                            ? `${analysis.quality.pixels.w} × ${analysis.quality.pixels.h}`
+                            : 'Vector / N/A'}
+                        </p>
+                        <p className="text-sm text-blue-800 mt-1">
+                          Aspect ratio: {analysis.quality.aspectRatio}
+                        </p>
+                        {analysis.quality.alphaStats && (
                           <p className="text-sm text-blue-800 mt-1">
-                            Aspect ratio: {analysis.quality.aspectRatio}
+                            Semi-transparent pixels: {analysis.quality.alphaStats.semiTransparentPercent.toFixed(2)}%
                           </p>
-                          {analysis.quality.alphaStats && (
-                            <p className="text-sm text-blue-800 mt-1">
-                              Semi-transparent pixels: {analysis.quality.alphaStats.semiTransparentPercent.toFixed(2)}%
-                            </p>
-                          )}
+                        )}
+                      </div>
+                      <div className="text-right">
+                        <div className={`text-4xl font-bold ${
+                          analysis.quality.rating === 'Optimal' ? 'text-green-600' :
+                          analysis.quality.rating === 'Good' ? 'text-orange-500' :
+                          'text-red-600'
+                        }`}>
+                          DPI {analysis.quality.pixels && analysis.quality.recommendedSizes
+                            ? Math.round(analysis.quality.pixels.w / analysis.quality.recommendedSizes.at300dpi.w_in)
+                            : '—'}
                         </div>
-                        <div className="text-right">
-                          <div className={`text-4xl font-bold ${
-                            analysis.quality.rating === 'Optimal' ? 'text-green-600' :
-                            analysis.quality.rating === 'Good' ? 'text-orange-500' :
-                            'text-red-600'
-                          }`}>
-                            DPI {analysis.quality.pixels && analysis.quality.recommendedSizes
-                              ? Math.round(analysis.quality.pixels.w / analysis.quality.recommendedSizes.at300dpi.w_in)
-                              : '—'}
-                          </div>
-                          <div className={`mt-1 text-sm font-semibold ${
-                            analysis.quality.rating === 'Optimal' ? 'text-green-600' :
-                            analysis.quality.rating === 'Good' ? 'text-orange-500' :
-                            'text-red-600'
-                          }`}>
-                            {analysis.quality.rating || 'Unknown'} Quality
-                          </div>
+                        <div className={`mt-1 text-sm font-semibold ${
+                          analysis.quality.rating === 'Optimal' ? 'text-green-600' :
+                          analysis.quality.rating === 'Good' ? 'text-orange-500' :
+                          'text-red-600'
+                        }`}>
+                          {analysis.quality.rating || 'Unknown'} Quality
                         </div>
-              </div>
-            </div>
+                      </div>
+                    </div>
+                  </div>
 
 
-                    {/* Interactive DPI Slider */}
-                    {analysis.quality.pixels && (() => {
+                  {/* Interactive DPI Slider */}
+                  {analysis.quality.pixels && (() => {
                       const { w: pixelW, h: pixelH } = analysis.quality.pixels
                       const aspectRatio = pixelW / pixelH
                       
@@ -1097,16 +1092,14 @@ function App() {
                         </div>
                       )
                     })()}
-                  </>
-                )}
+                </>
+              )}
 
-            {error && (
-                  <div className="mt-4 rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">
-                {error}
-              </div>
-            )}
-              </div>
-
+              {error && (
+                <div className="mt-4 rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">
+                  {error}
+                </div>
+              )}
             </div>
           </section>
 
