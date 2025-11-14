@@ -1153,20 +1153,20 @@ function App() {
                   </h4>
                   <dl className="space-y-1.5 text-sm">
                     <div className="flex justify-between text-slate-600">
-                      <dt className="text-slate-500">300 DPI</dt>
-                      <dd className="font-medium text-slate-700">
+                      <dt className="text-slate-500">DPI 300</dt>
+                      <dd className="font-medium text-slate-700 text-right">
                         {`${analysis.quality.recommendedSizes.at300dpi.w_in}" × ${analysis.quality.recommendedSizes.at300dpi.h_in}" (${analysis.quality.recommendedSizes.at300dpi.w_cm} × ${analysis.quality.recommendedSizes.at300dpi.h_cm} cm)`}
                       </dd>
                     </div>
                     <div className="flex justify-between text-slate-600">
-                      <dt className="text-slate-500">150 DPI</dt>
-                      <dd className="font-medium text-slate-700">
+                      <dt className="text-slate-500">DPI 150</dt>
+                      <dd className="font-medium text-slate-700 text-right">
                         {`${analysis.quality.recommendedSizes.at150dpi.w_in}" × ${analysis.quality.recommendedSizes.at150dpi.h_in}" (${analysis.quality.recommendedSizes.at150dpi.w_cm} × ${analysis.quality.recommendedSizes.at150dpi.h_cm} cm)`}
                       </dd>
                     </div>
                     <div className="flex justify-between text-slate-600">
-                      <dt className="text-slate-500">72 DPI</dt>
-                      <dd className="font-medium text-slate-700">
+                      <dt className="text-slate-500">DPI 72</dt>
+                      <dd className="font-medium text-slate-700 text-right">
                         {analysis.quality.pixels && analysis.quality.recommendedSizes
                           ? `${((analysis.quality.pixels.w / 72)).toFixed(2)}" × ${((analysis.quality.pixels.h / 72)).toFixed(2)}" (${((analysis.quality.pixels.w / 72) * 2.54).toFixed(2)} × ${((analysis.quality.pixels.h / 72) * 2.54).toFixed(2)} cm)`
                           : 'N/A'}
