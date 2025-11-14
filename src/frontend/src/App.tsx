@@ -1086,18 +1086,16 @@ function App() {
             )}
               </div>
 
-              {/* AI Assistant - appears to the right when open */}
+              {/* AI Assistant - fixed position, stays in place while page scrolls */}
               {analysis && isAiChatOpen && (
-                <div className="w-96 flex-shrink-0">
-                  <div className="sticky top-4 h-[calc(100vh-2rem)] max-h-[800px]">
-                    <ArtworkChat
-                      quality={analysis.quality}
-                      colors={analysis.colors}
-                      workerUrl={workerBaseUrl}
-                      aiName={adminConfig?.aiName || 'McCarthy AI Artwork Assistant'}
-                      greetingMessage={adminConfig?.greetingMessage || "Hello! I'm McCarthy, your AI artwork assistant.\n\nI'm here to help you understand your artwork's print quality, DPI, colors, and file specifications.\n\nFeel free to ask me anything about your artwork!"}
-                    />
-                  </div>
+                <div className="fixed top-4 right-4 w-96 h-[calc(100vh-2rem)] max-h-[800px] z-40">
+                  <ArtworkChat
+                    quality={analysis.quality}
+                    colors={analysis.colors}
+                    workerUrl={workerBaseUrl}
+                    aiName={adminConfig?.aiName || 'McCarthy AI Artwork Assistant'}
+                    greetingMessage={adminConfig?.greetingMessage || "Hello! I'm McCarthy, your AI artwork assistant.\n\nI'm here to help you understand your artwork's print quality, DPI, colors, and file specifications.\n\nFeel free to ask me anything about your artwork!"}
+                  />
                 </div>
               )}
             </div>
