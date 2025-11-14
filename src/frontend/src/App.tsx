@@ -868,6 +868,11 @@ function App() {
                       >
                         {isLoading ? 'Processing...' : 'Change Image'}
                       </button>
+                      {analysis && (
+                        <p className="text-xs text-slate-500 mt-2">
+                          {analysis.fileName}
+                        </p>
+                      )}
                     </>
                   ) : (
                     <>
@@ -1095,10 +1100,6 @@ function App() {
 
           {analysis ? (
             <section className="grid gap-6 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-              <header className="space-y-1">
-                <h3 className="text-2xl font-semibold">{analysis.fileName}</h3>
-              </header>
-
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
                   <h4 className="text-sm font-semibold tracking-wide text-slate-500">
@@ -1315,8 +1316,8 @@ function App() {
                     <li><strong>Gradients & Fades:</strong> Soft gradients that fade to zero opacity do not work. Use halftone dots (solid 100% opacity) for smooth transitions.</li>
                     <li><strong>Resolution:</strong> Minimum 300 DPI. Low-resolution artwork creates fuzzy edges with partial-opacity pixels that don't receive white underbase.</li>
                     <li><strong>Color Profiles:</strong> RGB or CMYK recommended. Avoid unsupported embedded profiles for consistent vibrancy.</li>
-                  </ul>
-                </div>
+                </ul>
+              </div>
 
                 {/* UV DTF Section */}
                 <div>
