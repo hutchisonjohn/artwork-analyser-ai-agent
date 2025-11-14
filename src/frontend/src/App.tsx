@@ -1108,65 +1108,65 @@ function App() {
               <h2 className="text-2xl font-semibold text-slate-900">Technical Specifications</h2>
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
-                  <h4 className="text-sm font-semibold tracking-wide text-slate-500">
+                  <h4 className="text-sm font-semibold tracking-wide text-slate-500 mb-3">
                     Artwork Specifications
                   </h4>
-                  <dl className="mt-2 space-y-2 text-sm">
-                    <div className="text-slate-600">
-                      <dt className="font-medium text-slate-500 mb-0.5">Artwork file format</dt>
-                      <dd className="text-slate-700">{analysis.quality.pixels ? 'Raster' : 'Vector'}</dd>
+                  <dl className="space-y-1.5 text-sm">
+                    <div className="flex justify-between text-slate-600">
+                      <dt className="text-slate-500">Artwork file format</dt>
+                      <dd className="font-medium text-slate-700">{analysis.quality.pixels ? 'Raster' : 'Vector'}</dd>
                     </div>
-                    <div className="text-slate-600">
-                      <dt className="font-medium text-slate-500 mb-0.5">DPI</dt>
-                      <dd className="text-slate-700">
-                        {analysis.quality.pixels 
+                    <div className="flex justify-between text-slate-600">
+                      <dt className="text-slate-500">DPI</dt>
+                      <dd className="font-medium text-slate-700">
+                        {analysis.quality.pixels
                           ? Math.round((analysis.quality.pixels.w / analysis.quality.recommendedSizes.at300dpi.w_in) || 0)
                           : 'N/A'}
                       </dd>
                     </div>
-                    <div className="text-slate-600">
-                      <dt className="font-medium text-slate-500 mb-0.5">Pixels</dt>
-                      <dd className="text-slate-700">
+                    <div className="flex justify-between text-slate-600">
+                      <dt className="text-slate-500">Pixels</dt>
+                      <dd className="font-medium text-slate-700">
                         {analysis.quality.pixels
                           ? `${analysis.quality.pixels.w}×${analysis.quality.pixels.h}`
                           : 'Vector / N/A'}
                       </dd>
                     </div>
-                    <div className="text-slate-600">
-                      <dt className="font-medium text-slate-500 mb-0.5">Aspect ratio</dt>
-                      <dd className="text-slate-700">{analysis.quality.aspectRatio}</dd>
+                    <div className="flex justify-between text-slate-600">
+                      <dt className="text-slate-500">Aspect ratio</dt>
+                      <dd className="font-medium text-slate-700">{analysis.quality.aspectRatio}</dd>
                     </div>
-                    <div className="text-slate-600">
-                      <dt className="font-medium text-slate-500 mb-0.5">Bit depth</dt>
-                      <dd className="text-slate-700">{analysis.quality.bitDepth ?? 'N/A'}</dd>
+                    <div className="flex justify-between text-slate-600">
+                      <dt className="text-slate-500">Bit depth</dt>
+                      <dd className="font-medium text-slate-700">{analysis.quality.bitDepth ?? 'N/A'}</dd>
                     </div>
-                    <div className="text-slate-600">
-                      <dt className="font-medium text-slate-500 mb-0.5">Alpha channel</dt>
-                      <dd className="text-slate-700">{analysis.quality.hasAlpha ? 'Yes' : 'No'}</dd>
+                    <div className="flex justify-between text-slate-600">
+                      <dt className="text-slate-500">Alpha channel</dt>
+                      <dd className="font-medium text-slate-700">{analysis.quality.hasAlpha ? 'Yes' : 'No'}</dd>
                     </div>
                   </dl>
                 </div>
 
                 <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
-                  <h4 className="text-sm font-semibold tracking-wide text-slate-500">
+                  <h4 className="text-sm font-semibold tracking-wide text-slate-500 mb-3">
                     Recommended Print Sizes
                   </h4>
-                  <dl className="mt-2 space-y-2 text-sm">
-                    <div className="text-slate-600">
-                      <dt className="font-medium text-slate-500 mb-0.5">300 DPI</dt>
-                      <dd className="text-slate-700">
+                  <dl className="space-y-1.5 text-sm">
+                    <div className="flex justify-between text-slate-600">
+                      <dt className="text-slate-500">300 DPI</dt>
+                      <dd className="font-medium text-slate-700">
                         {`${analysis.quality.recommendedSizes.at300dpi.w_in}" × ${analysis.quality.recommendedSizes.at300dpi.h_in}" (${analysis.quality.recommendedSizes.at300dpi.w_cm} × ${analysis.quality.recommendedSizes.at300dpi.h_cm} cm)`}
                       </dd>
                     </div>
-                    <div className="text-slate-600">
-                      <dt className="font-medium text-slate-500 mb-0.5">150 DPI</dt>
-                      <dd className="text-slate-700">
+                    <div className="flex justify-between text-slate-600">
+                      <dt className="text-slate-500">150 DPI</dt>
+                      <dd className="font-medium text-slate-700">
                         {`${analysis.quality.recommendedSizes.at150dpi.w_in}" × ${analysis.quality.recommendedSizes.at150dpi.h_in}" (${analysis.quality.recommendedSizes.at150dpi.w_cm} × ${analysis.quality.recommendedSizes.at150dpi.h_cm} cm)`}
                       </dd>
                     </div>
-                    <div className="text-slate-600">
-                      <dt className="font-medium text-slate-500 mb-0.5">72 DPI</dt>
-                      <dd className="text-slate-700">
+                    <div className="flex justify-between text-slate-600">
+                      <dt className="text-slate-500">72 DPI</dt>
+                      <dd className="font-medium text-slate-700">
                         {analysis.quality.pixels && analysis.quality.recommendedSizes
                           ? `${((analysis.quality.pixels.w / 72)).toFixed(2)}" × ${((analysis.quality.pixels.h / 72)).toFixed(2)}" (${((analysis.quality.pixels.w / 72) * 2.54).toFixed(2)} × ${((analysis.quality.pixels.h / 72) * 2.54).toFixed(2)} cm)`
                           : 'N/A'}
