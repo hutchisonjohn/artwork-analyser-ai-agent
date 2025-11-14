@@ -184,7 +184,7 @@ function App() {
       return
     }
 
-    const next = createPaletteDownloads(analysis.colors)
+    const next = createPaletteDownloads(analysis.colors, analysis.quality, analysis.fileName)
     setDownloads((previous) => {
       if (previous) {
         URL.revokeObjectURL(previous.csvUrl)
@@ -1151,22 +1151,22 @@ function App() {
                   <h4 className="text-sm font-semibold tracking-wide text-slate-500">
                     Recommended Print Sizes
                   </h4>
-                  <dl className="mt-2 space-y-1 text-sm">
+                  <dl className="mt-2 space-y-2 text-sm">
                     <div className="text-slate-600">
                       <dt className="font-medium">300 DPI</dt>
-                      <dd className="ml-0">
+                      <dd className="text-slate-600">
                         {`${analysis.quality.recommendedSizes.at300dpi.w_in}" × ${analysis.quality.recommendedSizes.at300dpi.h_in}" (${analysis.quality.recommendedSizes.at300dpi.w_cm} × ${analysis.quality.recommendedSizes.at300dpi.h_cm} cm)`}
                       </dd>
                     </div>
                     <div className="text-slate-600">
                       <dt className="font-medium">150 DPI</dt>
-                      <dd className="ml-0">
+                      <dd className="text-slate-600">
                         {`${analysis.quality.recommendedSizes.at150dpi.w_in}" × ${analysis.quality.recommendedSizes.at150dpi.h_in}" (${analysis.quality.recommendedSizes.at150dpi.w_cm} × ${analysis.quality.recommendedSizes.at150dpi.h_cm} cm)`}
                       </dd>
                     </div>
                     <div className="text-slate-600">
                       <dt className="font-medium">72 DPI</dt>
-                      <dd className="ml-0">
+                      <dd className="text-slate-600">
                         {analysis.quality.pixels && analysis.quality.recommendedSizes
                           ? `${((analysis.quality.pixels.w / 72)).toFixed(2)}" × ${((analysis.quality.pixels.h / 72)).toFixed(2)}" (${((analysis.quality.pixels.w / 72) * 2.54).toFixed(2)} × ${((analysis.quality.pixels.h / 72) * 2.54).toFixed(2)} cm)`
                           : 'N/A'}
@@ -1198,20 +1198,6 @@ function App() {
                   <h4 className="text-sm font-semibold tracking-wide text-muted-foreground">
                     Alpha Channel Details
                   </h4>
-                  <dl className="mt-2 grid gap-2 text-sm sm:grid-cols-3">
-                    <div className="flex flex-col text-slate-600">
-                      <dt className="font-medium">Sample size</dt>
-                      <dd className="ml-0">{alphaStats.sampleSize.toLocaleString()}</dd>
-                    </div>
-                    <div className="flex flex-col text-slate-600">
-                      <dt className="font-medium">Minimum value</dt>
-                      <dd className="ml-0">{alphaStats.min}</dd>
-                    </div>
-                    <div className="flex flex-col text-slate-600">
-                      <dt className="font-medium">Maximum value</dt>
-                      <dd className="ml-0">{alphaStats.max}</dd>
-                    </div>
-                  </dl>
                   <div className="mt-3 overflow-x-auto">
                     <table className="min-w-full divide-y divide-border/60 text-sm">
                       <thead className="bg-muted/20 text-left text-xs tracking-wide text-muted-foreground">
@@ -1255,24 +1241,24 @@ function App() {
                         Colour Palette Overview
                       </h4>
                       <p className="text-xs text-muted-foreground">
-                        Dominant colours detected across the artwork; exported alongside the AI prompt.
+                        Dominant colours detected across the artwork. Download full analysis report below.
                       </p>
                     </div>
                     {downloads && (
                       <div className="flex gap-2 text-xs">
                         <a
                           href={downloads.csvUrl}
-                          download={`${analysis.fileName}-palette.csv`}
+                          download={`${analysis.fileName}-analysis.csv`}
                           className="rounded-md border border-slate-200 bg-white px-2 py-1 text-xs font-medium text-slate-600 transition hover:border-indigo-300"
                         >
-                          Download CSV
+                          Download Full Report (CSV)
                         </a>
                         <a
                           href={downloads.jsonUrl}
-                          download={`${analysis.fileName}-palette.json`}
+                          download={`${analysis.fileName}-analysis.json`}
                           className="rounded-md border border-slate-200 bg-white px-2 py-1 text-xs font-medium text-slate-600 transition hover:border-indigo-300"
                         >
-                          Download JSON
+                          Download Full Report (JSON)
                         </a>
                       </div>
                     )}
