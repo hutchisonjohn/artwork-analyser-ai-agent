@@ -1198,18 +1198,6 @@ function App() {
                     Alpha Channel Details
                   </h4>
                   <dl className="mt-2 grid gap-2 text-sm sm:grid-cols-3">
-                    <div className="flex justify-between text-slate-600">
-                      <dt>Sample size</dt>
-                      <dd>{alphaStats.sampleSize.toLocaleString()}</dd>
-                    </div>
-                    <div className="flex justify-between text-slate-600">
-                      <dt>Minimum value</dt>
-                      <dd>{alphaStats.min}</dd>
-                    </div>
-                    <div className="flex justify-between text-slate-600">
-                      <dt>Maximum value</dt>
-                      <dd>{alphaStats.max}</dd>
-                    </div>
                   </dl>
                   <div className="mt-3 overflow-x-auto">
                     <table className="min-w-full divide-y divide-border/60 text-sm">
