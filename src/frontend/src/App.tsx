@@ -908,15 +908,18 @@ function App() {
                     <div className="mt-4 rounded-lg border border-blue-200 bg-blue-50 p-4">
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
-                          <h4 className="text-sm font-semibold text-blue-900 mb-2">Image Information:</h4>
+                          <h4 className="text-sm font-semibold text-blue-900 mb-2">Image Information</h4>
+                          <p className="text-sm text-blue-800">
+                            Artwork file format: {analysis.quality.pixels ? 'Raster' : 'Vector'}
+                          </p>
                           {analysis.quality.recommendedSizes && (
-                            <p className="text-sm text-blue-800">
+                            <p className="text-sm text-blue-800 mt-1">
                               Optimal print size: {analysis.quality.recommendedSizes.at300dpi.w_cm} × {analysis.quality.recommendedSizes.at300dpi.h_cm} cm ({analysis.quality.recommendedSizes.at300dpi.w_in}" × {analysis.quality.recommendedSizes.at300dpi.h_in}")
                             </p>
                           )}
                           <p className="text-sm text-blue-800 mt-1">
-                            {analysis.quality.pixels 
-                              ? `${analysis.quality.pixels.w} × ${analysis.quality.pixels.h} pixels`
+                            Pixels: {analysis.quality.pixels 
+                              ? `${analysis.quality.pixels.w} × ${analysis.quality.pixels.h}`
                               : 'Vector / N/A'}
                           </p>
                           <p className="text-sm text-blue-800 mt-1">
@@ -945,76 +948,6 @@ function App() {
               </div>
             </div>
 
-                    {/* DPI Calculator - Show DPI at different sizes */}
-                    {analysis.quality.pixels && (() => {
-                      const { w: pixelW, h: pixelH } = analysis.quality.pixels
-                      const aspectRatio = pixelW / pixelH
-                      const targetWidthsCm = [20, 25, 30]
-                      
-                      const calculateDpiAtSize = (widthCm: number) => {
-                        const widthInches = widthCm / 2.54
-                        const heightInches = widthInches / aspectRatio
-                        const heightCm = heightInches * 2.54
-                        const dpi = Math.round(pixelW / widthInches)
-                        
-                        let quality: string
-                        let colorClass: string
-                        if (dpi >= 250) {
-                          quality = 'Optimal'
-                          colorClass = 'bg-green-100 border-green-300 text-green-800'
-                        } else if (dpi >= 200) {
-                          quality = 'Good'
-                          colorClass = 'bg-orange-100 border-orange-300 text-orange-800'
-                        } else {
-                          quality = 'Poor'
-                          colorClass = 'bg-red-100 border-red-300 text-red-800'
-                        }
-                        
-                        return {
-                          widthCm: widthCm.toFixed(0),
-                          heightCm: heightCm.toFixed(0),
-                          widthIn: widthInches.toFixed(1),
-                          heightIn: heightInches.toFixed(1),
-                          dpi,
-                          quality,
-                          colorClass
-                        }
-                      }
-
-                      const sizes = targetWidthsCm.map(calculateDpiAtSize)
-
-                      return (
-                        <div className="mt-4">
-                          <h4 className="text-sm font-semibold text-slate-700 mb-3">DPI at Different Print Sizes:</h4>
-                          <div className="grid gap-3 sm:grid-cols-3">
-                            {sizes.map((size, idx) => (
-                              <div
-                                key={idx}
-                                className={`rounded-lg border-2 p-4 ${size.colorClass}`}
-                              >
-                                <div className="text-center">
-                                  <div className="text-lg font-bold">
-                                    {size.widthCm} × {size.heightCm} cm
-                                  </div>
-                                  <div className="text-xs mt-1 opacity-75">
-                                    ({size.widthIn}" × {size.heightIn}")
-                                  </div>
-                                  <div className="text-xs mt-1 opacity-75">
-                                    {analysis.quality.aspectRatio}
-                                  </div>
-                                  <div className="text-3xl font-bold mt-3">
-                                    DPI {size.dpi}
-                                  </div>
-                                  <div className="text-sm font-semibold mt-2">
-                                    {size.quality}
-                                  </div>
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      )
-                    })()}
 
                     {/* Interactive DPI Slider */}
                     {analysis.quality.pixels && (() => {
@@ -1177,20 +1110,12 @@ function App() {
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
                   <h4 className="text-sm font-semibold uppercase tracking-wide text-slate-500">
-                    Dimensions & DPI
+                    Artwork Technical Specs
                   </h4>
                   <dl className="mt-2 space-y-1 text-sm">
                     <div className="flex justify-between text-slate-600">
-                      <dt>Category</dt>
-                      <dd>{analysis.quality.imageCategory}</dd>
-                    </div>
-                    <div className="flex justify-between text-slate-600">
-                      <dt>Pixels</dt>
-                      <dd>
-                        {analysis.quality.pixels
-                          ? `${analysis.quality.pixels.w} x ${analysis.quality.pixels.h}`
-                          : 'Vector / N/A'}
-                      </dd>
+                      <dt>Artwork file format</dt>
+                      <dd>{analysis.quality.pixels ? 'Raster' : 'Vector'}</dd>
                     </div>
                     <div className="flex justify-between items-center text-slate-600">
                       <dt className="font-semibold">DPI</dt>
@@ -1198,6 +1123,14 @@ function App() {
                         {analysis.quality.pixels 
                           ? Math.round((analysis.quality.pixels.w / analysis.quality.recommendedSizes.at300dpi.w_in) || 0)
                           : 'N/A'}
+                      </dd>
+                    </div>
+                    <div className="flex justify-between text-slate-600">
+                      <dt>Pixels</dt>
+                      <dd>
+                        {analysis.quality.pixels
+                          ? `${analysis.quality.pixels.w}×${analysis.quality.pixels.h}`
+                          : 'Vector / N/A'}
                       </dd>
                     </div>
                     <div className="flex justify-between text-slate-600">
@@ -1217,43 +1150,54 @@ function App() {
 
                 <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
                   <h4 className="text-sm font-semibold uppercase tracking-wide text-slate-500">
-                    Recommended print sizes
+                    Recommended Print Sizes
                   </h4>
                   <dl className="mt-2 space-y-1 text-sm">
                     <div className="flex justify-between text-slate-600">
                       <dt>300 DPI</dt>
                       <dd>
-                        {`${analysis.quality.recommendedSizes.at300dpi.w_in}" × ${analysis.quality.recommendedSizes.at300dpi.h_in}"`}
-                        <span className="text-xs text-muted-foreground">
-                          {` (${analysis.quality.recommendedSizes.at300dpi.w_cm} × ${analysis.quality.recommendedSizes.at300dpi.h_cm} cm)`}
-                        </span>
+                        {`${analysis.quality.recommendedSizes.at300dpi.w_in}" × ${analysis.quality.recommendedSizes.at300dpi.h_in}" (${analysis.quality.recommendedSizes.at300dpi.w_cm} × ${analysis.quality.recommendedSizes.at300dpi.h_cm} cm)`}
                       </dd>
                     </div>
                     <div className="flex justify-between text-slate-600">
                       <dt>150 DPI</dt>
                       <dd>
-                        {`${analysis.quality.recommendedSizes.at150dpi.w_in}" × ${analysis.quality.recommendedSizes.at150dpi.h_in}"`}
-                        <span className="text-xs text-muted-foreground">
-                          {` (${analysis.quality.recommendedSizes.at150dpi.w_cm} × ${analysis.quality.recommendedSizes.at150dpi.h_cm} cm)`}
-                        </span>
+                        {`${analysis.quality.recommendedSizes.at150dpi.w_in}" × ${analysis.quality.recommendedSizes.at150dpi.h_in}" (${analysis.quality.recommendedSizes.at150dpi.w_cm} × ${analysis.quality.recommendedSizes.at150dpi.h_cm} cm)`}
                       </dd>
                     </div>
                     <div className="flex justify-between text-slate-600">
-                      <dt>ICC profile</dt>
+                      <dt>72 DPI</dt>
                       <dd>
-                        {analysis.quality.hasICC
-                          ? analysis.quality.iccProfile ?? 'Embedded'
-                          : 'Not embedded'}
+                        {analysis.quality.pixels && analysis.quality.recommendedSizes
+                          ? `${((analysis.quality.pixels.w / 72)).toFixed(2)}" × ${((analysis.quality.pixels.h / 72)).toFixed(2)}" (${((analysis.quality.pixels.w / 72) * 2.54).toFixed(2)} × ${((analysis.quality.pixels.h / 72) * 2.54).toFixed(2)} cm)`
+                          : 'N/A'}
                       </dd>
                     </div>
                   </dl>
                 </div>
               </div>
 
+              {/* ICC Profile Details - separate section */}
+              <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+                <h4 className="text-sm font-semibold uppercase tracking-wide text-slate-500">
+                  ICC Profile Details
+                </h4>
+                <dl className="mt-2 space-y-1 text-sm">
+                  <div className="flex justify-between text-slate-600">
+                    <dt>ICC profile</dt>
+                    <dd>
+                      {analysis.quality.hasICC
+                        ? analysis.quality.iccProfile ?? 'Embedded'
+                        : 'Not embedded'}
+                    </dd>
+                  </div>
+                </dl>
+              </div>
+
               {alphaStats && (
                 <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
                   <h4 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-                    Alpha channel details
+                    Alpha Channel Details
                   </h4>
                   <dl className="mt-2 grid gap-2 text-sm sm:grid-cols-3">
                     <div className="flex justify-between text-slate-600">
@@ -1309,7 +1253,7 @@ function App() {
                   <div className="flex items-center justify-between">
                     <div>
                       <h4 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-                        Palette overview
+                        Colour Palette Overview
                       </h4>
                       <p className="text-xs text-muted-foreground">
                         Dominant colours detected across the artwork; exported alongside the AI prompt.
@@ -1364,62 +1308,17 @@ function App() {
                 </div>
               )}
 
-              {/* DPI Calculator - What if you print at different sizes? */}
-              {analysis.quality.pixels && analysis.quality.recommendedSizes && (
-                <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
-                  <h4 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground mb-3">
-                    DPI at Different Print Sizes
-                  </h4>
-                  <p className="text-xs text-slate-500 mb-4">
-                    See what DPI you'll get if you print at larger sizes (maintaining aspect ratio)
-                  </p>
-                  <div className="grid gap-3 sm:grid-cols-3">
-                    {[20, 25, 30].map((targetCm) => {
-                      if (!analysis.quality.pixels) return null
-                      
-                      // Calculate dimensions maintaining aspect ratio
-                      const aspectRatio = analysis.quality.pixels.w / analysis.quality.pixels.h
-                      const widthCm = targetCm
-                      const heightCm = targetCm / aspectRatio
-                      const widthIn = widthCm / 2.54
-                      const heightIn = heightCm / 2.54
-                      const dpi = Math.round(analysis.quality.pixels.w / widthIn)
-                      
-                      // Determine quality color
-                      const qualityColor = dpi >= 250 ? 'bg-green-100 border-green-300 text-green-800' :
-                                          dpi >= 200 ? 'bg-orange-100 border-orange-300 text-orange-800' :
-                                          'bg-red-100 border-red-300 text-red-800'
-                      const qualityText = dpi >= 250 ? 'Optimal' : dpi >= 200 ? 'Good' : 'Poor'
-                      const dotColor = dpi >= 250 ? 'bg-green-500' : dpi >= 200 ? 'bg-orange-500' : 'bg-red-500'
-                      
-                      return (
-                        <div key={targetCm} className={`rounded-lg border-2 p-3 ${qualityColor}`}>
-                          <div className="flex items-center gap-2 mb-2">
-                            <div className={`h-3 w-3 rounded-full ${dotColor}`}></div>
-                            <span className="text-xs font-semibold uppercase">{qualityText} Quality</span>
-                          </div>
-                          <div className="text-2xl font-bold mb-1">{dpi} DPI</div>
-                          <div className="text-sm font-medium">
-                            {widthCm.toFixed(1)}cm × {heightCm.toFixed(1)}cm
-                          </div>
-                          <div className="text-xs opacity-75 mt-1">
-                            ({widthIn.toFixed(1)}" × {heightIn.toFixed(1)}")
-                          </div>
-                        </div>
-                      )
-                    })}
-                  </div>
-                </div>
-              )}
-
               <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
                 <h4 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-                  Notes
+                  Important Notes
                 </h4>
-                <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-muted-foreground">
-                  {analysis.quality.notes.map((note) => (
-                    <li key={note}>{note}</li>
-                  ))}
+                <ul className="mt-2 list-disc space-y-2 pl-5 text-sm text-muted-foreground">
+                  <li><strong>Minimum Text Size:</strong> Text must be at least 8pt (≈2.5mm x-height) for DTF printing. Smaller text may break or become illegible.</li>
+                  <li><strong>Minimum Line Thickness:</strong> Lines should be at least 1mm thick for DTF, or 0.5-1mm for UV DTF to avoid patchy or weak areas.</li>
+                  <li><strong>Transparency Requirements:</strong> DTF requires 100% opaque pixels. Semi-transparent pixels (1-99% opacity) will cause washed-out colors, poor adhesion, and incomplete edges.</li>
+                  <li><strong>Gradients & Fades:</strong> Soft gradients that fade to zero opacity don't work in DTF/UV DTF. Use halftone dots (solid 100% opacity) for smooth transitions.</li>
+                  <li><strong>Resolution:</strong> Minimum 300 DPI required. Low-resolution artwork creates fuzzy edges with partial-opacity pixels that won't receive white underbase.</li>
+                  <li><strong>Color Profiles:</strong> RGB or CMYK recommended. Avoid unsupported embedded profiles or wide-gamut custom spaces for consistent vibrancy.</li>
                 </ul>
               </div>
             </section>
