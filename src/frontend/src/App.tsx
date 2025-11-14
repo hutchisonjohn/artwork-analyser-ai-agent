@@ -1151,21 +1151,21 @@ function App() {
                   <h4 className="text-sm font-semibold tracking-wide text-slate-500">
                     Recommended Print Sizes
                   </h4>
-                  <dl className="mt-2 space-y-2 text-sm">
-                    <div className="text-slate-600">
-                      <dt className="font-medium">300 DPI</dt>
+                  <dl className="mt-2 space-y-1 text-sm">
+                    <div className="flex items-baseline gap-2 text-slate-600">
+                      <dt className="font-medium whitespace-nowrap">300 DPI</dt>
                       <dd className="text-slate-600">
                         {`${analysis.quality.recommendedSizes.at300dpi.w_in}" × ${analysis.quality.recommendedSizes.at300dpi.h_in}" (${analysis.quality.recommendedSizes.at300dpi.w_cm} × ${analysis.quality.recommendedSizes.at300dpi.h_cm} cm)`}
                       </dd>
                     </div>
-                    <div className="text-slate-600">
-                      <dt className="font-medium">150 DPI</dt>
+                    <div className="flex items-baseline gap-2 text-slate-600">
+                      <dt className="font-medium whitespace-nowrap">150 DPI</dt>
                       <dd className="text-slate-600">
                         {`${analysis.quality.recommendedSizes.at150dpi.w_in}" × ${analysis.quality.recommendedSizes.at150dpi.h_in}" (${analysis.quality.recommendedSizes.at150dpi.w_cm} × ${analysis.quality.recommendedSizes.at150dpi.h_cm} cm)`}
                       </dd>
                     </div>
-                    <div className="text-slate-600">
-                      <dt className="font-medium">72 DPI</dt>
+                    <div className="flex items-baseline gap-2 text-slate-600">
+                      <dt className="font-medium whitespace-nowrap">72 DPI</dt>
                       <dd className="text-slate-600">
                         {analysis.quality.pixels && analysis.quality.recommendedSizes
                           ? `${((analysis.quality.pixels.w / 72)).toFixed(2)}" × ${((analysis.quality.pixels.h / 72)).toFixed(2)}" (${((analysis.quality.pixels.w / 72) * 2.54).toFixed(2)} × ${((analysis.quality.pixels.h / 72) * 2.54).toFixed(2)} cm)`
@@ -1334,8 +1334,8 @@ function App() {
                       <li><strong>Gradients & Fades:</strong> Soft gradients that fade to zero opacity do not work. Use halftone dots (solid 100% opacity) for smooth transitions.</li>
                       <li><strong>Resolution:</strong> Minimum 300 DPI. Low-resolution artwork creates fuzzy edges with partial-opacity pixels that don't receive white underbase.</li>
                       <li><strong>Color Profiles:</strong> RGB or CMYK recommended. Avoid unsupported embedded profiles for consistent vibrancy.</li>
-                    </ul>
-                  </div>
+                </ul>
+              </div>
                 )}
 
                 {/* UV DTF Tab Content */}
