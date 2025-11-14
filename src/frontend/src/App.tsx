@@ -718,8 +718,8 @@ function App() {
           <section className="space-y-6">
             {/* Flex container to position upload area and AI side by side */}
             <div className="flex gap-6 items-start justify-center">
-              {/* Upload area - always max-w-7xl */}
-              <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm w-full max-w-7xl">
+              {/* Upload area - match width with Technical Specifications section */}
+              <div className={`rounded-2xl border border-slate-200 bg-white p-6 shadow-sm w-full ${isAiChatOpen ? 'max-w-4xl' : 'max-w-7xl'}`}>
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex flex-col gap-3 flex-1">
                 <h2 className="text-2xl font-semibold text-slate-900">Check Your Image Quality</h2>
@@ -1111,7 +1111,7 @@ function App() {
           </section>
 
           {analysis ? (
-            <section className={`grid gap-6 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm w-full mx-auto ${isAiChatOpen ? 'max-w-5xl mr-[420px]' : 'max-w-7xl'}`}>
+            <section className={`grid gap-6 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm w-full mx-auto ${isAiChatOpen ? 'max-w-4xl' : 'max-w-7xl'}`}>
               <h2 className="text-2xl font-semibold text-slate-900">Technical Specifications</h2>
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
@@ -1161,19 +1161,19 @@ function App() {
                   <dl className="space-y-1.5 text-sm">
                     <div className="flex justify-between text-slate-600">
                       <dt className="text-slate-500">DPI 300</dt>
-                      <dd className="font-medium text-slate-700 text-right">
+                      <dd className="font-medium text-slate-700">
                         {`${analysis.quality.recommendedSizes.at300dpi.w_in}" × ${analysis.quality.recommendedSizes.at300dpi.h_in}" (${analysis.quality.recommendedSizes.at300dpi.w_cm} × ${analysis.quality.recommendedSizes.at300dpi.h_cm} cm)`}
                       </dd>
                     </div>
                     <div className="flex justify-between text-slate-600">
                       <dt className="text-slate-500">DPI 150</dt>
-                      <dd className="font-medium text-slate-700 text-right">
+                      <dd className="font-medium text-slate-700">
                         {`${analysis.quality.recommendedSizes.at150dpi.w_in}" × ${analysis.quality.recommendedSizes.at150dpi.h_in}" (${analysis.quality.recommendedSizes.at150dpi.w_cm} × ${analysis.quality.recommendedSizes.at150dpi.h_cm} cm)`}
                       </dd>
                     </div>
                     <div className="flex justify-between text-slate-600">
                       <dt className="text-slate-500">DPI 72</dt>
-                      <dd className="font-medium text-slate-700 text-right">
+                      <dd className="font-medium text-slate-700">
                         {analysis.quality.pixels && analysis.quality.recommendedSizes
                           ? `${((analysis.quality.pixels.w / 72)).toFixed(2)}" × ${((analysis.quality.pixels.h / 72)).toFixed(2)}" (${((analysis.quality.pixels.w / 72) * 2.54).toFixed(2)} × ${((analysis.quality.pixels.h / 72) * 2.54).toFixed(2)} cm)`
                           : 'N/A'}
