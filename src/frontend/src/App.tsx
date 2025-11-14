@@ -688,7 +688,14 @@ function App() {
     <>
       {/* AI Assistant - OUTSIDE AppShell, fixed to viewport, doesn't scroll AT ALL */}
       {analysis && isAiChatOpen && (
-        <div className="fixed top-20 right-4 w-96 h-[600px] z-50">
+        <div 
+          className="w-96 h-[600px] z-[9999]"
+          style={{
+            position: 'fixed',
+            top: '5rem',
+            right: '1rem',
+          }}
+        >
           <ArtworkChat
             quality={analysis.quality}
             colors={analysis.colors}
