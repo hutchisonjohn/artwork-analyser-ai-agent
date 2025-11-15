@@ -104,21 +104,32 @@ function buildUserMessage({ quality, colors, question, context }: ChatRequestPay
   
   if (isGreeting) {
     // For greetings/general questions, DON'T send the full analysis - just the question
-    sections.push('🚫 DO NOT ANALYZE THE ARTWORK. DO NOT USE YOUR GENERAL KNOWLEDGE.')
+    sections.push('🚫 DO NOT ANALYZE THE ARTWORK. DO NOT GIVE UNSOLICITED ADVICE.')
     sections.push('\nUSER QUESTION:')
     sections.push(question.trim())
     
-    if (context) {
+    // Check if it's a pure greeting (hi, hey, hello) vs a technical question
+    const isPureGreeting = /^(hi|hello|hey|howdy|greetings|good morning|good afternoon|good evening)$/i.test(question.toLowerCase().trim())
+    
+    if (isPureGreeting) {
+      // For pure greetings, NEVER give advice - just ask what they need
+      sections.push('\n📋 INSTRUCTION:')
+      sections.push('This is a GREETING. Respond with ONE sentence asking what they would like help with.')
+      sections.push('DO NOT give printing advice. DO NOT mention DPI, text size, or transparency.')
+      sections.push('DO NOT use knowledge base information.')
+      sections.push('Example: "Hi! What would you like to know about your artwork?"')
+    } else if (context) {
+      // For technical questions with RAG context
       sections.push('\n📚 KNOWLEDGE BASE INFORMATION (USE THIS AND ONLY THIS):')
       sections.push(context)
       sections.push('\n🚨 CRITICAL: Answer using ONLY the information above. Do NOT use your general printing knowledge.')
       sections.push('Extract the relevant facts and present them in 2-3 sentences.')
     } else {
+      // For technical questions without RAG context
       sections.push('\n📋 INSTRUCTION:')
-      sections.push('This is a GENERAL question or greeting. Answer ONLY the question asked.')
+      sections.push('This is a GENERAL technical question. Answer ONLY the question asked.')
       sections.push('DO NOT mention or analyze the uploaded artwork.')
       sections.push('Keep your response to 2-3 sentences maximum.')
-      sections.push('If it\'s a greeting, ask what they want to know. If it\'s a technical question, just answer it.')
     }
   } else {
     // For specific questions, send the full analysis
