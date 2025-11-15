@@ -149,12 +149,20 @@ function buildUserMessage({ quality, colors, question, context }: ChatRequestPay
     
     // Only add size info if they ask about size/max/print
     if (lowerQ.includes('size') || lowerQ.includes('max') || lowerQ.includes('print') || lowerQ.includes('large') || lowerQ.includes('big')) {
-      essentialInfo.maxSize300 = quality.recommendedSizes 
-        ? `${quality.recommendedSizes.at300dpi.w_cm}×${quality.recommendedSizes.at300dpi.h_cm} cm (${quality.recommendedSizes.at300dpi.w_in}"×${quality.recommendedSizes.at300dpi.h_in}")`
-        : 'N/A'
-      essentialInfo.maxSize250 = quality.pixels && quality.recommendedSizes
-        ? `${((quality.pixels.w / 250) * 2.54).toFixed(2)}×${((quality.pixels.h / 250) * 2.54).toFixed(2)} cm (${(quality.pixels.w / 250).toFixed(2)}"×${(quality.pixels.h / 250).toFixed(2)}")`
-        : 'N/A'
+      // If they ask for "optimal" or "max", prioritize 250 DPI (largest optimal size)
+      if (lowerQ.includes('optimal') || lowerQ.includes('optimum')) {
+        essentialInfo.maxSizeOptimal = quality.pixels && quality.recommendedSizes
+          ? `${((quality.pixels.w / 250) * 2.54).toFixed(2)}×${((quality.pixels.h / 250) * 2.54).toFixed(2)} cm (${(quality.pixels.w / 250).toFixed(2)}"×${(quality.pixels.h / 250).toFixed(2)}") at 250 DPI - largest size while maintaining optimal quality (250-300 DPI range)`
+          : 'N/A'
+      } else {
+        // Otherwise, show both 300 and 250 DPI options
+        essentialInfo.maxSize300 = quality.recommendedSizes 
+          ? `${quality.recommendedSizes.at300dpi.w_cm}×${quality.recommendedSizes.at300dpi.h_cm} cm (${quality.recommendedSizes.at300dpi.w_in}"×${quality.recommendedSizes.at300dpi.h_in}")`
+          : 'N/A'
+        essentialInfo.maxSize250 = quality.pixels && quality.recommendedSizes
+          ? `${((quality.pixels.w / 250) * 2.54).toFixed(2)}×${((quality.pixels.h / 250) * 2.54).toFixed(2)} cm (${(quality.pixels.w / 250).toFixed(2)}"×${(quality.pixels.h / 250).toFixed(2)}")`
+          : 'N/A'
+      }
     }
     
     // Only add transparency if they ask about it
