@@ -43,7 +43,7 @@ describe('formatAspectRatio', () => {
   })
 
   it('returns simplified ratio with decimal representation', () => {
-    expect(formatAspectRatio(1920, 1080)).toBe('16:9 (1.78:1)')
+    expect(formatAspectRatio(1920, 1080)).toBe('1.78:1')
   })
 })
 

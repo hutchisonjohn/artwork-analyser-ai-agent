@@ -1,14 +1,38 @@
 import { z } from 'zod'
 import { decodeSecret, encodeSecret } from './services/encryption'
 
-export const PROVIDERS = ['claude', 'openai'] as const
+export const PROVIDERS = ['claude', 'openai-gpt4o-mini', 'openai-gpt4o', 'google-gemini'] as const
 export type Provider = (typeof PROVIDERS)[number]
 
 export const providerSchema = z.enum(PROVIDERS)
 
+// Model configurations per provider
+export const MODEL_CONFIGS = {
+  'claude': {
+    model: 'claude-sonnet-4-20250514',
+    maxTokens: 200,
+    apiEndpoint: 'https://api.anthropic.com/v1/messages',
+  },
+  'openai-gpt4o-mini': {
+    model: 'gpt-4o-mini',
+    maxTokens: 400, // GPT-4o-mini is more concise, can handle more tokens without verbosity
+    apiEndpoint: 'https://api.openai.com/v1/chat/completions',
+  },
+  'openai-gpt4o': {
+    model: 'gpt-4o',
+    maxTokens: 400,
+    apiEndpoint: 'https://api.openai.com/v1/chat/completions',
+  },
+  'google-gemini': {
+    model: 'gemini-1.5-flash',
+    maxTokens: 400,
+    apiEndpoint: 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent',
+  },
+} as const
+
 export const configSchema = z.object({
-  provider: providerSchema.default('claude'),
-  model: z.string().min(1).default('claude-sonnet-4-20250514'),
+  provider: providerSchema.default('openai-gpt4o-mini'), // Default to GPT-4o-mini
+  model: z.string().min(1).default('gpt-4o-mini'),
   embeddingModel: z.string().min(1).default('text-embedding-3-large'),
   apiKey: z.string().optional(),
   aiName: z.string().optional(),

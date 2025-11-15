@@ -88,6 +88,6 @@ describe('router', () => {
     const response = await router.fetch(request, env)
     expect(response.status).toBe(200)
     const payload = await response.json() as { provider: string }
-    expect(payload.provider).toBe('claude')
+    expect(payload.provider).toBe('openai-gpt4o-mini') // Updated default provider
   })
 })

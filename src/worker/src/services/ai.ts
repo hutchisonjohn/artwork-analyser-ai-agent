@@ -1,4 +1,5 @@
 import type { Bindings, AppConfig } from '../config'
+import { MODEL_CONFIGS } from '../config'
 import type { QualityReport, ColorReport } from '@shared/types'
 
 export interface ChatRequestPayload {
@@ -171,6 +172,8 @@ async function callClaudeAPI(config: AppConfig, payload: ChatRequestPayload): Pr
     throw new Error('Claude API key is required but not configured')
   }
 
+  const modelConfig = MODEL_CONFIGS['claude']
+
   // Build messages array with conversation history
   const messages: Array<{ role: 'user' | 'assistant'; content: string }> = []
   
@@ -184,12 +187,12 @@ async function callClaudeAPI(config: AppConfig, payload: ChatRequestPayload): Pr
 
   const body = {
     model: config.model,
-    max_tokens: 200, // Increased to 200 to allow for calculations and complete answers
+    max_tokens: modelConfig.maxTokens,
     messages,
     system: buildSystemMessage(config),
   }
 
-  const response = await fetch('https://api.anthropic.com/v1/messages', {
+  const response = await fetch(modelConfig.apiEndpoint, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -208,19 +211,136 @@ async function callClaudeAPI(config: AppConfig, payload: ChatRequestPayload): Pr
   return data.content?.[0]?.text || ''
 }
 
+async function callOpenAI(config: AppConfig, payload: ChatRequestPayload): Promise<string> {
+  if (!config.apiKey) {
+    throw new Error('OpenAI API key is required but not configured')
+  }
+
+  const modelConfig = MODEL_CONFIGS[config.provider as keyof typeof MODEL_CONFIGS]
+  
+  // Build messages array with conversation history
+  const messages: Array<{ role: 'system' | 'user' | 'assistant'; content: string }> = [
+    { role: 'system', content: buildSystemMessage(config) }
+  ]
+  
+  // Add conversation history if present
+  if (payload.history && payload.history.length > 0) {
+    messages.push(...payload.history.map(msg => ({
+      role: msg.role as 'user' | 'assistant',
+      content: msg.content
+    })))
+  }
+  
+  // Add the current question
+  messages.push({ role: 'user', content: buildUserMessage(payload) })
+
+  const body = {
+    model: modelConfig.model,
+    max_tokens: modelConfig.maxTokens,
+    messages,
+    temperature: 0.7,
+  }
+
+  const response = await fetch(modelConfig.apiEndpoint, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${config.apiKey}`,
+    },
+    body: JSON.stringify(body),
+  })
+
+  if (!response.ok) {
+    const text = await response.text()
+    throw new Error(`OpenAI API request failed: ${response.status} ${text}`)
+  }
+
+  const data = await response.json() as any
+  return data.choices?.[0]?.message?.content || ''
+}
+
+async function callGemini(config: AppConfig, payload: ChatRequestPayload): Promise<string> {
+  if (!config.apiKey) {
+    throw new Error('Google API key is required but not configured')
+  }
+
+  const modelConfig = MODEL_CONFIGS[config.provider as keyof typeof MODEL_CONFIGS]
+  
+  // Gemini has a different message format
+  const systemInstruction = buildSystemMessage(config)
+  const userMessage = buildUserMessage(payload)
+  
+  // Build conversation history in Gemini format
+  const contents: Array<{ role: string; parts: Array<{ text: string }> }> = []
+  
+  if (payload.history && payload.history.length > 0) {
+    payload.history.forEach(msg => {
+      contents.push({
+        role: msg.role === 'user' ? 'user' : 'model',
+        parts: [{ text: msg.content }]
+      })
+    })
+  }
+  
+  // Add current question
+  contents.push({
+    role: 'user',
+    parts: [{ text: userMessage }]
+  })
+
+  const body = {
+    system_instruction: {
+      parts: [{ text: systemInstruction }]
+    },
+    contents,
+    generation_config: {
+      max_output_tokens: modelConfig.maxTokens,
+      temperature: 0.7,
+    }
+  }
+
+  const response = await fetch(`${modelConfig.apiEndpoint}?key=${config.apiKey}`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(body),
+  })
+
+  if (!response.ok) {
+    const text = await response.text()
+    throw new Error(`Gemini API request failed: ${response.status} ${text}`)
+  }
+
+  const data = await response.json() as any
+  return data.candidates?.[0]?.content?.parts?.[0]?.text || ''
+}
+
 export async function runChatCompletion(
   env: Bindings,
   config: AppConfig,
   payload: ChatRequestPayload
 ): Promise<ChatResponse> {
-  if (config.provider !== 'claude') {
+  let answer: string
+
+  // Route to appropriate provider
+  if (config.provider === 'claude') {
+    answer = config.apiKey 
+      ? await callClaudeAPI(config, payload)
+      : await callWorkersAI(env, config, payload)
+  } else if (config.provider === 'openai-gpt4o-mini' || config.provider === 'openai-gpt4o') {
+    if (!config.apiKey) {
+      throw new Error('OpenAI API key is required but not configured')
+    }
+    answer = await callOpenAI(config, payload)
+  } else if (config.provider === 'google-gemini') {
+    if (!config.apiKey) {
+      throw new Error('Google API key is required but not configured')
+    }
+    answer = await callGemini(config, payload)
+  } else {
     throw new Error(`Provider ${config.provider} not yet implemented`)
   }
-
-  // Use Claude API if key is configured, otherwise fall back to Workers AI
-  const answer = config.apiKey 
-    ? await callClaudeAPI(config, payload)
-    : await callWorkersAI(env, config, payload)
   
   return { answer }
 }

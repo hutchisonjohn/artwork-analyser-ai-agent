@@ -643,9 +643,11 @@ function App() {
 
   const providerOptions = useMemo(
     () => [
-      { value: 'claude', label: 'Claude (Workers AI)' },
-      { value: 'openai', label: 'OpenAI (coming soon)', disabled: true },
-    ] as Array<{ value: 'claude' | 'openai'; label: string; disabled?: boolean }>,
+      { value: 'openai-gpt4o-mini', label: 'GPT-4o-mini (Recommended)' },
+      { value: 'openai-gpt4o', label: 'GPT-4o (Premium)' },
+      { value: 'claude', label: 'Claude Sonnet 4' },
+      { value: 'google-gemini', label: 'Gemini 1.5 Flash' },
+    ] as Array<{ value: 'claude' | 'openai-gpt4o-mini' | 'openai-gpt4o' | 'google-gemini'; label: string; disabled?: boolean }>,
     []
   )
 
@@ -1425,7 +1427,7 @@ function App() {
                           current
                             ? {
                                 ...current,
-                                provider: event.target.value as 'claude' | 'openai',
+                                provider: event.target.value as 'claude' | 'openai-gpt4o-mini' | 'openai-gpt4o' | 'google-gemini',
                               }
                             : current
                         )
@@ -1473,6 +1475,11 @@ function App() {
                       placeholder={adminConfig.apiKey ? 'Current key hidden - enter to replace' : 'Enter provider API key'}
                       type="password"
                     />
+                    <p className="text-xs text-slate-500">
+                      {adminConfig.provider === 'claude' && 'Claude: Get your API key from console.anthropic.com'}
+                      {(adminConfig.provider === 'openai-gpt4o-mini' || adminConfig.provider === 'openai-gpt4o') && 'OpenAI: Get your API key from platform.openai.com/api-keys'}
+                      {adminConfig.provider === 'google-gemini' && 'Google: Get your API key from aistudio.google.com/apikey'}
+                    </p>
                   </label>
                 </div>
                 <label className="flex flex-col gap-1 text-sm">
