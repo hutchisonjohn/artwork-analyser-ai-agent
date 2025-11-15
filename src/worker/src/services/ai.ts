@@ -36,7 +36,7 @@ function buildSystemMessage(config: AppConfig): string {
 function isGreetingOrGeneral(question: string): boolean {
   const lower = question.toLowerCase().trim()
   
-  // Greetings and introductions
+  // Greetings and introductions (always general)
   const greetingPatterns = [
     /^(hi|hello|hey|howdy|greetings|good morning|good afternoon|good evening)/i,
     /^(i have|i've got|i got) (some )?questions?$/i,
@@ -45,28 +45,54 @@ function isGreetingOrGeneral(question: string): boolean {
     /^(i'm|i am|my name is) \w+/i,
   ]
   
-  if (greetingPatterns.some(pattern => pattern.test(lower)) || lower.length < 20) {
+  if (greetingPatterns.some(pattern => pattern.test(lower)) || lower.length < 15) {
     return true
   }
   
-  // Check if question is specifically about THEIR artwork
-  // Only these patterns should trigger artwork analysis
-  const artworkSpecificPatterns = [
+  // Questions that REQUIRE artwork data (NOT general)
+  const requiresArtworkPatterns = [
+    // Explicit references to their artwork
     /(my|this|the) (artwork|image|file|design|graphic)/i,
     /what('s| is) (my|the) (dpi|resolution|size)/i,
+    
+    // Questions about printing "this" or "I"
     /can (i|this) (print|be printed)/i,
     /how (big|large|small) can (i|this)/i,
     /(analyze|check|review|look at) (my|this|the)/i,
+    
+    // Questions about max size, DPI calculations (implies "my artwork")
+    /what (is|are) (the )?max(imum)? (size|print)/i,
+    /what (dpi|resolution) (will|would) (i|this) (get|have|be)/i,
+    /if (i|it('s| is)) (print|printed) (at|to)/i,
+    /what size (gives?|for) (me )?\d+\s?dpi/i,
+    
+    // Questions about dimensions/calculations
+    /at \d+(\.\d+)?\s?(cm|inch|in)/i, // "at 28.5cm"
+    /\d+\s?(cm|inch|in) wide/i, // "28.5cm wide"
   ]
   
-  // If it mentions their specific artwork, it's NOT general
-  if (artworkSpecificPatterns.some(pattern => pattern.test(lower))) {
+  // If it requires artwork data, it's NOT general
+  if (requiresArtworkPatterns.some(pattern => pattern.test(lower))) {
     return false
   }
   
-  // Everything else is considered general
-  // This is the key change - default to general unless explicitly about their artwork
-  return true
+  // Pure knowledge questions (don't need artwork)
+  const pureKnowledgePatterns = [
+    /what (is|are) (the )?(minimum|maximum|required|recommended)/i,
+    /why (do|does|is|are)/i,
+    /how (do|does) (dtf|uv dtf|printing|halftones)/i,
+    /what.*problems.*cause/i,
+    /tell me about/i,
+    /explain/i,
+  ]
+  
+  // If it's a pure knowledge question, it's general
+  if (pureKnowledgePatterns.some(pattern => pattern.test(lower))) {
+    return true
+  }
+  
+  // Default: if unsure, send artwork data (better to have it and not need it)
+  return false
 }
 
 function buildUserMessage({ quality, colors, question, context }: ChatRequestPayload): string {
