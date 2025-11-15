@@ -1367,15 +1367,20 @@ function App() {
             </p>
           </header>
 
-          <div className="grid gap-6 rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
-              <div className="grid gap-4">
+          {/* Admin Authentication Section */}
+          <div className="grid gap-4 rounded-lg border border-slate-200 bg-slate-50 p-4 shadow-sm">
+            <div>
+              <h4 className="text-sm font-semibold text-slate-700 mb-1">🔐 Admin Access</h4>
+              <p className="text-xs text-slate-500">Enter your admin password to unlock AI configuration settings</p>
+            </div>
+            <div className="grid gap-3">
                 <label className="flex flex-col gap-1 text-sm">
-                  <span className="font-medium text-slate-700">Admin token</span>
+                <span className="font-medium text-slate-700">Admin Password</span>
                   <input
                     className="rounded-md border border-slate-200 bg-white px-3 py-2 text-sm"
                     value={adminToken}
                   onChange={(event) => setAdminToken(event.target.value)}
-                    placeholder="Enter admin token to access secured endpoints"
+                  placeholder="Enter your admin password"
                     type="password"
                   />
                   <label className="mt-1 inline-flex items-center gap-2 text-xs text-slate-500">
@@ -1391,7 +1396,7 @@ function App() {
                         }
                       }}
                     />
-                    Remember token in this browser
+                  Remember password in this browser
                   </label>
                 </label>
               <div className="flex flex-wrap items-center gap-3">
@@ -1401,37 +1406,57 @@ function App() {
                   className="inline-flex items-center rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-60"
                   disabled={configLoading}
                 >
-                  {configLoading ? 'Unlocking...' : unlocked ? 'Refresh configuration' : 'Unlock admin panel'}
+                  {configLoading ? 'Unlocking...' : unlocked ? 'Refresh Settings' : 'Unlock Settings'}
                 </button>
                 {adminError && (
                   <span className="text-sm text-destructive" role="alert">
                     {adminError}
                   </span>
                 )}
-                {adminMessage && unlocked && <span className="text-sm text-slate-500">{adminMessage}</span>}
+                {adminMessage && unlocked && <span className="text-sm text-green-600">{adminMessage}</span>}
               </div>
             </div>
+          </div>
 
-            {configLoading && !unlocked ? (
+          {/* AI Configuration Section */}
+          {configLoading && !unlocked ? (
+            <div className="rounded-lg border border-slate-200 bg-white p-6 text-center">
               <p className="text-sm text-slate-500">Loading configuration...</p>
-            ) : unlocked && adminConfig ? (
-              <div className="grid gap-4">
-                <div className="grid gap-2 sm:grid-cols-2">
-                  <label className="flex flex-col gap-1 text-sm">
-                    <span className="font-medium text-slate-700">Provider</span>
+            </div>
+          ) : unlocked && adminConfig ? (
+            <div className="grid gap-6 rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
+              <div>
+                <h4 className="text-lg font-semibold text-slate-800 mb-1">🤖 AI Assistant Configuration</h4>
+                <p className="text-sm text-slate-600">Configure which AI model powers your artwork assistant</p>
+              </div>
+
+              {/* AI Provider Selection */}
+              <div className="grid gap-4 p-4 rounded-lg bg-blue-50 border border-blue-200">
+                <h5 className="text-sm font-semibold text-blue-900">Step 1: Choose Your AI Provider</h5>
+                <label className="flex flex-col gap-2 text-sm">
+                  <span className="font-medium text-slate-700">AI Provider</span>
                     <select
-                      className="rounded-md border border-slate-200 bg-white px-3 py-2 text-sm"
+                    className="rounded-md border border-slate-300 bg-white px-3 py-2 text-sm font-medium"
                       value={adminConfig.provider}
-                      onChange={(event) =>
+                    onChange={(event) => {
+                      const newProvider = event.target.value as 'claude' | 'openai-gpt4o-mini' | 'openai-gpt4o' | 'google-gemini'
+                      // Auto-update model name when provider changes
+                      let newModel = adminConfig.model
+                      if (newProvider === 'openai-gpt4o-mini') newModel = 'gpt-4o-mini'
+                      else if (newProvider === 'openai-gpt4o') newModel = 'gpt-4o'
+                      else if (newProvider === 'claude') newModel = 'claude-sonnet-4-20250514'
+                      else if (newProvider === 'google-gemini') newModel = 'gemini-1.5-flash'
+                      
                         setAdminConfig((current) =>
                           current
                             ? {
                                 ...current,
-                                provider: event.target.value as 'claude' | 'openai-gpt4o-mini' | 'openai-gpt4o' | 'google-gemini',
+                              provider: newProvider,
+                              model: newModel,
                               }
                             : current
                         )
-                      }
+                    }}
                     >
                       {providerOptions.map((option) => (
                         <option key={option.value} value={option.value} disabled={option.disabled}>
@@ -1439,21 +1464,71 @@ function App() {
                         </option>
                       ))}
                     </select>
+                  <p className="text-xs text-slate-600">
+                    {adminConfig.provider === 'openai-gpt4o-mini' && '✅ Best choice: Most cost-effective, concise responses, no cut-offs'}
+                    {adminConfig.provider === 'openai-gpt4o' && '🏆 Premium: Highest quality, more expensive'}
+                    {adminConfig.provider === 'claude' && '🎨 Creative: Excellent understanding, can be verbose'}
+                    {adminConfig.provider === 'google-gemini' && '⚡ Budget: Ultra-cheap, good for high volume'}
+                  </p>
                   </label>
+              </div>
+
+              {/* API Key */}
+              <div className="grid gap-4 p-4 rounded-lg bg-green-50 border border-green-200">
+                <h5 className="text-sm font-semibold text-green-900">Step 2: Enter Your API Key</h5>
+                <label className="flex flex-col gap-2 text-sm">
+                  <span className="font-medium text-slate-700">
+                    {adminConfig.provider === 'claude' && 'Claude API Key'}
+                    {(adminConfig.provider === 'openai-gpt4o-mini' || adminConfig.provider === 'openai-gpt4o') && 'OpenAI API Key'}
+                    {adminConfig.provider === 'google-gemini' && 'Google API Key'}
+                  </span>
+                  <input
+                    className="rounded-md border border-slate-300 bg-white px-3 py-2 text-sm font-mono"
+                    value={apiKeyInput}
+                    onChange={(event) => setApiKeyInput(event.target.value)}
+                    placeholder={adminConfig.apiKey ? '••••••••••••••••••••••••••' : 'Paste your API key here'}
+                    type="password"
+                  />
+                  <p className="text-xs text-slate-600">
+                    {adminConfig.provider === 'claude' && (
+                      <>Get your Claude API key from <a href="https://console.anthropic.com" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">console.anthropic.com</a></>
+                    )}
+                    {(adminConfig.provider === 'openai-gpt4o-mini' || adminConfig.provider === 'openai-gpt4o') && (
+                      <>Get your OpenAI API key from <a href="https://platform.openai.com/api-keys" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">platform.openai.com/api-keys</a></>
+                    )}
+                    {adminConfig.provider === 'google-gemini' && (
+                      <>Get your Google API key from <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">aistudio.google.com/apikey</a></>
+                    )}
+                  </p>
+                  {adminConfig.apiKey && (
+                    <p className="text-xs text-green-700 font-medium">✓ API key is configured (enter a new one to replace it)</p>
+                  )}
+                </label>
+              </div>
+
+              {/* Advanced Settings - Collapsed by default */}
+              <details className="group">
+                <summary className="cursor-pointer text-sm font-semibold text-slate-700 hover:text-slate-900 flex items-center gap-2">
+                  <span className="group-open:rotate-90 transition-transform">▶</span>
+                  Advanced Settings (Optional)
+                </summary>
+                <div className="mt-4 grid gap-4 pl-6">
                   <label className="flex flex-col gap-1 text-sm">
-                    <span className="font-medium text-slate-700">Chat model</span>
+                    <span className="font-medium text-slate-700">Model Name</span>
                     <input
-                      className="rounded-md border border-slate-200 bg-white px-3 py-2 text-sm"
+                      className="rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-mono"
                       value={adminConfig.model}
                       onChange={(event) =>
                         setAdminConfig((current) =>
                           current ? { ...current, model: event.target.value } : current
                         )
                       }
+                      disabled
                     />
+                    <p className="text-xs text-slate-500">Auto-set based on provider (read-only)</p>
                   </label>
                   <label className="flex flex-col gap-1 text-sm">
-                    <span className="font-medium text-slate-700">Embedding model</span>
+                    <span className="font-medium text-slate-700">Embedding Model</span>
                     <input
                       className="rounded-md border border-slate-200 bg-white px-3 py-2 text-sm"
                       value={adminConfig.embeddingModel}
@@ -1465,27 +1540,51 @@ function App() {
                         )
                       }
                     />
-                  </label>
-                  <label className="flex flex-col gap-1 text-sm">
-                    <span className="font-medium text-slate-700">API key</span>
-                    <input
-                      className="rounded-md border border-slate-200 bg-white px-3 py-2 text-sm"
-                      value={apiKeyInput}
-                      onChange={(event) => setApiKeyInput(event.target.value)}
-                      placeholder={adminConfig.apiKey ? 'Current key hidden - enter to replace' : 'Enter provider API key'}
-                      type="password"
-                    />
-                    <p className="text-xs text-slate-500">
-                      {adminConfig.provider === 'claude' && 'Claude: Get your API key from console.anthropic.com'}
-                      {(adminConfig.provider === 'openai-gpt4o-mini' || adminConfig.provider === 'openai-gpt4o') && 'OpenAI: Get your API key from platform.openai.com/api-keys'}
-                      {adminConfig.provider === 'google-gemini' && 'Google: Get your API key from aistudio.google.com/apikey'}
-                    </p>
+                    <p className="text-xs text-slate-500">Used for RAG document search (leave as default unless you know what you're doing)</p>
                   </label>
                 </div>
+              </details>
+
+              {/* Personality & Behavior */}
+              <div className="border-t border-slate-200 pt-6">
+                <h5 className="text-sm font-semibold text-slate-700 mb-4">🎭 Assistant Personality</h5>
+                <div className="grid gap-4">
+                  <label className="flex flex-col gap-1 text-sm">
+                    <span className="font-medium text-slate-700">Assistant Name</span>
+                    <input
+                      className="rounded-md border border-slate-200 bg-white px-3 py-2 text-sm"
+                      value={adminConfig.aiName || 'McCarthy AI Artwork Assistant'}
+                      onChange={(event) =>
+                        setAdminConfig((current) =>
+                          current
+                            ? { ...current, aiName: event.target.value }
+                            : current
+                        )
+                      }
+                      placeholder="McCarthy AI Artwork Assistant"
+                    />
+                    <p className="text-xs text-slate-500">The name shown to users in the chat widget</p>
+                  </label>
                 <label className="flex flex-col gap-1 text-sm">
-                  <span className="font-medium text-slate-700">System prompt</span>
+                    <span className="font-medium text-slate-700">Welcome Greeting</span>
                   <textarea
-                    className="min-h-[120px] rounded-md border border-slate-200 bg-white px-3 py-2 text-sm"
+                      className="min-h-[100px] rounded-md border border-slate-200 bg-white px-3 py-2 text-sm"
+                      value={adminConfig.greetingMessage || "Hello! I'm McCarthy, your AI artwork assistant.\n\nI'm here to help you understand your artwork's print quality, DPI, colors, and file specifications.\n\nFeel free to ask me anything about your artwork!"}
+                      onChange={(event) =>
+                        setAdminConfig((current) =>
+                          current
+                            ? { ...current, greetingMessage: event.target.value }
+                            : current
+                        )
+                      }
+                      placeholder="Enter greeting message..."
+                    />
+                    <p className="text-xs text-slate-500">💡 Tip: Use double line breaks (\\n\\n) to split into 3 messages that appear with typing animation</p>
+                  </label>
+                  <label className="flex flex-col gap-1 text-sm">
+                    <span className="font-medium text-slate-700">System Instructions (Personality & Rules)</span>
+                    <textarea
+                      className="min-h-[150px] rounded-md border border-slate-200 bg-white px-3 py-2 text-sm font-mono"
                     value={adminConfig.systemPrompt}
                     onChange={(event) =>
                       setAdminConfig((current) =>
@@ -1495,67 +1594,42 @@ function App() {
                       )
                     }
                   />
+                    <p className="text-xs text-slate-500">Advanced: Define how the AI should behave, respond, and what rules to follow</p>
                 </label>
-                <label className="flex flex-col gap-1 text-sm">
-                  <span className="font-medium text-slate-700">AI Assistant Name</span>
-                  <input
-                    className="rounded-md border border-slate-200 bg-white px-3 py-2 text-sm"
-                    value={adminConfig.aiName || 'McCarthy AI Artwork Assistant'}
-                    onChange={(event) =>
-                      setAdminConfig((current) =>
-                        current
-                          ? { ...current, aiName: event.target.value }
-                          : current
-                      )
-                    }
-                    placeholder="McCarthy AI Artwork Assistant"
-                  />
-                </label>
-                <label className="flex flex-col gap-1 text-sm">
-                  <span className="font-medium text-slate-700">Greeting Message</span>
-                  <textarea
-                    className="min-h-[120px] rounded-md border border-slate-200 bg-white px-3 py-2 text-sm"
-                    value={adminConfig.greetingMessage || "Hello! I'm McCarthy, your AI artwork assistant.\n\nI'm here to help you understand your artwork's print quality, DPI, colors, and file specifications.\n\nFeel free to ask me anything about your artwork!"}
-                    onChange={(event) =>
-                      setAdminConfig((current) =>
-                        current
-                          ? { ...current, greetingMessage: event.target.value }
-                          : current
-                      )
-                    }
-                    placeholder="Separate 3 messages with double line breaks (\\n\\n)"
-                  />
-                  <p className="text-xs text-slate-500">Tip: Separate your greeting into 3 parts using double line breaks. Each part will appear 2-3 seconds apart with typing animation.</p>
-                </label>
+                </div>
+              </div>
+
+              {/* Save Button */}
+              <div className="border-t border-slate-200 pt-6">
                 <div className="flex flex-wrap items-center gap-3">
                   <button
                     type="button"
                     onClick={() => void handleSaveConfig()}
                     disabled={configSaving}
-                    className="inline-flex items-center rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow transition hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60"
+                    className="inline-flex items-center rounded-lg bg-green-600 px-6 py-3 text-base font-semibold text-white shadow-lg transition hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-60"
                   >
-                    {configSaving ? 'Saving…' : 'Save configuration'}
+                    {configSaving ? '💾 Saving…' : '💾 Save All Settings'}
                   </button>
-                  {adminMessage && <span className="text-sm text-slate-500">{adminMessage}</span>}
+                  {adminMessage && <span className="text-sm text-green-600 font-medium">{adminMessage}</span>}
+                </div>
+                <p className="mt-2 text-xs text-slate-500">Changes will take effect immediately for new chat sessions</p>
                 </div>
               </div>
             ) : (
-              <p className="text-sm text-slate-500">
-                Enter your admin token above and click "Unlock admin panel" to load configuration settings.
-              </p>
-            )}
+            <div className="rounded-lg border border-slate-200 bg-slate-50 p-6 text-center">
+              <p className="text-sm text-slate-600">🔒 Enter your admin password above and click "Unlock Settings" to configure your AI assistant</p>
+            </div>
+          )}
+
+          {/* Knowledge Base Section - Separate */}
+          <div className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
+            <div className="mb-4">
+              <h4 className="text-lg font-semibold text-slate-800 mb-1">📚 Knowledge Base Documents</h4>
+              <p className="text-sm text-slate-600">Upload documents (Markdown, TXT) to teach your AI assistant about your specific printing requirements. Max 2 MB per file.</p>
           </div>
 
-          <div className="grid gap-4 rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
             <div className="flex flex-wrap items-center justify-between gap-4">
-              <div>
-                <h4 className="text-sm font-semibold tracking-wide text-muted-foreground">
-                  Knowledge-Base Documents
-                </h4>
-                <p className="text-xs text-slate-500">
-                  Upload Markdown or plain text files (max 2 MB); they will be chunked, embedded, and added to the RAG store.
-                </p>
-              </div>
+              <div className="flex-1"></div>
               <div className="flex items-center gap-2 text-xs">
                 <input
                   ref={docInputRef}
