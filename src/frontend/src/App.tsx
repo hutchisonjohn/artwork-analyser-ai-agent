@@ -1506,44 +1506,6 @@ function App() {
                 </label>
               </div>
 
-              {/* Advanced Settings - Collapsed by default */}
-              <details className="group">
-                <summary className="cursor-pointer text-sm font-semibold text-slate-700 hover:text-slate-900 flex items-center gap-2">
-                  <span className="group-open:rotate-90 transition-transform">▶</span>
-                  Advanced Settings (Optional)
-                </summary>
-                <div className="mt-4 grid gap-4 pl-6">
-                  <label className="flex flex-col gap-1 text-sm">
-                    <span className="font-medium text-slate-700">Model Name</span>
-                    <input
-                      className="rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-mono"
-                      value={adminConfig.model}
-                      onChange={(event) =>
-                        setAdminConfig((current) =>
-                          current ? { ...current, model: event.target.value } : current
-                        )
-                      }
-                      disabled
-                    />
-                    <p className="text-xs text-slate-500">Auto-set based on provider (read-only)</p>
-                  </label>
-                  <label className="flex flex-col gap-1 text-sm">
-                    <span className="font-medium text-slate-700">Embedding Model</span>
-                    <input
-                      className="rounded-md border border-slate-200 bg-white px-3 py-2 text-sm"
-                      value={adminConfig.embeddingModel}
-                      onChange={(event) =>
-                        setAdminConfig((current) =>
-                          current
-                            ? { ...current, embeddingModel: event.target.value }
-                            : current
-                        )
-                      }
-                    />
-                    <p className="text-xs text-slate-500">Used for RAG document search (leave as default unless you know what you're doing)</p>
-                  </label>
-                </div>
-              </details>
 
               {/* Personality & Behavior */}
               <div className="border-t border-slate-200 pt-6">
@@ -1565,10 +1527,10 @@ function App() {
                     />
                     <p className="text-xs text-slate-500">The name shown to users in the chat widget</p>
                   </label>
-                <label className="flex flex-col gap-1 text-sm">
+                  <label className="flex flex-col gap-1 text-sm">
                     <span className="font-medium text-slate-700">Welcome Greeting</span>
-                  <textarea
-                      className="min-h-[100px] rounded-md border border-slate-200 bg-white px-3 py-2 text-sm"
+                    <textarea
+                      className="h-32 rounded-md border border-slate-200 bg-white px-3 py-2 text-sm resize-y"
                       value={adminConfig.greetingMessage || "Hello! I'm McCarthy, your AI artwork assistant.\n\nI'm here to help you understand your artwork's print quality, DPI, colors, and file specifications.\n\nFeel free to ask me anything about your artwork!"}
                       onChange={(event) =>
                         setAdminConfig((current) =>
@@ -1578,13 +1540,14 @@ function App() {
                         )
                       }
                       placeholder="Enter greeting message..."
+                      rows={6}
                     />
                     <p className="text-xs text-slate-500">💡 Tip: Use double line breaks (\\n\\n) to split into 3 messages that appear with typing animation</p>
                   </label>
                   <label className="flex flex-col gap-1 text-sm">
                     <span className="font-medium text-slate-700">System Instructions (Personality & Rules)</span>
-                    <textarea
-                      className="min-h-[150px] rounded-md border border-slate-200 bg-white px-3 py-2 text-sm font-mono"
+                  <textarea
+                      className="h-64 rounded-md border border-slate-200 bg-white px-3 py-2 text-sm font-mono resize-y"
                     value={adminConfig.systemPrompt}
                     onChange={(event) =>
                       setAdminConfig((current) =>
@@ -1593,6 +1556,7 @@ function App() {
                           : current
                       )
                     }
+                      rows={12}
                   />
                     <p className="text-xs text-slate-500">Advanced: Define how the AI should behave, respond, and what rules to follow</p>
                 </label>
