@@ -29,7 +29,7 @@ interface PaletteDownloads {
 }
 
 interface AdminConfigState {
-  provider: 'claude' | 'openai'
+  provider: 'claude' | 'openai-gpt4o-mini' | 'openai-gpt4o' | 'google-gemini'
   model: string
   embeddingModel: string
   systemPrompt: string
