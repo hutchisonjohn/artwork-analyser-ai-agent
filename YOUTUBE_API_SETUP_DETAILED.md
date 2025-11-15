@@ -1,9 +1,19 @@
 # YouTube API Setup - Step-by-Step Guide (Beginner-Friendly)
 
 ## 📋 What You'll Need
-- A Google account (Gmail)
+- **A personal Google account (Gmail)** ⚠️ **IMPORTANT: Use your personal Gmail, not a work/organization account**
 - 10 minutes of time
 - Your Cloudflare Pages URL (e.g., `https://your-app.pages.dev`)
+
+---
+
+## ⚠️ **CRITICAL: Use Your Personal Google Account**
+
+**Before you start:**
+- ✅ **USE:** Your personal Gmail account (e.g., `yourname@gmail.com`)
+- ❌ **DON'T USE:** Work email, organization account, or Google Workspace account
+
+**Why?** When creating the project, you'll need to select your email address as the "Location" for the project. This is mandatory and must be your personal Google account.
 
 ---
 
@@ -30,8 +40,9 @@ https://console.cloud.google.com/
 ```
 
 ### 1.2 Sign In
-- Sign in with your Google account (Gmail)
-- If you don't have one, create a free Google account first
+- ⚠️ **IMPORTANT:** Sign in with your **personal Gmail account** (e.g., `yourname@gmail.com`)
+- ❌ **DON'T use** work email or Google Workspace accounts
+- If you don't have a personal Gmail, create a free one first at https://accounts.google.com/signup
 
 ### 1.3 Accept Terms (if prompted)
 - If this is your first time, you may see a "Terms of Service" popup
@@ -65,15 +76,47 @@ You'll see a form with these fields:
 - Leave as "No organization" (default)
 - Don't change this unless you know what you're doing
 
-**Location:**
-- Leave as "No organization" (default)
+**⚠️ IMPORTANT: Location (MANDATORY):**
+- **You MUST fill in the Location field**
+- Click the **"Browse"** button next to the Location field
+- A popup will appear
+- **Select your personal Gmail address** (e.g., `yourname@gmail.com`)
+- Click **"SELECT"**
+- The Location field will now show your email address
+- **This is correct!** ✅ Your personal Google account is the parent for this project
 
-### 2.4 Click "CREATE"
+### 2.4 Visual Example - Your Form Should Look Like This:
+
+```
+┌─────────────────────────────────────────────────┐
+│ New Project                                     │
+├─────────────────────────────────────────────────┤
+│ Project name *                                  │
+│ Artwork Analyser YouTube          ← You typed   │
+├─────────────────────────────────────────────────┤
+│ Organization *                                  │
+│ No organization                ▼  ← Leave as is │
+├─────────────────────────────────────────────────┤
+│ Location *                                      │
+│ yourname@gmail.com          Browse ← YOUR EMAIL │
+│                                     ↑            │
+│                          Click Browse, select   │
+│                          your Gmail address     │
+└─────────────────────────────────────────────────┘
+
+              [CREATE]  [CANCEL]
+                 ↑
+            Click here!
+```
+
+**✅ All three fields filled in? Great! Now click CREATE.**
+
+### 2.5 Click "CREATE"
 - Click the blue "CREATE" button at the bottom
 - Wait 10-30 seconds for the project to be created
 - You'll see a notification bell icon with a message when it's done
 
-### 2.5 Select Your New Project
+### 2.6 Select Your New Project
 - Click the project dropdown again (top of page)
 - Click on your new project name: "Artwork Analyser YouTube"
 - The page will reload with your new project selected
