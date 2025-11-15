@@ -132,11 +132,31 @@ function buildUserMessage({ quality, colors, question, context }: ChatRequestPay
       sections.push('Keep your response to 2-3 sentences maximum.')
     }
   } else {
-    // For specific questions, send the full analysis
+    // For specific questions, send ONLY relevant data
     sections.push('USER QUESTION:')
     sections.push(question.trim())
-    sections.push('\nANALYSIS SUMMARY:')
-    sections.push(JSON.stringify({ quality, colors }, null, 2))
+    
+    // Extract only the essential info needed to answer the question
+    const essentialInfo = {
+      pixels: `${quality.pixels?.w || 0}×${quality.pixels?.h || 0}`,
+      dpi: quality.pixels && quality.recommendedSizes 
+        ? Math.round(quality.pixels.w / quality.recommendedSizes.at300dpi.w_in)
+        : 0,
+      maxSize300: quality.recommendedSizes 
+        ? `${quality.recommendedSizes.at300dpi.w_cm}×${quality.recommendedSizes.at300dpi.h_cm} cm (${quality.recommendedSizes.at300dpi.w_in}"×${quality.recommendedSizes.at300dpi.h_in}")`
+        : 'N/A',
+      maxSize250: quality.pixels && quality.recommendedSizes
+        ? `${((quality.pixels.w / 250) * 2.54).toFixed(2)}×${((quality.pixels.h / 250) * 2.54).toFixed(2)} cm (${(quality.pixels.w / 250).toFixed(2)}"×${(quality.pixels.h / 250).toFixed(2)}")`
+        : 'N/A',
+      transparency: quality.alphaStats 
+        ? `${quality.alphaStats.semiTransparentPercent.toFixed(2)}% semi-transparent`
+        : 'None',
+      hasICC: quality.hasICC ? 'Yes' : 'No',
+    }
+    
+    sections.push('\nARTWORK DATA:')
+    sections.push(JSON.stringify(essentialInfo, null, 2))
+    
     if (context) {
       console.log('[AI] Including RAG context in message')
       sections.push('\nKNOWLEDGE CONTEXT:')
