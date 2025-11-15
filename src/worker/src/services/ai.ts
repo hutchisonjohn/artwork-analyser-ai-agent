@@ -133,7 +133,8 @@ function buildUserMessage({ quality, colors, question, context }: ChatRequestPay
     }
   } else {
     // For specific questions, send ONLY what's needed to answer
-    sections.push('USER QUESTION:')
+    sections.push('🚨 CRITICAL: Answer in EXACTLY 3 sentences. NO emojis. NO extra commentary.')
+    sections.push('\nUSER QUESTION:')
     sections.push(question.trim())
     
     // Build minimal data based on what the question asks for
