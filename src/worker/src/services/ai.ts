@@ -132,29 +132,43 @@ function buildUserMessage({ quality, colors, question, context }: ChatRequestPay
       sections.push('Keep your response to 2-3 sentences maximum.')
     }
   } else {
-    // For specific questions, send ONLY relevant data
+    // For specific questions, send ONLY what's needed to answer
     sections.push('USER QUESTION:')
     sections.push(question.trim())
     
-    // Extract only the essential info needed to answer the question
-    const essentialInfo = {
-      pixels: `${quality.pixels?.w || 0}×${quality.pixels?.h || 0}`,
-      dpi: quality.pixels && quality.recommendedSizes 
-        ? Math.round(quality.pixels.w / quality.recommendedSizes.at300dpi.w_in)
-        : 0,
-      maxSize300: quality.recommendedSizes 
+    // Build minimal data based on what the question asks for
+    const lowerQ = question.toLowerCase()
+    const essentialInfo: Record<string, any> = {}
+    
+    // Always include basics for context
+    essentialInfo.pixels = `${quality.pixels?.w || 0}×${quality.pixels?.h || 0}`
+    essentialInfo.dpi = quality.pixels && quality.recommendedSizes 
+      ? Math.round(quality.pixels.w / quality.recommendedSizes.at300dpi.w_in)
+      : 0
+    
+    // Only add size info if they ask about size/max/print
+    if (lowerQ.includes('size') || lowerQ.includes('max') || lowerQ.includes('print') || lowerQ.includes('large') || lowerQ.includes('big')) {
+      essentialInfo.maxSize300 = quality.recommendedSizes 
         ? `${quality.recommendedSizes.at300dpi.w_cm}×${quality.recommendedSizes.at300dpi.h_cm} cm (${quality.recommendedSizes.at300dpi.w_in}"×${quality.recommendedSizes.at300dpi.h_in}")`
-        : 'N/A',
-      maxSize250: quality.pixels && quality.recommendedSizes
+        : 'N/A'
+      essentialInfo.maxSize250 = quality.pixels && quality.recommendedSizes
         ? `${((quality.pixels.w / 250) * 2.54).toFixed(2)}×${((quality.pixels.h / 250) * 2.54).toFixed(2)} cm (${(quality.pixels.w / 250).toFixed(2)}"×${(quality.pixels.h / 250).toFixed(2)}")`
-        : 'N/A',
-      transparency: quality.alphaStats 
-        ? `${quality.alphaStats.semiTransparentPercent.toFixed(2)}% semi-transparent`
-        : 'None',
-      hasICC: quality.hasICC ? 'Yes' : 'No',
+        : 'N/A'
     }
     
-    sections.push('\nARTWORK DATA:')
+    // Only add transparency if they ask about it
+    if (lowerQ.includes('transparen') || lowerQ.includes('alpha') || lowerQ.includes('opaque')) {
+      essentialInfo.transparency = quality.alphaStats 
+        ? `${quality.alphaStats.semiTransparentPercent.toFixed(2)}% semi-transparent`
+        : 'None'
+    }
+    
+    // Only add ICC if they ask about color/profile
+    if (lowerQ.includes('icc') || lowerQ.includes('profile') || lowerQ.includes('color')) {
+      essentialInfo.hasICC = quality.hasICC ? 'Yes' : 'No'
+    }
+    
+    sections.push('\nARTWORK DATA (answer using ONLY this):')
     sections.push(JSON.stringify(essentialInfo, null, 2))
     
     if (context) {
