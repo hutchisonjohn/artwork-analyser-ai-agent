@@ -44,6 +44,7 @@ function isGreetingOrGeneral(question: string): boolean {
     /^(tell me|let me know|i('d| would) like to know) more$/i,
     /^(what can you|can you help)/i,
     /^(i'm|i am|my name is) \w+/i,
+    /(i'm|i am|my name is) \w+$/i, // Catches "Hi there. I'm Stan"
   ]
   
   if (greetingPatterns.some(pattern => pattern.test(lower)) || lower.length < 15) {
@@ -165,16 +166,43 @@ function buildUserMessage({ quality, colors, question, context }: ChatRequestPay
       }
     }
     
-    // Only add transparency if they ask about it
-    if (lowerQ.includes('transparen') || lowerQ.includes('alpha') || lowerQ.includes('opaque')) {
-      essentialInfo.transparency = quality.alphaStats 
-        ? `${quality.alphaStats.semiTransparentPercent.toFixed(2)}% semi-transparent`
-        : 'None'
+    // Add transparency/alpha info if they ask about it
+    if (lowerQ.includes('transparen') || lowerQ.includes('alpha') || lowerQ.includes('opaque') || lowerQ.includes('channel')) {
+      if (quality.alphaStats) {
+        essentialInfo.alphaChannel = {
+          hasAlpha: quality.hasAlpha,
+          transparent: `${quality.alphaStats.transparentCount.toLocaleString()} pixels (${quality.alphaStats.transparentPercent.toFixed(2)}%)`,
+          semiTransparent: `${quality.alphaStats.semiTransparentCount.toLocaleString()} pixels (${quality.alphaStats.semiTransparentPercent.toFixed(2)}%)`,
+          fullyOpaque: `${quality.alphaStats.opaqueCount.toLocaleString()} pixels (${quality.alphaStats.opaquePercent.toFixed(2)}%)`
+        }
+      } else {
+        essentialInfo.alphaChannel = 'No alpha channel'
+      }
     }
     
-    // Only add ICC if they ask about color/profile
-    if (lowerQ.includes('icc') || lowerQ.includes('profile') || lowerQ.includes('color')) {
-      essentialInfo.hasICC = quality.hasICC ? 'Yes' : 'No'
+    // Add ICC/color profile if they ask about it (British and American spelling)
+    if (lowerQ.includes('icc') || lowerQ.includes('profile') || lowerQ.includes('color') || lowerQ.includes('colour')) {
+      essentialInfo.iccProfile = quality.hasICC ? (quality.iccProfile || 'Embedded') : 'Not embedded'
+    }
+    
+    // Add color palette if they ask about colors/colours
+    if ((lowerQ.includes('color') || lowerQ.includes('colour')) && !lowerQ.includes('profile') && colors && colors.top && colors.top.length > 0) {
+      essentialInfo.topColors = colors.top.slice(0, 5).map(c => `${c.hex} (${c.percent.toFixed(1)}%)`).join(', ')
+    }
+    
+    // Add bit depth if they ask
+    if (lowerQ.includes('bit') && lowerQ.includes('depth')) {
+      essentialInfo.bitDepth = quality.bitDepth || 'Unknown'
+    }
+    
+    // Add aspect ratio if they ask
+    if (lowerQ.includes('aspect') && lowerQ.includes('ratio')) {
+      essentialInfo.aspectRatio = quality.aspectRatio || 'Unknown'
+    }
+    
+    // Add file format/type if they ask about vector/raster
+    if (lowerQ.includes('vector') || lowerQ.includes('raster') || lowerQ.includes('file') && lowerQ.includes('type')) {
+      essentialInfo.fileType = quality.pixels ? 'Raster (pixel-based)' : 'Vector'
     }
     
     sections.push('\nARTWORK DATA (answer using ONLY this):')
