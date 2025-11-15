@@ -33,7 +33,11 @@ export default function ArtworkChat({ quality, colors, workerUrl, aiName = 'McCa
   }, [workerUrl])
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+    // Use scrollTop instead of scrollIntoView to avoid stealing focus
+    if (messagesEndRef.current && messagesEndRef.current.parentElement) {
+      const container = messagesEndRef.current.parentElement
+      container.scrollTop = container.scrollHeight
+    }
   }
 
   useEffect(() => {
