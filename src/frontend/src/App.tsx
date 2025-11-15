@@ -34,6 +34,7 @@ interface AdminConfigState {
   embeddingModel: string
   systemPrompt: string
   apiKey?: string
+  youtubeApiKey?: string
   aiName?: string
   greetingMessage?: string
 }
@@ -1482,7 +1483,7 @@ function App() {
                     {(adminConfig.provider === 'openai-gpt4o-mini' || adminConfig.provider === 'openai-gpt4o') && 'OpenAI API Key'}
                     {adminConfig.provider === 'google-gemini' && 'Google API Key'}
                   </span>
-                  <input
+                    <input
                     className="rounded-md border border-slate-300 bg-white px-3 py-2 text-sm font-mono"
                     value={apiKeyInput}
                     onChange={(event) => setApiKeyInput(event.target.value)}
@@ -1506,6 +1507,35 @@ function App() {
                 </label>
               </div>
 
+              {/* YouTube API Key (Optional) */}
+              <div className="grid gap-4 p-4 rounded-lg bg-purple-50 border border-purple-200">
+                <h5 className="text-sm font-semibold text-purple-900">📺 YouTube Tutorials (Optional)</h5>
+                <label className="flex flex-col gap-2 text-sm">
+                  <span className="font-medium text-slate-700">YouTube Data API v3 Key</span>
+                  <input
+                    className="rounded-md border border-slate-300 bg-white px-3 py-2 text-sm font-mono"
+                    value={adminConfig.youtubeApiKey || ''}
+                      onChange={(event) =>
+                        setAdminConfig((current) =>
+                        current
+                          ? { ...current, youtubeApiKey: event.target.value }
+                          : current
+                      )
+                    }
+                    placeholder="Optional: Paste your YouTube API key here"
+                    type="password"
+                  />
+                  <p className="text-xs text-slate-600">
+                    Get your free YouTube API key from <a href="https://console.cloud.google.com/apis/credentials" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Google Cloud Console</a>
+                  </p>
+                  <p className="text-xs text-slate-500">
+                    💡 When enabled, McCarthy will automatically provide real YouTube tutorial links when users ask "how to" questions (e.g., "how to fix transparency")
+                  </p>
+                  {adminConfig.youtubeApiKey && (
+                    <p className="text-xs text-green-700 font-medium">✓ YouTube API is configured - McCarthy can now provide tutorial links!</p>
+                  )}
+                  </label>
+              </div>
 
               {/* Personality & Behavior */}
               <div className="border-t border-slate-200 pt-6">
@@ -1544,7 +1574,7 @@ function App() {
                     />
                     <p className="text-xs text-slate-500">💡 Tip: Use double line breaks (\\n\\n) to split into 3 messages that appear with typing animation</p>
                   </label>
-                  <label className="flex flex-col gap-1 text-sm">
+                <label className="flex flex-col gap-1 text-sm">
                     <span className="font-medium text-slate-700">System Instructions (Personality & Rules)</span>
                   <textarea
                       className="h-64 rounded-md border border-slate-200 bg-white px-3 py-2 text-sm font-mono resize-y"

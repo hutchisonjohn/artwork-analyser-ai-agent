@@ -35,6 +35,7 @@ export const configSchema = z.object({
   model: z.string().min(1).default('gpt-4o-mini'),
   embeddingModel: z.string().min(1).default('text-embedding-3-large'),
   apiKey: z.string().optional(),
+  youtubeApiKey: z.string().optional(), // YouTube Data API v3 key for tutorial links
   aiName: z.string().optional(),
   greetingMessage: z.string().optional(),
   systemPrompt: z

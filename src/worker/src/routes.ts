@@ -12,6 +12,7 @@ import {
 import { runChatCompletion, type ChatRequestPayload } from './services/ai'
 import { fetchContextSnippet } from './services/rag'
 import { ingestDocument, listDocuments, removeDocument } from './services/docs'
+import { searchYouTube, detectTutorialNeed } from './services/youtube'
 
 const chatRequestSchema = z.object({
   question: z.string().min(1),
@@ -180,4 +181,50 @@ router.delete('/docs/:source', async (c) => {
   const source = c.req.param('source')
   await removeDocument(c.env, source)
   return c.json({ success: true })
+})
+
+// YouTube tutorial search endpoint
+router.post('/ai/tutorials', async (c) => {
+  try {
+    const { question } = await c.req.json()
+    
+    if (!question || typeof question !== 'string') {
+      return c.json({ error: 'Question is required' }, 400)
+    }
+
+    const config = await getAppConfig(c.env)
+    
+    // Check if YouTube API key is configured
+    if (!config.youtubeApiKey) {
+      return c.json({ 
+        error: 'YouTube API not configured',
+        fallback: 'Please search YouTube manually for relevant tutorials.'
+      }, 503)
+    }
+
+    // Detect what tutorial they need
+    const searchQuery = detectTutorialNeed(question)
+    
+    if (!searchQuery) {
+      return c.json({ 
+        videos: [],
+        message: 'No tutorial needed for this question.'
+      })
+    }
+
+    // Search YouTube
+    const result = await searchYouTube(searchQuery, config.youtubeApiKey, 5)
+    
+    return c.json({
+      videos: result.videos,
+      query: result.query,
+      originalQuestion: question
+    })
+  } catch (err) {
+    console.error('YouTube search error:', err)
+    return c.json({ 
+      error: err instanceof Error ? err.message : 'Failed to search YouTube',
+      fallback: 'Please search YouTube manually for relevant tutorials.'
+    }, 500)
+  }
 })

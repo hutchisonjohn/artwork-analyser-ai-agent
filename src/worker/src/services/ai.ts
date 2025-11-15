@@ -1,6 +1,7 @@
 import type { Bindings, AppConfig } from '../config'
 import { MODEL_CONFIGS } from '../config'
 import type { QualityReport, ColorReport } from '@shared/types'
+import { searchYouTube, detectTutorialNeed } from './youtube'
 
 export interface ChatRequestPayload {
   quality: QualityReport
@@ -428,6 +429,27 @@ export async function runChatCompletion(
     answer = await callGemini(config, payload)
   } else {
     throw new Error(`Provider ${config.provider} not yet implemented`)
+  }
+  
+  // Check if user is asking for tutorials/help
+  const tutorialQuery = detectTutorialNeed(payload.question)
+  
+  if (tutorialQuery && config.youtubeApiKey) {
+    try {
+      console.log(`[TUTORIAL] Detected tutorial need: "${tutorialQuery}"`)
+      const result = await searchYouTube(tutorialQuery, config.youtubeApiKey, 3)
+      
+      if (result.videos.length > 0) {
+        // Append tutorial links to the answer
+        answer += '\n\n📺 **Helpful Tutorials:**\n'
+        result.videos.forEach((video, index) => {
+          answer += `${index + 1}. [${video.title}](${video.url})\n`
+        })
+      }
+    } catch (err) {
+      console.error('[TUTORIAL] YouTube search failed:', err)
+      // Don't fail the entire request if YouTube fails
+    }
   }
   
   return { answer }
