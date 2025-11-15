@@ -110,7 +110,8 @@ function buildUserMessage({ quality, colors, question, context }: ChatRequestPay
     sections.push(question.trim())
     
     // Check if it's a pure greeting (hi, hey, hello) vs a technical question
-    const isPureGreeting = /^(hi|hello|hey|howdy|greetings|good morning|good afternoon|good evening)$/i.test(question.toLowerCase().trim())
+    // Catch greetings with introductions like "Hi I'm Joe" or "Hello, I'm Stan"
+    const isPureGreeting = /^(hi|hello|hey|howdy|greetings|good morning|good afternoon|good evening)(\s|,|\.|!)*(\s*(i'm|i am|my name is)\s+\w+)?$/i.test(question.toLowerCase().trim())
     
     if (isPureGreeting) {
       // For pure greetings, NEVER give advice - just ask what they need
@@ -180,14 +181,19 @@ function buildUserMessage({ quality, colors, question, context }: ChatRequestPay
       }
     }
     
-    // Add ICC/color profile if they ask about it (British and American spelling)
-    if (lowerQ.includes('icc') || lowerQ.includes('profile') || lowerQ.includes('color') || lowerQ.includes('colour')) {
+    // Add ICC/color profile ONLY if they specifically ask about profile/ICC
+    if (lowerQ.includes('icc') || lowerQ.includes('profile')) {
       essentialInfo.iccProfile = quality.hasICC ? (quality.iccProfile || 'Embedded') : 'Not embedded'
     }
     
-    // Add color palette if they ask about colors/colours
+    // Add color palette if they ask about colors/colours (with RGB values)
     if ((lowerQ.includes('color') || lowerQ.includes('colour')) && !lowerQ.includes('profile') && colors && colors.top && colors.top.length > 0) {
-      essentialInfo.topColors = colors.top.slice(0, 5).map(c => `${c.hex} (${c.percent.toFixed(1)}%)`).join(', ')
+      const colorCount = lowerQ.match(/\d+/) ? parseInt(lowerQ.match(/\d+/)![0]) : 5 // Extract number if they ask for specific count
+      essentialInfo.colors = colors.top.slice(0, Math.min(colorCount, colors.top.length)).map(c => ({
+        hex: c.hex,
+        rgb: `RGB(${c.rgb[0]}, ${c.rgb[1]}, ${c.rgb[2]})`,
+        percent: `${c.percent.toFixed(1)}%`
+      }))
     }
     
     // Add bit depth if they ask
