@@ -1386,7 +1386,7 @@ function App() {
                 <label className="flex flex-col gap-1 text-sm">
                 <span className="font-medium text-slate-700">Admin Password</span>
                   <input
-                    className="rounded-md border border-slate-300 bg-white px-3 py-2 text-sm font-mono"
+                    className="rounded-md border border-slate-300 bg-white px-3 py-2 text-sm font-mono text-slate-600"
                     value={adminToken}
                   onChange={(event) => setAdminToken(event.target.value)}
                   placeholder="Enter your admin password"
@@ -1492,7 +1492,7 @@ function App() {
                     {adminConfig.provider === 'google-gemini' && 'Google API Key'}
                   </span>
                     <input
-                    className="rounded-md border border-slate-300 bg-white px-3 py-2 text-sm font-mono"
+                    className="rounded-md border border-slate-300 bg-white px-3 py-2 text-sm font-mono text-slate-600"
                     value={apiKeyInput}
                     onChange={(event) => setApiKeyInput(event.target.value)}
                     placeholder={adminConfig.apiKey ? '••••••••••••••••••••••••••' : 'Paste your API key here'}
@@ -1521,7 +1521,7 @@ function App() {
                 <label className="flex flex-col gap-2 text-sm">
                   <span className="font-medium text-slate-700">YouTube Data API v3 Key</span>
                   <input
-                    className="rounded-md border border-slate-300 bg-white px-3 py-2 text-sm font-mono"
+                    className="rounded-md border border-slate-300 bg-white px-3 py-2 text-sm font-mono text-slate-600"
                     value={youtubeApiKeyInput}
                     onChange={(event) => setYoutubeApiKeyInput(event.target.value)}
                     placeholder={adminConfig.youtubeApiKey ? '••••••••••••••••••••••••••' : 'Optional: Paste your YouTube API key here'}
