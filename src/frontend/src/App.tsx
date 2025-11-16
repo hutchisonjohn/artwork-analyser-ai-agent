@@ -715,7 +715,7 @@ function App() {
             colors={analysis.colors}
             workerUrl={workerBaseUrl}
             aiName={adminConfig?.aiName || 'McCarthy AI Artwork Assistant'}
-            greetingMessage={adminConfig?.greetingMessage || "Hello! I'm McCarthy, your AI artwork assistant.\n\nI'm here to help you understand your artwork's print quality, DPI, colors, and file specifications.\n\nFeel free to ask me anything about your artwork!"}
+            greetingMessage={adminConfig?.greetingMessage || "Hi! I'm McCarthy, your artwork assistant.\n\nI can see your artwork is uploaded and analyzed.\n\nWhat would you like to know about it?"}
             isOpen={isAiChatOpen}
           />
         </div>
@@ -1566,7 +1566,7 @@ function App() {
                     <span className="font-medium text-slate-700">Welcome Greeting</span>
                     <textarea
                       className="h-32 rounded-md border border-slate-200 bg-white px-3 py-2 text-sm resize-y"
-                      value={adminConfig.greetingMessage || "Hello! I'm McCarthy, your AI artwork assistant.\n\nI'm here to help you understand your artwork's print quality, DPI, colors, and file specifications.\n\nFeel free to ask me anything about your artwork!"}
+                      value={adminConfig.greetingMessage || "Hi! I'm McCarthy, your artwork assistant.\n\nI can see your artwork is uploaded and analyzed.\n\nWhat would you like to know about it?"}
                       onChange={(event) =>
                         setAdminConfig((current) =>
                           current

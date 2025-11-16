@@ -117,12 +117,16 @@ function buildUserMessage({ quality, colors, question, context }: ChatRequestPay
     if (isPureGreeting) {
       // For pure greetings, NEVER give advice - just ask what they need
       sections.push('\n🚨🚨🚨 CRITICAL INSTRUCTION - THIS IS A GREETING 🚨🚨🚨')
+      sections.push('The user has ALREADY uploaded artwork (analysis is complete).')
+      sections.push('DO NOT say "Upload an artwork" - the artwork is ALREADY THERE.')
       sections.push('DO NOT GIVE ANY PRINTING ADVICE.')
       sections.push('DO NOT MENTION: DPI, text size, transparency, DTF, UV DTF, printing, quality, resolution.')
-      sections.push('DO NOT USE: knowledge base, artwork data, technical information.')
-      sections.push('\nRESPOND WITH EXACTLY THIS FORMAT:')
-      sections.push('"Hi [name]! I\'m McCarthy, your artwork assistant. Upload an artwork and I\'ll help you analyze it for printing. What can I help you with?"')
-      sections.push('\nIf they didn\'t give a name, just say "Hi!" instead of "Hi [name]!"')
+      sections.push('\nRESPOND WITH EXACTLY THIS:')
+      sections.push('"Hi [name]! I can see your artwork is uploaded. What would you like to know about it?"')
+      sections.push('')
+      sections.push('EXAMPLES:')
+      sections.push('User: "Hi" → "Hi! I can see your artwork is uploaded. What would you like to know about it?"')
+      sections.push('User: "Hi I\'m John" → "Hi John! I can see your artwork is uploaded. What would you like to know about it?"')
     } else if (context) {
       // For technical questions with RAG context
       sections.push('\n📚 KNOWLEDGE BASE INFORMATION (USE THIS AND ONLY THIS):')

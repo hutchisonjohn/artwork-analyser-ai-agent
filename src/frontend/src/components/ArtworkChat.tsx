@@ -70,9 +70,9 @@ export default function ArtworkChat({ quality, colors, workerUrl, aiName = 'McCa
       // Parse greeting into 3 parts (split by line breaks)
       const parts = greetingMessage.split('\n\n').filter(p => p.trim())
       const greetingParts = parts.length >= 3 ? parts : [
-        "Hello! I'm McCarthy, your AI artwork assistant.",
-        "I'm here to help you understand your artwork's print quality, DPI, colors, and file specifications.",
-        "Feel free to ask me anything about your artwork!"
+        "Hi! I'm McCarthy, your artwork assistant.",
+        "I can see your artwork is uploaded and analyzed.",
+        "What would you like to know about it?"
       ]
 
       // Show typing indicator first (but don't disable input)
