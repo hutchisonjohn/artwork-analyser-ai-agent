@@ -431,24 +431,39 @@ export async function runChatCompletion(
     throw new Error(`Provider ${config.provider} not yet implemented`)
   }
   
-  // Check if user is asking for tutorials/help
+  // Check if user is confirming they want tutorials (yes/sure/please/tutorials)
+  const isRequestingTutorials = /^(yes|yeah|yep|sure|please|ok|okay|tutorials?|videos?|show me|i('d| would) like|that('d| would) be (great|helpful|nice))(\s|!|\.|,|$)/i.test(payload.question.trim())
+  
+  // Check if this is a "how to" question that needs tutorial offer
   const tutorialQuery = detectTutorialNeed(payload.question)
   
-  if (tutorialQuery && config.youtubeApiKey) {
-    try {
-      console.log(`[TUTORIAL] Detected tutorial need: "${tutorialQuery}"`)
-      const result = await searchYouTube(tutorialQuery, config.youtubeApiKey, 3)
-      
-      if (result.videos.length > 0) {
-        // Append tutorial links to the answer
-        answer += '\n\n📺 **Helpful Tutorials:**\n'
-        result.videos.forEach((video, index) => {
-          answer += `${index + 1}. [${video.title}](${video.url})\n`
-        })
+  // If user is requesting tutorials, check conversation history for the last "how to" question
+  if (isRequestingTutorials && config.youtubeApiKey && payload.history && payload.history.length > 0) {
+    // Look for the last user message that was a "how to" question
+    for (let i = payload.history.length - 1; i >= 0; i--) {
+      if (payload.history[i].role === 'user') {
+        const lastQuestion = payload.history[i].content
+        const lastTutorialQuery = detectTutorialNeed(lastQuestion)
+        
+        if (lastTutorialQuery) {
+          try {
+            console.log(`[TUTORIAL] User confirmed, searching for: "${lastTutorialQuery}"`)
+            const result = await searchYouTube(lastTutorialQuery, config.youtubeApiKey, 3)
+            
+            if (result.videos.length > 0) {
+              // Replace the answer with tutorial links
+              answer = 'Here are some helpful tutorial videos:\n\n'
+              result.videos.forEach((video, index) => {
+                answer += `${index + 1}. [${video.title}](${video.url})\n`
+              })
+            }
+          } catch (err) {
+            console.error('[TUTORIAL] YouTube search failed:', err)
+            answer = "I'm having trouble fetching tutorial videos right now. Try searching YouTube for relevant tutorials."
+          }
+          break
+        }
       }
-    } catch (err) {
-      console.error('[TUTORIAL] YouTube search failed:', err)
-      // Don't fail the entire request if YouTube fails
     }
   }
   
