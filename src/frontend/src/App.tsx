@@ -533,9 +533,15 @@ function App() {
         model: adminConfig.model,
         embeddingModel: adminConfig.embeddingModel,
         systemPrompt: adminConfig.systemPrompt,
+        aiName: adminConfig.aiName,
+        greetingMessage: adminConfig.greetingMessage,
       }
       if (apiKeyInput.trim()) {
         payload.apiKey = apiKeyInput.trim()
+      }
+      // Save YouTube API key if provided
+      if (adminConfig.youtubeApiKey) {
+        payload.youtubeApiKey = adminConfig.youtubeApiKey
       }
 
       const response = await authorizedFetch('/config', {
