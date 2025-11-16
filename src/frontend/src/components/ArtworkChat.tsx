@@ -34,10 +34,16 @@ export default function ArtworkChat({ quality, colors, workerUrl, aiName = 'McCa
 
   const scrollToBottom = () => {
     // Use scrollTop instead of scrollIntoView to avoid stealing focus
-    if (messagesEndRef.current && messagesEndRef.current.parentElement) {
-      const container = messagesEndRef.current.parentElement
-      container.scrollTop = container.scrollHeight
-    }
+    // Use requestAnimationFrame to ensure DOM has updated and avoid interrupting user input
+    requestAnimationFrame(() => {
+      if (messagesEndRef.current && messagesEndRef.current.parentElement) {
+        const container = messagesEndRef.current.parentElement
+        // Only scroll if user isn't actively typing (check if textarea is focused)
+        if (document.activeElement !== textareaRef.current) {
+          container.scrollTop = container.scrollHeight
+        }
+      }
+    })
   }
 
   useEffect(() => {
