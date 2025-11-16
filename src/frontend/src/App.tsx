@@ -1386,7 +1386,7 @@ function App() {
                 <label className="flex flex-col gap-1 text-sm">
                 <span className="font-medium text-slate-700">Admin Password</span>
                   <input
-                    className="rounded-md border border-slate-200 bg-white px-3 py-2 text-sm"
+                    className="rounded-md border border-slate-300 bg-white px-3 py-2 text-sm font-mono"
                     value={adminToken}
                   onChange={(event) => setAdminToken(event.target.value)}
                   placeholder="Enter your admin password"
