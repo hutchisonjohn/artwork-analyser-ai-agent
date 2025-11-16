@@ -1528,7 +1528,7 @@ function App() {
                           : current
                       )
                     }
-                    placeholder="Optional: Paste your YouTube API key here"
+                    placeholder={adminConfig.youtubeApiKey ? '••••••••••••••••••••••••••' : 'Optional: Paste your YouTube API key here'}
                     type="password"
                   />
                   <p className="text-xs text-slate-600">
