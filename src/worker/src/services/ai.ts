@@ -116,11 +116,13 @@ function buildUserMessage({ quality, colors, question, context }: ChatRequestPay
     
     if (isPureGreeting) {
       // For pure greetings, NEVER give advice - just ask what they need
-      sections.push('\n📋 INSTRUCTION:')
-      sections.push('This is a GREETING. Respond with ONE sentence asking what they would like help with.')
-      sections.push('DO NOT give printing advice. DO NOT mention DPI, text size, or transparency.')
-      sections.push('DO NOT use knowledge base information.')
-      sections.push('Example: "Hi! What would you like to know about your artwork?"')
+      sections.push('\n🚨🚨🚨 CRITICAL INSTRUCTION - THIS IS A GREETING 🚨🚨🚨')
+      sections.push('DO NOT GIVE ANY PRINTING ADVICE.')
+      sections.push('DO NOT MENTION: DPI, text size, transparency, DTF, UV DTF, printing, quality, resolution.')
+      sections.push('DO NOT USE: knowledge base, artwork data, technical information.')
+      sections.push('\nRESPOND WITH EXACTLY THIS FORMAT:')
+      sections.push('"Hi [name]! I\'m McCarthy, your artwork assistant. Upload an artwork and I\'ll help you analyze it for printing. What can I help you with?"')
+      sections.push('\nIf they didn\'t give a name, just say "Hi!" instead of "Hi [name]!"')
     } else if (context) {
       // For technical questions with RAG context
       sections.push('\n📚 KNOWLEDGE BASE INFORMATION (USE THIS AND ONLY THIS):')
