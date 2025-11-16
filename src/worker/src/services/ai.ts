@@ -112,7 +112,10 @@ function buildUserMessage({ quality, colors, question, context }: ChatRequestPay
     
     // Check if it's a pure greeting (hi, hey, hello) vs a technical question
     // Catch greetings with introductions like "Hi I'm Joe" or "Hello, I'm Stan"
-    const isPureGreeting = /^(hi|hello|hey|howdy|greetings|good morning|good afternoon|good evening)(\s|,|\.|!)*(\s*(i'm|i am|my name is)\s+\w+)?$/i.test(question.toLowerCase().trim())
+    // BUT NOT standalone introductions like "I'm John" (those are context, not greetings)
+    const lowerTrimmed = question.toLowerCase().trim()
+    const isPureGreeting = /^(hi|hello|hey|howdy|greetings|good morning|good afternoon|good evening)(\s|,|\.|!)*(\s*(i'm|i am|my name is)\s+\w+)?$/i.test(lowerTrimmed)
+    const isStandaloneIntro = /^(i'm|i am|my name is)\s+\w+$/i.test(lowerTrimmed) // Just "I'm John" without greeting
     
     if (isPureGreeting) {
       // For pure greetings, NEVER give advice - just ask what they need
@@ -127,6 +130,16 @@ function buildUserMessage({ quality, colors, question, context }: ChatRequestPay
       sections.push('EXAMPLES:')
       sections.push('User: "Hi" → "Hi! I can see your artwork is uploaded. What would you like to know about it?"')
       sections.push('User: "Hi I\'m John" → "Hi John! I can see your artwork is uploaded. What would you like to know about it?"')
+    } else if (isStandaloneIntro) {
+      // For standalone introductions (mid-conversation), acknowledge warmly but don't give advice
+      sections.push('\n🚨 CRITICAL INSTRUCTION - THIS IS AN INTRODUCTION (MID-CONVERSATION) 🚨')
+      sections.push('The user is introducing themselves during an ongoing conversation.')
+      sections.push('DO NOT give printing advice. DO NOT analyze artwork.')
+      sections.push('\nRESPOND WITH:')
+      sections.push('"Nice to meet you, [name]! What would you like to know about your artwork?"')
+      sections.push('')
+      sections.push('EXAMPLE:')
+      sections.push('User: "I\'m John" → "Nice to meet you, John! What would you like to know about your artwork?"')
     } else if (context) {
       // For technical questions with RAG context
       sections.push('\n📚 KNOWLEDGE BASE INFORMATION (USE THIS AND ONLY THIS):')
@@ -193,14 +206,27 @@ function buildUserMessage({ quality, colors, question, context }: ChatRequestPay
       essentialInfo.iccProfile = quality.hasICC ? (quality.iccProfile || 'Embedded') : 'Not embedded'
     }
     
-    // Add color palette if they ask about colors/colours (with RGB values)
-    if ((lowerQ.includes('color') || lowerQ.includes('colour')) && !lowerQ.includes('profile') && colors && colors.top && colors.top.length > 0) {
-      const colorCount = lowerQ.match(/\d+/) ? parseInt(lowerQ.match(/\d+/)![0]) : 5 // Extract number if they ask for specific count
-      essentialInfo.colors = colors.top.slice(0, Math.min(colorCount, colors.top.length)).map(c => ({
-        hex: c.hex,
-        rgb: `RGB(${c.rgb[0]}, ${c.rgb[1]}, ${c.rgb[2]})`,
-        percent: `${c.percent.toFixed(1)}%`
-      }))
+    // Add color palette if they ask about colors/colours (with RGB values and percent)
+    // Check for hex color codes in the question (e.g., #D8D5D7)
+    const hexMatch = lowerQ.match(/#[0-9a-f]{6}/i)
+    if ((lowerQ.includes('color') || lowerQ.includes('colour') || hexMatch) && !lowerQ.includes('profile') && colors && colors.top && colors.top.length > 0) {
+      if (hexMatch) {
+        // User is asking about a specific color - send ALL colors so they can find it
+        essentialInfo.colors = colors.top.map(c => ({
+          hex: c.hex.toUpperCase(),
+          rgb: `RGB(${c.rgb[0]}, ${c.rgb[1]}, ${c.rgb[2]})`,
+          percent: c.percent ? `${c.percent.toFixed(2)}%` : 'N/A'
+        }))
+        essentialInfo.note = `User is asking about ${hexMatch[0].toUpperCase()}. Find this color in the list above and provide its RGB and percent.`
+      } else {
+        // General color question - send top colors
+        const colorCount = lowerQ.match(/\d+/) ? parseInt(lowerQ.match(/\d+/)![0]) : 8 // Default to 8 colors
+        essentialInfo.colors = colors.top.slice(0, Math.min(colorCount, colors.top.length)).map(c => ({
+          hex: c.hex.toUpperCase(),
+          rgb: `RGB(${c.rgb[0]}, ${c.rgb[1]}, ${c.rgb[2]})`,
+          percent: c.percent ? `${c.percent.toFixed(2)}%` : 'N/A'
+        }))
+      }
     }
     
     // Add bit depth if they ask

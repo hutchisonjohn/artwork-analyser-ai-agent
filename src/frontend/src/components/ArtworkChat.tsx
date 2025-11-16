@@ -141,6 +141,14 @@ export default function ArtworkChat({ quality, colors, workerUrl, aiName = 'McCa
     setInput('')
     setIsLoading(true)
 
+    // Keep focus in the textarea to prevent page scrolling
+    const textarea = textareaRef.current
+    if (textarea) {
+      textarea.focus()
+      // Prevent any scroll events during submission
+      textarea.scrollIntoView({ behavior: 'auto', block: 'nearest' })
+    }
+
     try {
       // Get the last 10 messages (5 exchanges) for conversation history
       const conversationHistory = messages.slice(-10).map(msg => ({
@@ -184,7 +192,13 @@ export default function ArtworkChat({ quality, colors, workerUrl, aiName = 'McCa
       setMessages((prev) => [...prev, errorMessage])
     } finally {
       setIsLoading(false)
-      textareaRef.current?.focus()
+      // Re-focus and ensure textarea stays in view
+      if (textarea) {
+        setTimeout(() => {
+          textarea.focus()
+          textarea.scrollIntoView({ behavior: 'auto', block: 'nearest' })
+        }, 0)
+      }
     }
   }
 
@@ -280,6 +294,10 @@ export default function ArtworkChat({ quality, colors, workerUrl, aiName = 'McCa
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
+            onFocus={(e) => {
+              // Prevent page scroll when focusing
+              e.target.scrollIntoView({ behavior: 'auto', block: 'nearest', inline: 'nearest' })
+            }}
             placeholder=""
             disabled={isLoading}
             className="flex-1 resize-none rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 disabled:cursor-not-allowed disabled:bg-slate-50"
