@@ -501,6 +501,9 @@ function App() {
     const loaded = await loadAdminConfig()
     if (loaded) {
       await loadDocs()
+      // Clear the admin token input after successful unlock (like API keys)
+      // The token is saved in localStorage if "Remember" is checked
+      setAdminToken('')
     }
   }, [adminToken, rememberToken, loadAdminConfig, loadDocs])
 
@@ -1386,10 +1389,10 @@ function App() {
                 <label className="flex flex-col gap-1 text-sm">
                 <span className="font-medium text-slate-700">Admin Password</span>
                   <input
-                    className="rounded-md border border-slate-300 bg-white px-3 py-2 text-sm font-mono text-slate-600 placeholder:text-slate-400"
+                    className="rounded-md border border-slate-300 bg-white px-3 py-2 text-sm font-mono !text-slate-600 placeholder:text-slate-400"
                     value={adminToken}
                   onChange={(event) => setAdminToken(event.target.value)}
-                  placeholder="Enter your admin password"
+                  placeholder={unlocked && rememberToken && window.localStorage.getItem('artwork-admin-token') ? '••••••••••••••••••••••••••' : 'Enter your admin password'}
                     type="password"
                   />
                   <label className="mt-1 inline-flex items-center gap-2 text-xs text-slate-500">
