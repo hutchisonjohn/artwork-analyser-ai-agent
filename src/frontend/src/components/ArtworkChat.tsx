@@ -24,11 +24,15 @@ export default function ArtworkChat({ quality, colors, workerUrl, aiName = 'McCa
   const [isLoading, setIsLoading] = useState(false)
   const [isShowingGreeting, setIsShowingGreeting] = useState(false)
   const [hasShownGreeting, setHasShownGreeting] = useState(false)
+  const [sessionId, setSessionId] = useState<string>('')
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
+  
+  // Use Dartmouth OS V2 API
   const apiBase = useMemo(() => {
-    const fallback = import.meta.env.VITE_WORKER_URL?.trim()
-    const base = workerUrl?.trim() || fallback || '/api'
+    // Default to production Dartmouth OS worker
+    const fallback = 'https://dartmouth-os-worker.dartmouth.workers.dev'
+    const base = workerUrl?.trim() || fallback
     return base.replace(/\/$/, '')
   }, [workerUrl])
 
@@ -55,6 +59,7 @@ export default function ArtworkChat({ quality, colors, workerUrl, aiName = 'McCa
     if (!isOpen) {
       setMessages([])
       setHasShownGreeting(false)
+      setSessionId('') // Reset session
     }
   }, [isOpen])
 
@@ -62,6 +67,7 @@ export default function ArtworkChat({ quality, colors, workerUrl, aiName = 'McCa
   useEffect(() => {
     setMessages([])
     setHasShownGreeting(false)
+    setSessionId('') // Reset session for new artwork
   }, [quality.pixels?.w, quality.pixels?.h, quality.fileSizeMB])
 
   // Show greeting messages in 3 parts with typing delays
@@ -150,20 +156,42 @@ export default function ArtworkChat({ quality, colors, workerUrl, aiName = 'McCa
     }
 
     try {
-      // Get the last 10 messages (5 exchanges) for conversation history
-      const conversationHistory = messages.slice(-10).map(msg => ({
-        role: msg.role,
-        content: msg.content
-      }))
+      // Generate or use existing session ID
+      const currentSessionId = sessionId || `artwork-session-${Date.now()}`
+      if (!sessionId) {
+        setSessionId(currentSessionId)
+      }
 
-      const response = await fetch(`${apiBase}/ai/chat`, {
+      // Build artwork context for the agent
+      const artworkContext = {
+        dimensions: quality.pixels ? `${quality.pixels.w}x${quality.pixels.h} pixels` : 'Unknown',
+        dpi: quality.dpi || 'Unknown',
+        fileSize: quality.fileSizeMB ? `${quality.fileSizeMB.toFixed(2)} MB` : 'Unknown',
+        fileType: quality.fileType || 'Unknown',
+        quality: quality.rating || 'Unknown',
+        hasAlpha: quality.hasAlpha ? 'Yes' : 'No',
+        imageCategory: quality.imageCategory || 'Unknown',
+        colors: colors ? {
+          topColors: colors.top?.slice(0, 5), // Top 5 colors
+          allGrouped: colors.allGrouped?.slice(0, 10) // Top 10 grouped colors
+        } : undefined
+      }
+
+      // Create enriched message with artwork context
+      const enrichedMessage = `${userMessage.content}\n\n[Artwork Context: ${JSON.stringify(artworkContext)}]`
+
+      // Call Dartmouth OS V2 API with McCarthy Artwork Analyzer agent
+      const response = await fetch(`${apiBase}/api/v2/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          question: userMessage.content,
-          quality,
-          colors,
-          history: conversationHistory, // Send conversation history
+          agentId: 'mccarthy-artwork', // McCarthy Artwork Analyzer
+          message: enrichedMessage,
+          sessionId: currentSessionId,
+          userId: 'artwork-user',
+          metadata: {
+            artworkData: artworkContext
+          }
         }),
       })
 
@@ -171,16 +199,24 @@ export default function ArtworkChat({ quality, colors, workerUrl, aiName = 'McCa
         throw new Error(`API request failed: ${response.status}`)
       }
 
-      const data = (await response.json()) as { answer: string }
+      const data = await response.json()
+
+      // Extract content from Dartmouth OS V2 response
+      const assistantContent = data.content || data.response || 'Sorry, I received an empty response.'
 
       const assistantMessage: Message = {
         id: crypto.randomUUID(),
         role: 'assistant',
-        content: data.answer,
+        content: assistantContent,
         timestamp: new Date(),
       }
 
       setMessages((prev) => [...prev, assistantMessage])
+      
+      // Update session ID if provided
+      if (data.metadata?.sessionId) {
+        setSessionId(data.metadata.sessionId)
+      }
     } catch (error) {
       console.error('Chat error:', error)
       const errorMessage: Message = {
@@ -215,6 +251,11 @@ export default function ArtworkChat({ quality, colors, workerUrl, aiName = 'McCa
       <div className="flex items-center gap-2 border-b border-slate-200 px-4 py-3">
         <Sparkles className="h-5 w-5 text-indigo-600" />
         <h3 className="font-semibold text-slate-900">{aiName}</h3>
+        {sessionId && (
+          <span className="ml-auto text-xs text-slate-400 font-mono">
+            Session: {sessionId.slice(-8)}
+          </span>
+        )}
       </div>
 
       {/* Messages */}
@@ -298,7 +339,7 @@ export default function ArtworkChat({ quality, colors, workerUrl, aiName = 'McCa
               // Prevent page scroll when focusing
               e.target.scrollIntoView({ behavior: 'auto', block: 'nearest', inline: 'nearest' })
             }}
-            placeholder=""
+            placeholder="Ask about your artwork..."
             disabled={isLoading}
             className="flex-1 resize-none rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 disabled:cursor-not-allowed disabled:bg-slate-50"
             rows={1}
@@ -317,4 +358,3 @@ export default function ArtworkChat({ quality, colors, workerUrl, aiName = 'McCa
     </div>
   )
 }
-

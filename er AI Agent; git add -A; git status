@@ -1,0 +1,144 @@
+[1mdiff --git a/src/frontend/src/components/ArtworkChat.tsx b/src/frontend/src/components/ArtworkChat.tsx[m
+[1mindex 8b46c36..cab1dba 100644[m
+[1m--- a/src/frontend/src/components/ArtworkChat.tsx[m
+[1m+++ b/src/frontend/src/components/ArtworkChat.tsx[m
+[36m@@ -24,11 +24,15 @@[m [mexport default function ArtworkChat({ quality, colors, workerUrl, aiName = 'McCa[m
+   const [isLoading, setIsLoading] = useState(false)[m
+   const [isShowingGreeting, setIsShowingGreeting] = useState(false)[m
+   const [hasShownGreeting, setHasShownGreeting] = useState(false)[m
+[32m+[m[32m  const [sessionId, setSessionId] = useState<string>('')[m
+   const messagesEndRef = useRef<HTMLDivElement>(null)[m
+   const textareaRef = useRef<HTMLTextAreaElement>(null)[m
+[32m+[m[41m  [m
+[32m+[m[32m  // Use Dartmouth OS V2 API[m
+   const apiBase = useMemo(() => {[m
+[31m-    const fallback = import.meta.env.VITE_WORKER_URL?.trim()[m
+[31m-    const base = workerUrl?.trim() || fallback || '/api'[m
+[32m+[m[32m    // Default to production Dartmouth OS worker[m
+[32m+[m[32m    const fallback = 'https://dartmouth-os-worker.dartmouth.workers.dev'[m
+[32m+[m[32m    const base = workerUrl?.trim() || fallback[m
+     return base.replace(/\/$/, '')[m
+   }, [workerUrl])[m
+ [m
+[36m@@ -55,6 +59,7 @@[m [mexport default function ArtworkChat({ quality, colors, workerUrl, aiName = 'McCa[m
+     if (!isOpen) {[m
+       setMessages([])[m
+       setHasShownGreeting(false)[m
+[32m+[m[32m      setSessionId('') // Reset session[m
+     }[m
+   }, [isOpen])[m
+ [m
+[36m@@ -62,6 +67,7 @@[m [mexport default function ArtworkChat({ quality, colors, workerUrl, aiName = 'McCa[m
+   useEffect(() => {[m
+     setMessages([])[m
+     setHasShownGreeting(false)[m
+[32m+[m[32m    setSessionId('') // Reset session for new artwork[m
+   }, [quality.pixels?.w, quality.pixels?.h, quality.fileSizeMB])[m
+ [m
+   // Show greeting messages in 3 parts with typing delays[m
+[36m@@ -150,20 +156,42 @@[m [mexport default function ArtworkChat({ quality, colors, workerUrl, aiName = 'McCa[m
+     }[m
+ [m
+     try {[m
+[31m-      // Get the last 10 messages (5 exchanges) for conversation history[m
+[31m-      const conversationHistory = messages.slice(-10).map(msg => ({[m
+[31m-        role: msg.role,[m
+[31m-        content: msg.content[m
+[31m-      }))[m
+[32m+[m[32m      // Generate or use existing session ID[m
+[32m+[m[32m      const currentSessionId = sessionId || `artwork-session-${Date.now()}`[m
+[32m+[m[32m      if (!sessionId) {[m
+[32m+[m[32m        setSessionId(currentSessionId)[m
+[32m+[m[32m      }[m
+[32m+[m
+[32m+[m[32m      // Build artwork context for the agent[m
+[32m+[m[32m      const artworkContext = {[m
+[32m+[m[32m        dimensions: quality.pixels ? `${quality.pixels.w}x${quality.pixels.h} pixels` : 'Unknown',[m
+[32m+[m[32m        dpi: quality.dpi || 'Unknown',[m
+[32m+[m[32m        fileSize: quality.fileSizeMB ? `${quality.fileSizeMB.toFixed(2)} MB` : 'Unknown',[m
+[32m+[m[32m        fileType: quality.fileType || 'Unknown',[m
+[32m+[m[32m        quality: quality.rating || 'Unknown',[m
+[32m+[m[32m        hasAlpha: quality.hasAlpha ? 'Yes' : 'No',[m
+[32m+[m[32m        imageCategory: quality.imageCategory || 'Unknown',[m
+[32m+[m[32m        colors: colors ? {[m
+[32m+[m[32m          topColors: colors.top?.slice(0, 5), // Top 5 colors[m
+[32m+[m[32m          allGrouped: colors.allGrouped?.slice(0, 10) // Top 10 grouped colors[m
+[32m+[m[32m        } : undefined[m
+[32m+[m[32m      }[m
+[32m+[m
+[32m+[m[32m      // Create enriched message with artwork context[m
+[32m+[m[32m      const enrichedMessage = `${userMessage.content}\n\n[Artwork Context: ${JSON.stringify(artworkContext)}]`[m
+ [m
+[31m-      const response = await fetch(`${apiBase}/ai/chat`, {[m
+[32m+[m[32m      // Call Dartmouth OS V2 API with McCarthy Artwork Analyzer agent[m
+[32m+[m[32m      const response = await fetch(`${apiBase}/api/v2/chat`, {[m
+         method: 'POST',[m
+         headers: { 'Content-Type': 'application/json' },[m
+         body: JSON.stringify({[m
+[31m-          question: userMessage.content,[m
+[31m-          quality,[m
+[31m-          colors,[m
+[31m-          history: conversationHistory, // Send conversation history[m
+[32m+[m[32m          agentId: 'mccarthy-artwork', // McCarthy Artwork Analyzer[m
+[32m+[m[32m          message: enrichedMessage,[m
+[32m+[m[32m          sessionId: currentSessionId,[m
+[32m+[m[32m          userId: 'artwork-user',[m
+[32m+[m[32m          metadata: {[m
+[32m+[m[32m            artworkData: artworkContext[m
+[32m+[m[32m          }[m
+         }),[m
+       })[m
+ [m
+[36m@@ -171,16 +199,24 @@[m [mexport default function ArtworkChat({ quality, colors, workerUrl, aiName = 'McCa[m
+         throw new Error(`API request failed: ${response.status}`)[m
+       }[m
+ [m
+[31m-      const data = (await response.json()) as { answer: string }[m
+[32m+[m[32m      const data = await response.json()[m
+[32m+[m
+[32m+[m[32m      // Extract content from Dartmouth OS V2 response[m
+[32m+[m[32m      const assistantContent = data.content || data.response || 'Sorry, I received an empty response.'[m
+ [m
+       const assistantMessage: Message = {[m
+         id: crypto.randomUUID(),[m
+         role: 'assistant',[m
+[31m-        content: data.answer,[m
+[32m+[m[32m        content: assistantContent,[m
+         timestamp: new Date(),[m
+       }[m
+ [m
+       setMessages((prev) => [...prev, assistantMessage])[m
+[32m+[m[41m      [m
+[32m+[m[32m      // Update session ID if provided[m
+[32m+[m[32m      if (data.metadata?.sessionId) {[m
+[32m+[m[32m        setSessionId(data.metadata.sessionId)[m
+[32m+[m[32m      }[m
+     } catch (error) {[m
+       console.error('Chat error:', error)[m
+       const errorMessage: Message = {[m
+[36m@@ -215,6 +251,11 @@[m [mexport default function ArtworkChat({ quality, colors, workerUrl, aiName = 'McCa[m
+       <div className="flex items-center gap-2 border-b border-slate-200 px-4 py-3">[m
+         <Sparkles className="h-5 w-5 text-indigo-600" />[m
+         <h3 className="font-semibold text-slate-900">{aiName}</h3>[m
+[32m+[m[32m        {sessionId && ([m
+[32m+[m[32m          <span className="ml-auto text-xs text-slate-400 font-mono">[m
+[32m+[m[32m            Session: {sessionId.slice(-8)}[m
+[32m+[m[32m          </span>[m
+[32m+[m[32m        )}[m
+       </div>[m
+ [m
+       {/* Messages */}[m
+[36m@@ -298,7 +339,7 @@[m [mexport default function ArtworkChat({ quality, colors, workerUrl, aiName = 'McCa[m
+               // Prevent page scroll when focusing[m
+               e.target.scrollIntoView({ behavior: 'auto', block: 'nearest', inline: 'nearest' })[m
+             }}[m
+[31m-            placeholder=""[m
+[32m+[m[32m            placeholder="Ask about your artwork..."[m
+             disabled={isLoading}[m
+             className="flex-1 resize-none rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 disabled:cursor-not-allowed disabled:bg-slate-50"[m
+             rows={1}[m
+[36m@@ -317,4 +358,3 @@[m [mexport default function ArtworkChat({ quality, colors, workerUrl, aiName = 'McCa[m
+     </div>[m
+   )[m
+ }[m
+[31m-[m
