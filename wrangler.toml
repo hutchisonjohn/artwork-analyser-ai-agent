@@ -1,7 +1,7 @@
 name = "artwork-analyser-worker"
 main = "src/worker/src/index.ts"
 compatibility_date = "2025-11-09"
-account_id = "bdae5675df8798965f82b99226c94d11"
+account_id = "4d9baa62ab7d5d4da1e8d658801e5b13"
 
 [vars]
 APP_NAME = "Artwork Analyzer AI Agent"
@@ -10,14 +10,14 @@ APP_SECRET_KEY = "artwork-secret-key987xyz654def321abc"
 
 [[kv_namespaces]]
 binding = "APP_CONFIG"
-id = "a8de729b63f340c2948395867d0efe9d"
-preview_id = "4c59e5e7046d414f81df825c277d153c"
+id = "754a505c7130462697e83ee824529919"
+preview_id = "754a505c7130462697e83ee824529919"
 
 [[d1_databases]]
 binding = "DOCS_DB"
 database_name = "artwork_ai_db"
-database_id = "4fc72ce3-8e16-478b-b771-1bbf673e5b63"
-preview_database_id = "4fc72ce3-8e16-478b-b771-1bbf673e5b63"
+database_id = "f0c5a6a4-6fa7-4b1e-8a4e-b1aa3e8cfb38"
+preview_database_id = "f0c5a6a4-6fa7-4b1e-8a4e-b1aa3e8cfb38"
 migrations_dir = "src/worker/migrations"
 
 [ai]
