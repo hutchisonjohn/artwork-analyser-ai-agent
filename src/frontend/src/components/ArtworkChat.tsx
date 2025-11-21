@@ -36,16 +36,15 @@ export default function ArtworkChat({ quality, colors, workerUrl, aiName = 'McCa
     return base.replace(/\/$/, '')
   }, [workerUrl])
 
-  // DISABLED: Auto-scroll was causing page jumping and focus loss
-  // Let user scroll manually if needed
-  // const scrollToBottom = () => {
-  //   // Auto-scroll logic removed
-  // }
+  // Scroll chat messages to bottom (NOT the page, just the chat container)
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' })
+  }
 
-  // DISABLED: Auto-scroll on new messages
-  // useEffect(() => {
-  //   scrollToBottom()
-  // }, [messages])
+  // Auto-scroll chat messages when new messages arrive
+  useEffect(() => {
+    scrollToBottom()
+  }, [messages])
 
   // Prevent page scroll when textarea is focused (fixes page jumping)
   useEffect(() => {
