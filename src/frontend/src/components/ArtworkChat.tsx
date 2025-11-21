@@ -36,23 +36,16 @@ export default function ArtworkChat({ quality, colors, workerUrl, aiName = 'McCa
     return base.replace(/\/$/, '')
   }, [workerUrl])
 
-  const scrollToBottom = () => {
-    // Use scrollTop instead of scrollIntoView to avoid stealing focus
-    // Use requestAnimationFrame to ensure DOM has updated and avoid interrupting user input
-    requestAnimationFrame(() => {
-      if (messagesEndRef.current && messagesEndRef.current.parentElement) {
-        const container = messagesEndRef.current.parentElement
-        // Only scroll if user isn't actively typing (check if textarea is focused)
-        if (document.activeElement !== textareaRef.current) {
-          container.scrollTop = container.scrollHeight
-        }
-      }
-    })
-  }
+  // DISABLED: Auto-scroll was causing page jumping and focus loss
+  // Let user scroll manually if needed
+  // const scrollToBottom = () => {
+  //   // Auto-scroll logic removed
+  // }
 
-  useEffect(() => {
-    scrollToBottom()
-  }, [messages])
+  // DISABLED: Auto-scroll on new messages
+  // useEffect(() => {
+  //   scrollToBottom()
+  // }, [messages])
 
   // Clear messages when a new artwork is uploaded OR when chat is closed
   useEffect(() => {
