@@ -1,4 +1,4 @@
-import { type LucideIcon, Menu } from 'lucide-react'
+import { type LucideIcon } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import clsx from 'clsx'
 
@@ -64,13 +64,7 @@ const AppShell: React.FC<AppShellProps> = ({
       collapsed && 'lg:h-10 lg:w-10'
     )
 
-  const toggleSidebar = () => {
-    if (isDesktop) {
-      setIsExpanded((prev) => !prev)
-    } else {
-      setIsMobileOpen((prev) => !prev)
-    }
-  }
+  // toggleSidebar removed - no sidebar anymore
 
   const handleNavigate = (section: AppSection) => {
     onChangeSection(section)
@@ -91,16 +85,8 @@ const AppShell: React.FC<AppShellProps> = ({
         />
       )}
       <aside
-        className={clsx(
-          'fixed inset-y-0 left-0 z-30 flex w-72 flex-col border-r border-slate-200 bg-white shadow-lg transition-transform duration-300 ease-in-out lg:static',
-          isDesktop
-            ? isExpanded
-              ? 'lg:w-72 lg:translate-x-0'
-              : 'lg:w-20 lg:translate-x-0'
-            : isMobileOpen
-            ? 'translate-x-0'
-            : '-translate-x-full'
-        )}
+        className="hidden"
+        style={{ display: 'none' }}
       >
         <div className={clsx('flex items-center py-6', isCollapsed ? 'justify-center px-3' : 'justify-start px-6')}>
           <span className="inline-flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-indigo-500 font-semibold text-white shadow-md">
@@ -136,22 +122,9 @@ const AppShell: React.FC<AppShellProps> = ({
 
       <div className="flex min-h-screen flex-1 flex-col transition-all duration-300 ease-in-out">
         <header className="sticky top-0 z-20 flex h-16 items-center gap-3 border-b border-slate-200 bg-white/90 px-4 backdrop-blur sm:px-6 lg:px-8">
-          <button
-            type="button"
-            onClick={toggleSidebar}
-            className="inline-flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-md border border-slate-200 text-slate-500 shadow-sm transition hover:border-indigo-200 hover:text-indigo-500"
-            aria-label={
-              isDesktop
-                ? isCollapsed
-                  ? 'Expand navigation'
-                  : 'Collapse navigation'
-                : isMobileOpen
-                ? 'Close navigation'
-                : 'Open navigation'
-            }
-          >
-            <Menu className="h-5 w-5" />
-          </button>
+          <span className="inline-flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-indigo-500 font-semibold text-white shadow-md">
+            AA
+          </span>
           <div className={clsx('flex flex-col', hasSubtitle && 'gap-0.5')}>
             <span className="text-xl font-semibold text-slate-900">{title}</span>
             {hasSubtitle && <span className="sr-only">{subtitle}</span>}
