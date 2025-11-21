@@ -147,12 +147,6 @@ export default function ArtworkChat({ quality, colors, workerUrl, aiName = 'McCa
     setInput('')
     setIsLoading(true)
 
-    // Keep focus in the textarea
-    const textarea = textareaRef.current
-    if (textarea) {
-      textarea.focus()
-    }
-
     try {
       // Generate or use existing session ID
       const currentSessionId = sessionId || `artwork-session-${Date.now()}`
@@ -226,12 +220,6 @@ export default function ArtworkChat({ quality, colors, workerUrl, aiName = 'McCa
       setMessages((prev) => [...prev, errorMessage])
     } finally {
       setIsLoading(false)
-      // Re-focus textarea
-      if (textarea) {
-        setTimeout(() => {
-          textarea.focus()
-        }, 0)
-      }
     }
   }
 
