@@ -47,6 +47,23 @@ export default function ArtworkChat({ quality, colors, workerUrl, aiName = 'McCa
   //   scrollToBottom()
   // }, [messages])
 
+  // Prevent page scroll when textarea is focused (fixes page jumping)
+  useEffect(() => {
+    const textarea = textareaRef.current;
+    if (!textarea) return;
+
+    const preventParentScroll = () => {
+      // Prevent any scroll events when textarea gains focus
+      window.scrollTo(window.scrollX, window.scrollY);
+    };
+
+    textarea.addEventListener('focus', preventParentScroll);
+    
+    return () => {
+      textarea.removeEventListener('focus', preventParentScroll);
+    };
+  }, []);
+
   // Clear messages when a new artwork is uploaded OR when chat is closed
   useEffect(() => {
     if (!isOpen) {
