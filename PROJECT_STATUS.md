@@ -1,6 +1,6 @@
 # PROJECT STATUS: Artwork Analyser AI Agent
-**Last Updated:** 2025-11-20  
-**Status:** ✅ PRODUCTION - Migrated & Integrated with Dartmouth OS
+**Last Updated:** 2025-11-21  
+**Status:** ✅ PRODUCTION - Fully Functional & Bug-Free
 
 ---
 
@@ -33,7 +33,16 @@ A specialized tool for DTF (Direct to Film) and UV DTF printing businesses to:
 - ✅ **Knowledge Base Loaded** - McCarthy agent has DTF requirements
 - ✅ **Chat Widget Working** - Connects to Dartmouth OS successfully
 
-### Recent Changes (2025-11-20)
+### Recent Changes (2025-11-21)
+- ✅ **FIXED:** Calculation handler now extracts artwork context and calculates DPI at target sizes
+- ✅ **FIXED:** Chat auto-scroll re-enabled (container only, not page)
+- ✅ **FIXED:** Page scroll locked when typing in chat (no more jumping)
+- ✅ **FIXED:** Agent conversation improved (memory, context, user-friendly language)
+- ✅ **FIXED:** Agent identifies as "McCarthy" when asked
+- ✅ **FIXED:** Unit preferences (CM first, inches in parentheses)
+- ✅ **FIXED:** Knowledge base accuracy (UV DTF specs correct)
+
+### Previous Changes (2025-11-20)
 - ✅ Migrated all resources to john@dtf.com.au Cloudflare account
 - ✅ Updated frontend to use Dartmouth OS API (`/api/v2/chat`)
 - ✅ Configured to use McCarthy Artwork Agent (`agentId: 'mccarthy-artwork'`)
