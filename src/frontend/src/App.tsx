@@ -7,8 +7,7 @@ import {
   useRef,
   useState,
 } from 'react'
-import { FileBarChart2, Settings, UploadCloud } from 'lucide-react'
-import type { LucideIcon } from 'lucide-react'
+import { UploadCloud } from 'lucide-react'
 import type { QualityReport, ColorReport } from '@shared/types'
 import { analyzeArtwork } from '@/analyzers'
 import { createPaletteDownloads } from '@/lib/colors'
@@ -83,10 +82,8 @@ function generateId() {
   return Math.random().toString(36).slice(2)
 }
 
-const NAV_ITEMS: Array<{ id: AppSection; label: string; icon: LucideIcon }> = [
-  { id: 'analyze', label: 'Analyzer', icon: FileBarChart2 },
-  { id: 'admin', label: 'Settings', icon: Settings },
-]
+// Navigation removed - single page app now (no admin panel after Dartmouth OS migration)
+const NAV_ITEMS: Array<{ id: AppSection; label: string; icon: any }> = []
 
 const ACCEPTED_DOC_TYPES = ['md', 'markdown', 'txt']
 const MAX_DOC_SIZE_BYTES = 1024 * 1024 * 2 // 2 MB ceiling for admin uploads

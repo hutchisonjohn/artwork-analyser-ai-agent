@@ -147,12 +147,10 @@ export default function ArtworkChat({ quality, colors, workerUrl, aiName = 'McCa
     setInput('')
     setIsLoading(true)
 
-    // Keep focus in the textarea to prevent page scrolling
+    // Keep focus in the textarea
     const textarea = textareaRef.current
     if (textarea) {
       textarea.focus()
-      // Prevent any scroll events during submission
-      textarea.scrollIntoView({ behavior: 'auto', block: 'nearest' })
     }
 
     try {
@@ -228,11 +226,10 @@ export default function ArtworkChat({ quality, colors, workerUrl, aiName = 'McCa
       setMessages((prev) => [...prev, errorMessage])
     } finally {
       setIsLoading(false)
-      // Re-focus and ensure textarea stays in view
+      // Re-focus textarea
       if (textarea) {
         setTimeout(() => {
           textarea.focus()
-          textarea.scrollIntoView({ behavior: 'auto', block: 'nearest' })
         }, 0)
       }
     }
@@ -335,10 +332,6 @@ export default function ArtworkChat({ quality, colors, workerUrl, aiName = 'McCa
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
-            onFocus={(e) => {
-              // Prevent page scroll when focusing
-              e.target.scrollIntoView({ behavior: 'auto', block: 'nearest', inline: 'nearest' })
-            }}
             placeholder="Ask about your artwork..."
             disabled={isLoading}
             className="flex-1 resize-none rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 disabled:cursor-not-allowed disabled:bg-slate-50"
