@@ -4,18 +4,15 @@ import { roundTo } from '@/lib/quality'
 
 const MAX_DIMENSION = 1024
 const MAX_SAMPLE_PIXELS = 120_000
-const BUCKET_SIZE = 20 // Slightly reduced for better color precision
+const BUCKET_SIZE = 20 // Color grouping precision
 const MIN_ALPHA = 32
-
-// Edge detection threshold - pixels with high contrast to neighbors are "artwork"
-const EDGE_THRESHOLD = 30 // Difference in RGB to be considered an edge
 
 interface Bucket {
   r: number
   g: number
   b: number
   count: number
-  isEdgePixel: boolean // Track if this color is from artwork vs background
+  saturation: number // HSL saturation for vibrant color detection
 }
 
 function createCanvas(width: number, height: number) {
@@ -38,47 +35,44 @@ async function loadImageElement(url: string): Promise<HTMLImageElement> {
   })
 }
 
-// Detect if a pixel is on an edge (part of actual artwork vs background)
-function isEdgePixel(
-  data: Uint8ClampedArray,
-  x: number,
-  y: number,
-  width: number,
-  height: number
-): boolean {
-  const index = (y * width + x) * 4
-  const r = data[index]
-  const g = data[index + 1]
-  const b = data[index + 2]
+// Calculate HSL saturation from RGB (0-1 range)
+function calculateSaturation(r: number, g: number, b: number): number {
+  const rNorm = r / 255
+  const gNorm = g / 255
+  const bNorm = b / 255
   
-  // Check neighbors (up, down, left, right)
-  const neighbors = [
-    { dx: 0, dy: -1 }, // up
-    { dx: 0, dy: 1 },  // down
-    { dx: -1, dy: 0 }, // left
-    { dx: 1, dy: 0 },  // right
-  ]
+  const max = Math.max(rNorm, gNorm, bNorm)
+  const min = Math.min(rNorm, gNorm, bNorm)
+  const delta = max - min
   
-  for (const { dx, dy } of neighbors) {
-    const nx = x + dx
-    const ny = y + dy
-    
-    // Skip if out of bounds
-    if (nx < 0 || nx >= width || ny < 0 || ny >= height) continue
-    
-    const nIndex = (ny * width + nx) * 4
-    const nr = data[nIndex]
-    const ng = data[nIndex + 1]
-    const nb = data[nIndex + 2]
-    
-    // Calculate color difference
-    const diff = Math.abs(r - nr) + Math.abs(g - ng) + Math.abs(b - nb)
-    
-    // If any neighbor is significantly different, this is an edge pixel
-    if (diff > EDGE_THRESHOLD) {
-      return true
-    }
+  if (delta === 0) return 0 // Gray
+  
+  const lightness = (max + min) / 2
+  
+  // HSL saturation formula
+  if (lightness < 0.5) {
+    return delta / (max + min)
+  } else {
+    return delta / (2 - max - min)
   }
+}
+
+// Check if color should be filtered out (whites, blacks, grays, very dark)
+function shouldFilterColor(r: number, g: number, b: number): boolean {
+  // Filter near-whites (all channels > 240)
+  if (r > 240 && g > 240 && b > 240) return true
+  
+  // Filter near-blacks (all channels < 15)
+  if (r < 15 && g < 15 && b < 15) return true
+  
+  // Filter very dark colors (all channels < 40)
+  if (r < 40 && g < 40 && b < 40) return true
+  
+  // Filter grays (low color range)
+  const max = Math.max(r, g, b)
+  const min = Math.min(r, g, b)
+  const range = max - min
+  if (range < 20) return true // Gray if colors are too similar
   
   return false
 }
@@ -137,22 +131,25 @@ export async function extractColorReport(file: File): Promise<ColorReport> {
         const g = data[index + 1]
         const b = data[index + 2]
         
-        // Detect if this pixel is part of artwork (edge) or background
-        const isEdge = isEdgePixel(data, x, y, width, height)
+        // Filter out whites, blacks, grays, very dark colors
+        if (shouldFilterColor(r, g, b)) {
+          continue
+        }
+        
+        // Calculate saturation for this color
+        const saturation = calculateSaturation(r, g, b)
         
         const keyR = Math.round(r / BUCKET_SIZE) * BUCKET_SIZE
         const keyG = Math.round(g / BUCKET_SIZE) * BUCKET_SIZE
         const keyB = Math.round(b / BUCKET_SIZE) * BUCKET_SIZE
         const key = `${keyR}-${keyG}-${keyB}`
-        const bucket = buckets.get(key) ?? { r: 0, g: 0, b: 0, count: 0, isEdgePixel: false }
+        const bucket = buckets.get(key) ?? { r: 0, g: 0, b: 0, count: 0, saturation: 0 }
         bucket.r += r
         bucket.g += g
         bucket.b += b
         bucket.count += 1
-        // Mark as edge pixel if ANY sample is an edge
-        if (isEdge) {
-          bucket.isEdgePixel = true
-        }
+        // Track maximum saturation seen for this bucket
+        bucket.saturation = Math.max(bucket.saturation, saturation)
         buckets.set(key, bucket)
       }
     }
@@ -164,16 +161,7 @@ export async function extractColorReport(file: File): Promise<ColorReport> {
 
     const totalSamples = bucketValues.reduce((sum, bucket) => sum + bucket.count, 0)
 
-    // Separate edge pixels (artwork) from background pixels
-    const edgeBuckets = bucketValues.filter(b => b.isEdgePixel)
-    const backgroundBuckets = bucketValues.filter(b => !b.isEdgePixel)
-    
-    // Prioritize edge pixels (artwork colors), then add background if needed
-    const prioritizedBuckets = edgeBuckets.length >= 16 
-      ? edgeBuckets 
-      : [...edgeBuckets, ...backgroundBuckets]
-    
-    const entries = prioritizedBuckets
+    const entries = bucketValues
       .map((bucket) => {
         const count = bucket.count
         const rgb: [number, number, number] = [
@@ -183,8 +171,9 @@ export async function extractColorReport(file: File): Promise<ColorReport> {
         ]
         const percent = totalSamples > 0 ? (count / totalSamples) * 100 : undefined
         
-        // Boost weight for edge pixels (artwork colors)
-        const weight = bucket.isEdgePixel ? count * 2 : count
+        // Weight by saturation² × frequency (heavily prioritize vibrant colors)
+        const saturationWeight = bucket.saturation * bucket.saturation
+        const weight = saturationWeight * count
         
         return {
           rgb,
@@ -192,6 +181,7 @@ export async function extractColorReport(file: File): Promise<ColorReport> {
           percent,
           count,
           weight,
+          saturation: bucket.saturation,
         }
       })
       .sort((a, b) => (b.weight ?? 0) - (a.weight ?? 0))
