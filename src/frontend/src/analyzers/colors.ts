@@ -4,19 +4,14 @@ import { roundTo } from '@/lib/quality'
 
 const MAX_DIMENSION = 1024
 const MAX_SAMPLE_PIXELS = 120_000
-const BUCKET_SIZE = 12 // Reduced from 24 for better color precision
+const BUCKET_SIZE = 24
 const MIN_ALPHA = 32
-
-// Ignore near-white/background colors (helps with artworks on white backgrounds)
-const IGNORE_LIGHT_THRESHOLD = 240 // RGB values above this are considered "background white"
-const MIN_SATURATION = 0.08 // Minimum color saturation to be considered (0-1 scale)
 
 interface Bucket {
   r: number
   g: number
   b: number
   count: number
-  saturation: number // Track saturation for weighting
 }
 
 function createCanvas(width: number, height: number) {
@@ -37,47 +32,6 @@ async function loadImageElement(url: string): Promise<HTMLImageElement> {
     image.onerror = (event) => reject(event)
     image.src = url
   })
-}
-
-// Calculate color saturation (HSL saturation)
-function calculateSaturation(r: number, g: number, b: number): number {
-  const rNorm = r / 255
-  const gNorm = g / 255
-  const bNorm = b / 255
-  
-  const max = Math.max(rNorm, gNorm, bNorm)
-  const min = Math.min(rNorm, gNorm, bNorm)
-  const delta = max - min
-  
-  if (delta === 0) return 0
-  
-  const lightness = (max + min) / 2
-  const saturation = lightness > 0.5 
-    ? delta / (2 - max - min)
-    : delta / (max + min)
-  
-  return saturation
-}
-
-// Check if color should be ignored (too close to white/background)
-function shouldIgnoreColor(r: number, g: number, b: number): boolean {
-  // Ignore near-white colors (common backgrounds)
-  if (r >= IGNORE_LIGHT_THRESHOLD && g >= IGNORE_LIGHT_THRESHOLD && b >= IGNORE_LIGHT_THRESHOLD) {
-    return true
-  }
-  
-  // Ignore very desaturated colors (grays, beiges)
-  const saturation = calculateSaturation(r, g, b)
-  if (saturation < MIN_SATURATION) {
-    // Allow pure grays/blacks (for artwork with intentional grayscale)
-    const isGrayscale = Math.abs(r - g) < 10 && Math.abs(g - b) < 10 && Math.abs(r - b) < 10
-    const isDark = Math.max(r, g, b) < 100
-    if (!isGrayscale || !isDark) {
-      return true
-    }
-  }
-  
-  return false
 }
 
 export async function extractColorReport(file: File): Promise<ColorReport> {
@@ -133,23 +87,15 @@ export async function extractColorReport(file: File): Promise<ColorReport> {
         const r = data[index]
         const g = data[index + 1]
         const b = data[index + 2]
-        
-        // Skip background/desaturated colors
-        if (shouldIgnoreColor(r, g, b)) {
-          continue
-        }
-        
-        const saturation = calculateSaturation(r, g, b)
         const keyR = Math.round(r / BUCKET_SIZE) * BUCKET_SIZE
         const keyG = Math.round(g / BUCKET_SIZE) * BUCKET_SIZE
         const keyB = Math.round(b / BUCKET_SIZE) * BUCKET_SIZE
         const key = `${keyR}-${keyG}-${keyB}`
-        const bucket = buckets.get(key) ?? { r: 0, g: 0, b: 0, count: 0, saturation: 0 }
+        const bucket = buckets.get(key) ?? { r: 0, g: 0, b: 0, count: 0 }
         bucket.r += r
         bucket.g += g
         bucket.b += b
         bucket.count += 1
-        bucket.saturation += saturation
         buckets.set(key, bucket)
       }
     }
@@ -169,21 +115,15 @@ export async function extractColorReport(file: File): Promise<ColorReport> {
           Math.round(bucket.g / count),
           Math.round(bucket.b / count),
         ]
-        const avgSaturation = bucket.saturation / count
         const percent = totalSamples > 0 ? (count / totalSamples) * 100 : undefined
-        
-        // Weight by both frequency AND saturation (vibrant colors get priority)
-        const weight = count * (1 + avgSaturation * 0.5)
-        
         return {
           rgb,
           hex: rgbToHex(rgb),
           percent,
           count,
-          weight,
         }
       })
-      .sort((a, b) => (b.weight ?? 0) - (a.weight ?? 0))
+      .sort((a, b) => (b.count ?? 0) - (a.count ?? 0))
 
     let alphaStats: AlphaStats | undefined
     if (sampleSize > 0) {
