@@ -78,13 +78,13 @@ function shouldFilterColor(r: number, g: number, b: number): boolean {
   const hsl = rgbToHSL(r, g, b)
   
   // Filter very light colors (pale backgrounds like #FFFEDD)
-  if (hsl.l > 0.90) return true
+  if (hsl.l > 0.95) return true
   
   // Filter very dark colors (dark backgrounds like #03143A)
-  if (hsl.l < 0.15) return true
+  if (hsl.l < 0.10) return true
   
   // Filter desaturated colors (grays, near-whites, near-blacks)
-  if (hsl.s < 0.15) return true
+  if (hsl.s < 0.10) return true
   
   return false
 }
@@ -115,19 +115,9 @@ export async function extractColorReport(file: File): Promise<ColorReport> {
     let opaqueCount = 0
     let minAlpha = 255
     let maxAlpha = 0
-    
-    // Define center region (60% of image) for weighted sampling
-    const centerMarginX = width * 0.2
-    const centerMarginY = height * 0.2
-    const centerMinX = centerMarginX
-    const centerMaxX = width - centerMarginX
-    const centerMinY = centerMarginY
-    const centerMaxY = height - centerMarginY
 
     for (let y = 0; y < height; y += stride) {
       for (let x = 0; x < width; x += stride) {
-        // Check if pixel is in center region (where artwork usually is)
-        const isInCenter = x >= centerMinX && x <= centerMaxX && y >= centerMinY && y <= centerMaxY
         const index = (y * width + x) * 4
         const alpha = data[index + 3]
 
@@ -161,8 +151,8 @@ export async function extractColorReport(file: File): Promise<ColorReport> {
         // Calculate HSL for this color
         const hsl = rgbToHSL(r, g, b)
         
-        // Additional filter: only keep colors with saturation > 30%
-        if (hsl.s < 0.30) {
+        // Additional filter: only keep colors with saturation > 20%
+        if (hsl.s < 0.20) {
           continue
         }
         
@@ -174,9 +164,7 @@ export async function extractColorReport(file: File): Promise<ColorReport> {
         bucket.r += r
         bucket.g += g
         bucket.b += b
-        // Weight center pixels 3x more than edge pixels
-        const weight = isInCenter ? 3 : 1
-        bucket.count += weight
+        bucket.count += 1 // No center weighting - treat all pixels equally
         // Track maximum saturation seen for this bucket
         bucket.saturation = Math.max(bucket.saturation, hsl.s)
         buckets.set(key, bucket)
@@ -200,9 +188,14 @@ export async function extractColorReport(file: File): Promise<ColorReport> {
         ]
         const percent = totalSamples > 0 ? (count / totalSamples) * 100 : undefined
         
-        // Weight by saturation² × frequency (heavily prioritize vibrant colors)
-        const saturationWeight = bucket.saturation * bucket.saturation
-        const weight = saturationWeight * count
+        // Calculate HSL for sorting
+        const hsl = rgbToHSL(rgb[0], rgb[1], rgb[2])
+        
+        // Weight by saturation × brightness × frequency
+        // This prioritizes vibrant, bright colors over dark/dull ones
+        const saturationWeight = bucket.saturation
+        const brightnessWeight = hsl.l // Favor brighter colors
+        const weight = saturationWeight * brightnessWeight * count
         
         return {
           rgb,
