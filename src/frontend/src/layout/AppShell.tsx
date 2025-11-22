@@ -1,4 +1,4 @@
-import { type LucideIcon } from 'lucide-react'
+import { type LucideIcon, Sparkles } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import clsx from 'clsx'
 
@@ -11,7 +11,6 @@ interface NavItem {
 }
 
 interface AppShellProps {
-  title: string
   subtitle?: string
   activeSection: AppSection
   onChangeSection: (section: AppSection) => void
@@ -20,7 +19,6 @@ interface AppShellProps {
 }
 
 const AppShell: React.FC<AppShellProps> = ({
-  title,
   subtitle,
   activeSection,
   onChangeSection,
@@ -90,7 +88,7 @@ const AppShell: React.FC<AppShellProps> = ({
       >
         <div className={clsx('flex items-center py-6', isCollapsed ? 'justify-center px-3' : 'justify-start px-6')}>
           <span className="inline-flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-indigo-500 font-semibold text-white shadow-md">
-            AA
+            <Sparkles className="h-6 w-6" />
           </span>
         </div>
         <nav className="flex-1 overflow-y-auto px-3 pb-6">
@@ -123,10 +121,10 @@ const AppShell: React.FC<AppShellProps> = ({
       <div className="flex min-h-screen flex-1 flex-col transition-all duration-300 ease-in-out">
         <header className="sticky top-0 z-20 flex h-16 items-center gap-3 border-b border-slate-200 bg-white/90 px-4 backdrop-blur sm:px-6 lg:px-8">
           <span className="inline-flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-indigo-500 font-semibold text-white shadow-md">
-            AA
+            <Sparkles className="h-6 w-6" />
           </span>
           <div className={clsx('flex flex-col', hasSubtitle && 'gap-0.5')}>
-            <span className="text-xl font-semibold text-slate-900">{title}</span>
+            <span className="text-xl font-semibold text-slate-900">McCarthy AI Artwork Assistant</span>
             {hasSubtitle && <span className="sr-only">{subtitle}</span>}
           </div>
         </header>

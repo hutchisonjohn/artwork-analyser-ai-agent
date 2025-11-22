@@ -720,8 +720,7 @@ function App() {
       )}
 
     <AppShell
-      title="Artwork Analyser"
-      subtitle="Artwork Analyser is your digital pre-press assistant — instantly reviewing your artwork for DPI, color profiles, transparency, and print-readiness, so every print comes out perfectly."
+      subtitle="McCarthy AI Artwork Assistant is your digital pre-press assistant — instantly reviewing your artwork for DPI, color profiles, transparency, and print-readiness, so every print comes out perfectly."
       activeSection={activeTab}
       onChangeSection={setActiveTab}
       navItems={NAV_ITEMS}
