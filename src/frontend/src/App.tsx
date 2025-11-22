@@ -710,6 +710,7 @@ function App() {
           <ArtworkChat
             quality={analysis.quality}
             colors={analysis.colors}
+            fileName={analysis.fileName}
             workerUrl={workerBaseUrl}
             aiName={adminConfig?.aiName || 'McCarthy AI Artwork Assistant'}
             greetingMessage={adminConfig?.greetingMessage || "Hi! I'm McCarthy, your artwork assistant.\n\nI can see your artwork is uploaded and analyzed.\n\nWhat would you like to know about it?"}

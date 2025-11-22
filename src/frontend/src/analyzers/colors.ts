@@ -145,7 +145,7 @@ export async function extractColorReport(file: File): Promise<ColorReport> {
     }
 
     return {
-      top: normaliseSwatches(entries.slice(0, 8)),
+      top: normaliseSwatches(entries.slice(0, 16)), // 16 colors for 4x4 grid
       allGrouped: normaliseSwatches(entries),
       alphaStats,
     }

@@ -12,13 +12,14 @@ interface Message {
 interface ArtworkChatProps {
   quality: QualityReport
   colors?: ColorReport
+  fileName?: string // Artwork filename
   workerUrl?: string
   aiName?: string
   greetingMessage?: string
   isOpen?: boolean // Track if chat is open to reset on close
 }
 
-export default function ArtworkChat({ quality, colors, workerUrl, aiName = 'McCarthy AI Artwork Assistant', greetingMessage = "Hello! I'm McCarthy, your AI artwork assistant.\n\nI'm here to help you understand your artwork's print quality, DPI, colors, and file specifications.\n\nFeel free to ask me anything about your artwork!", isOpen = true }: ArtworkChatProps) {
+export default function ArtworkChat({ quality, colors, fileName, workerUrl, aiName = 'McCarthy AI Artwork Assistant', greetingMessage = "Hello! I'm McCarthy, your AI artwork assistant.\n\nI'm here to help you understand your artwork's print quality, DPI, colors, and file specifications.\n\nFeel free to ask me anything about your artwork!", isOpen = true }: ArtworkChatProps) {
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState('')
   const [isLoading, setIsLoading] = useState(false)
@@ -41,10 +42,14 @@ export default function ArtworkChat({ quality, colors, workerUrl, aiName = 'McCa
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' })
   }
 
-  // Auto-scroll chat messages when new messages arrive
+  // Auto-scroll chat messages when new messages arrive AND keep focus on input
   useEffect(() => {
     scrollToBottom()
-  }, [messages])
+    // Re-focus the textarea after messages update (keeps cursor in field)
+    if (textareaRef.current && !isLoading) {
+      textareaRef.current.focus()
+    }
+  }, [messages, isLoading])
 
   // Prevent page scroll when textarea is focused (fixes page jumping)
   useEffect(() => {
@@ -163,18 +168,25 @@ export default function ArtworkChat({ quality, colors, workerUrl, aiName = 'McCa
         setSessionId(currentSessionId)
       }
 
-      // Build artwork context for the agent
+      // Build artwork context for the agent (COMPLETE data)
       const artworkContext = {
+        filename: fileName || 'Unknown',
         dimensions: quality.pixels ? `${quality.pixels.w}x${quality.pixels.h} pixels` : 'Unknown',
+        pixels: quality.pixels || null,
         dpi: quality.dpi || 'Unknown',
         fileSize: quality.fileSizeMB ? `${quality.fileSizeMB.toFixed(2)} MB` : 'Unknown',
         fileType: quality.fileType || 'Unknown',
         quality: quality.rating || 'Unknown',
         hasAlpha: quality.hasAlpha ? 'Yes' : 'No',
+        bitDepth: quality.bitDepth || 'Unknown',
+        iccProfile: quality.hasICC ? (quality.iccProfile || 'Embedded') : 'Not embedded',
+        aspectRatio: quality.aspectRatio || 'Unknown',
         imageCategory: quality.imageCategory || 'Unknown',
+        alphaStats: quality.alphaStats || null,
+        recommendedSizes: quality.recommendedSizes || null,
         colors: colors ? {
-          topColors: colors.top?.slice(0, 5), // Top 5 colors
-          allGrouped: colors.allGrouped?.slice(0, 10) // Top 10 grouped colors
+          topColors: colors.top?.slice(0, 16), // Top 16 colors (4x4 grid)
+          allGrouped: colors.allGrouped?.slice(0, 20) // Top 20 grouped colors
         } : undefined
       }
 
