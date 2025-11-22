@@ -4,14 +4,18 @@ import { roundTo } from '@/lib/quality'
 
 const MAX_DIMENSION = 1024
 const MAX_SAMPLE_PIXELS = 120_000
-const BUCKET_SIZE = 24
+const BUCKET_SIZE = 20 // Slightly reduced for better color precision
 const MIN_ALPHA = 32
+
+// Edge detection threshold - pixels with high contrast to neighbors are "artwork"
+const EDGE_THRESHOLD = 30 // Difference in RGB to be considered an edge
 
 interface Bucket {
   r: number
   g: number
   b: number
   count: number
+  isEdgePixel: boolean // Track if this color is from artwork vs background
 }
 
 function createCanvas(width: number, height: number) {
@@ -32,6 +36,51 @@ async function loadImageElement(url: string): Promise<HTMLImageElement> {
     image.onerror = (event) => reject(event)
     image.src = url
   })
+}
+
+// Detect if a pixel is on an edge (part of actual artwork vs background)
+function isEdgePixel(
+  data: Uint8ClampedArray,
+  x: number,
+  y: number,
+  width: number,
+  height: number
+): boolean {
+  const index = (y * width + x) * 4
+  const r = data[index]
+  const g = data[index + 1]
+  const b = data[index + 2]
+  
+  // Check neighbors (up, down, left, right)
+  const neighbors = [
+    { dx: 0, dy: -1 }, // up
+    { dx: 0, dy: 1 },  // down
+    { dx: -1, dy: 0 }, // left
+    { dx: 1, dy: 0 },  // right
+  ]
+  
+  for (const { dx, dy } of neighbors) {
+    const nx = x + dx
+    const ny = y + dy
+    
+    // Skip if out of bounds
+    if (nx < 0 || nx >= width || ny < 0 || ny >= height) continue
+    
+    const nIndex = (ny * width + nx) * 4
+    const nr = data[nIndex]
+    const ng = data[nIndex + 1]
+    const nb = data[nIndex + 2]
+    
+    // Calculate color difference
+    const diff = Math.abs(r - nr) + Math.abs(g - ng) + Math.abs(b - nb)
+    
+    // If any neighbor is significantly different, this is an edge pixel
+    if (diff > EDGE_THRESHOLD) {
+      return true
+    }
+  }
+  
+  return false
 }
 
 export async function extractColorReport(file: File): Promise<ColorReport> {
@@ -87,15 +136,23 @@ export async function extractColorReport(file: File): Promise<ColorReport> {
         const r = data[index]
         const g = data[index + 1]
         const b = data[index + 2]
+        
+        // Detect if this pixel is part of artwork (edge) or background
+        const isEdge = isEdgePixel(data, x, y, width, height)
+        
         const keyR = Math.round(r / BUCKET_SIZE) * BUCKET_SIZE
         const keyG = Math.round(g / BUCKET_SIZE) * BUCKET_SIZE
         const keyB = Math.round(b / BUCKET_SIZE) * BUCKET_SIZE
         const key = `${keyR}-${keyG}-${keyB}`
-        const bucket = buckets.get(key) ?? { r: 0, g: 0, b: 0, count: 0 }
+        const bucket = buckets.get(key) ?? { r: 0, g: 0, b: 0, count: 0, isEdgePixel: false }
         bucket.r += r
         bucket.g += g
         bucket.b += b
         bucket.count += 1
+        // Mark as edge pixel if ANY sample is an edge
+        if (isEdge) {
+          bucket.isEdgePixel = true
+        }
         buckets.set(key, bucket)
       }
     }
@@ -107,7 +164,16 @@ export async function extractColorReport(file: File): Promise<ColorReport> {
 
     const totalSamples = bucketValues.reduce((sum, bucket) => sum + bucket.count, 0)
 
-    const entries = bucketValues
+    // Separate edge pixels (artwork) from background pixels
+    const edgeBuckets = bucketValues.filter(b => b.isEdgePixel)
+    const backgroundBuckets = bucketValues.filter(b => !b.isEdgePixel)
+    
+    // Prioritize edge pixels (artwork colors), then add background if needed
+    const prioritizedBuckets = edgeBuckets.length >= 16 
+      ? edgeBuckets 
+      : [...edgeBuckets, ...backgroundBuckets]
+    
+    const entries = prioritizedBuckets
       .map((bucket) => {
         const count = bucket.count
         const rgb: [number, number, number] = [
@@ -116,14 +182,19 @@ export async function extractColorReport(file: File): Promise<ColorReport> {
           Math.round(bucket.b / count),
         ]
         const percent = totalSamples > 0 ? (count / totalSamples) * 100 : undefined
+        
+        // Boost weight for edge pixels (artwork colors)
+        const weight = bucket.isEdgePixel ? count * 2 : count
+        
         return {
           rgb,
           hex: rgbToHex(rgb),
           percent,
           count,
+          weight,
         }
       })
-      .sort((a, b) => (b.count ?? 0) - (a.count ?? 0))
+      .sort((a, b) => (b.weight ?? 0) - (a.weight ?? 0))
 
     let alphaStats: AlphaStats | undefined
     if (sampleSize > 0) {
