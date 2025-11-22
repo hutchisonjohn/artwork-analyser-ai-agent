@@ -1,5 +1,5 @@
 # PROJECT STATUS: Artwork Analyser AI Agent
-**Last Updated:** 2025-11-21  
+**Last Updated:** 2025-11-22  
 **Status:** ✅ PRODUCTION - Fully Functional & Bug-Free
 
 ---
@@ -33,7 +33,15 @@ A specialized tool for DTF (Direct to Film) and UV DTF printing businesses to:
 - ✅ **Knowledge Base Loaded** - McCarthy agent has DTF requirements
 - ✅ **Chat Widget Working** - Connects to Dartmouth OS successfully
 
-### Recent Changes (2025-11-21)
+### Recent Changes (2025-11-22) - CRITICAL FIXES
+- ✅ **FIXED:** Agent data access - Now reads ALL artwork metadata from context (filename, bitDepth, ICC profile, etc.)
+- ✅ **FIXED:** Message input focus bug - Cursor stays in field after agent response (no more manual clicking)
+- ✅ **FIXED:** DPI quality ranges - Correct ranges: Optimal 250-300, Good 200-249, Poor <200
+- ✅ **FIXED:** Color palette expanded to 16 colors (4x4 grid) - was 8 colors
+- ✅ **FIXED:** Agent calculations - Now uses pre-calculated values from page, no more LLM math errors
+- ✅ **FIXED:** DTF/UV DTF requirements - Correct minimum text/line sizes in system prompt
+
+### Previous Changes (2025-11-21)
 - ✅ **FIXED:** Calculation handler now extracts artwork context and calculates DPI at target sizes
 - ✅ **FIXED:** Chat auto-scroll re-enabled (container only, not page)
 - ✅ **FIXED:** Page scroll locked when typing in chat (no more jumping)
@@ -284,7 +292,7 @@ database_id = "f0c5a6a4-6fa7-4b1e-8a4e-b1aa3e8cfb38"
 - ✅ Knowledge base not loaded (completed)
 
 ### Current Issues
-- None as of 2025-11-20
+- None as of 2025-11-22 ✅
 
 ---
 
