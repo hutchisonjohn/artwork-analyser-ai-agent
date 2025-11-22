@@ -35,8 +35,8 @@ async function loadImageElement(url: string): Promise<HTMLImageElement> {
   })
 }
 
-// Calculate HSL saturation from RGB (0-1 range)
-function calculateSaturation(r: number, g: number, b: number): number {
+// Calculate HSL values from RGB (all in 0-1 range)
+function rgbToHSL(r: number, g: number, b: number): { h: number; s: number; l: number } {
   const rNorm = r / 255
   const gNorm = g / 255
   const bNorm = b / 255
@@ -45,34 +45,46 @@ function calculateSaturation(r: number, g: number, b: number): number {
   const min = Math.min(rNorm, gNorm, bNorm)
   const delta = max - min
   
-  if (delta === 0) return 0 // Gray
-  
+  // Lightness
   const lightness = (max + min) / 2
   
-  // HSL saturation formula
-  if (lightness < 0.5) {
-    return delta / (max + min)
-  } else {
-    return delta / (2 - max - min)
+  // Saturation
+  let saturation = 0
+  if (delta !== 0) {
+    if (lightness < 0.5) {
+      saturation = delta / (max + min)
+    } else {
+      saturation = delta / (2 - max - min)
+    }
   }
+  
+  // Hue (not needed for filtering, but included for completeness)
+  let hue = 0
+  if (delta !== 0) {
+    if (max === rNorm) {
+      hue = ((gNorm - bNorm) / delta + (gNorm < bNorm ? 6 : 0)) / 6
+    } else if (max === gNorm) {
+      hue = ((bNorm - rNorm) / delta + 2) / 6
+    } else {
+      hue = ((rNorm - gNorm) / delta + 4) / 6
+    }
+  }
+  
+  return { h: hue, s: saturation, l: lightness }
 }
 
-// Check if color should be filtered out (whites, blacks, grays, very dark)
+// Check if color should be filtered out (backgrounds, desaturated colors)
 function shouldFilterColor(r: number, g: number, b: number): boolean {
-  // Filter near-whites (all channels > 240)
-  if (r > 240 && g > 240 && b > 240) return true
+  const hsl = rgbToHSL(r, g, b)
   
-  // Filter near-blacks (all channels < 15)
-  if (r < 15 && g < 15 && b < 15) return true
+  // Filter very light colors (pale backgrounds like #FFFEDD)
+  if (hsl.l > 0.90) return true
   
-  // Filter very dark colors (all channels < 40)
-  if (r < 40 && g < 40 && b < 40) return true
+  // Filter very dark colors (dark backgrounds like #03143A)
+  if (hsl.l < 0.15) return true
   
-  // Filter grays (low color range)
-  const max = Math.max(r, g, b)
-  const min = Math.min(r, g, b)
-  const range = max - min
-  if (range < 20) return true // Gray if colors are too similar
+  // Filter desaturated colors (grays, near-whites, near-blacks)
+  if (hsl.s < 0.15) return true
   
   return false
 }
@@ -103,9 +115,19 @@ export async function extractColorReport(file: File): Promise<ColorReport> {
     let opaqueCount = 0
     let minAlpha = 255
     let maxAlpha = 0
+    
+    // Define center region (60% of image) for weighted sampling
+    const centerMarginX = width * 0.2
+    const centerMarginY = height * 0.2
+    const centerMinX = centerMarginX
+    const centerMaxX = width - centerMarginX
+    const centerMinY = centerMarginY
+    const centerMaxY = height - centerMarginY
 
     for (let y = 0; y < height; y += stride) {
       for (let x = 0; x < width; x += stride) {
+        // Check if pixel is in center region (where artwork usually is)
+        const isInCenter = x >= centerMinX && x <= centerMaxX && y >= centerMinY && y <= centerMaxY
         const index = (y * width + x) * 4
         const alpha = data[index + 3]
 
@@ -131,13 +153,18 @@ export async function extractColorReport(file: File): Promise<ColorReport> {
         const g = data[index + 1]
         const b = data[index + 2]
         
-        // Filter out whites, blacks, grays, very dark colors
+        // Filter out backgrounds and desaturated colors
         if (shouldFilterColor(r, g, b)) {
           continue
         }
         
-        // Calculate saturation for this color
-        const saturation = calculateSaturation(r, g, b)
+        // Calculate HSL for this color
+        const hsl = rgbToHSL(r, g, b)
+        
+        // Additional filter: only keep colors with saturation > 30%
+        if (hsl.s < 0.30) {
+          continue
+        }
         
         const keyR = Math.round(r / BUCKET_SIZE) * BUCKET_SIZE
         const keyG = Math.round(g / BUCKET_SIZE) * BUCKET_SIZE
@@ -147,9 +174,11 @@ export async function extractColorReport(file: File): Promise<ColorReport> {
         bucket.r += r
         bucket.g += g
         bucket.b += b
-        bucket.count += 1
+        // Weight center pixels 3x more than edge pixels
+        const weight = isInCenter ? 3 : 1
+        bucket.count += weight
         // Track maximum saturation seen for this bucket
-        bucket.saturation = Math.max(bucket.saturation, saturation)
+        bucket.saturation = Math.max(bucket.saturation, hsl.s)
         buckets.set(key, bucket)
       }
     }
