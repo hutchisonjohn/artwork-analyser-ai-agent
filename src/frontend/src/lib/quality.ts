@@ -43,14 +43,22 @@ function dimensionsFromInches(widthInches: number, heightInches: number) {
 export function buildRecommendedSizesFromPixels(width: number, height: number) {
   return {
     at300dpi: dimensionsFromPixels(width, height, 300),
+    at250dpi: dimensionsFromPixels(width, height, 250),
+    at200dpi: dimensionsFromPixels(width, height, 200),
     at150dpi: dimensionsFromPixels(width, height, 150),
+    at100dpi: dimensionsFromPixels(width, height, 100),
+    at72dpi: dimensionsFromPixels(width, height, 72),
   }
 }
 
 export function buildRecommendedSizesFromPhysical(widthInches: number, heightInches: number) {
   return {
     at300dpi: dimensionsFromInches(widthInches, heightInches),
+    at250dpi: dimensionsFromInches(widthInches, heightInches),
+    at200dpi: dimensionsFromInches(widthInches, heightInches),
     at150dpi: dimensionsFromInches(widthInches, heightInches),
+    at100dpi: dimensionsFromInches(widthInches, heightInches),
+    at72dpi: dimensionsFromInches(widthInches, heightInches),
   }
 }
 

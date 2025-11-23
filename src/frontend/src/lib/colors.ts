@@ -20,8 +20,8 @@ export function createPaletteDownloads(report: ColorReport, quality?: QualityRep
         : 'N/A',
       rating: quality.rating || 'Unknown',
       recommendedSizes: quality.recommendedSizes ? {
-        at300dpi: `${quality.recommendedSizes.at300dpi.w_in.toFixed(2)}" × ${quality.recommendedSizes.at300dpi.h_in.toFixed(2)}" (${quality.recommendedSizes.at300dpi.w_cm.toFixed(2)} × ${quality.recommendedSizes.at300dpi.h_cm.toFixed(2)} cm)`,
-        at150dpi: `${quality.recommendedSizes.at150dpi.w_in.toFixed(2)}" × ${quality.recommendedSizes.at150dpi.h_in.toFixed(2)}" (${quality.recommendedSizes.at150dpi.w_cm.toFixed(2)} × ${quality.recommendedSizes.at150dpi.h_cm.toFixed(2)} cm)`,
+        at300dpi: `${quality.recommendedSizes.at300dpi.w_cm.toFixed(2)} × ${quality.recommendedSizes.at300dpi.h_cm.toFixed(2)} cm (${quality.recommendedSizes.at300dpi.w_in.toFixed(2)}" × ${quality.recommendedSizes.at300dpi.h_in.toFixed(2)}")`,
+        at150dpi: `${quality.recommendedSizes.at150dpi.w_cm.toFixed(2)} × ${quality.recommendedSizes.at150dpi.h_cm.toFixed(2)} cm (${quality.recommendedSizes.at150dpi.w_in.toFixed(2)}" × ${quality.recommendedSizes.at150dpi.h_in.toFixed(2)}")`,
       } : undefined,
       iccProfile: quality.hasICC ? (quality.iccProfile || 'Embedded') : 'Not embedded',
       alphaChannel: quality.alphaStats ? {
@@ -61,8 +61,8 @@ export function createPaletteDownloads(report: ColorReport, quality?: QualityRep
     if (quality.recommendedSizes) {
       csvRows.push('')
       csvRows.push('Recommended Print Sizes')
-      csvRows.push(`300 DPI,"${quality.recommendedSizes.at300dpi.w_in.toFixed(2)}"" × ${quality.recommendedSizes.at300dpi.h_in.toFixed(2)}"" (${quality.recommendedSizes.at300dpi.w_cm.toFixed(2)} × ${quality.recommendedSizes.at300dpi.h_cm.toFixed(2)} cm)"`)
-      csvRows.push(`150 DPI,"${quality.recommendedSizes.at150dpi.w_in.toFixed(2)}"" × ${quality.recommendedSizes.at150dpi.h_in.toFixed(2)}"" (${quality.recommendedSizes.at150dpi.w_cm.toFixed(2)} × ${quality.recommendedSizes.at150dpi.h_cm.toFixed(2)} cm)"`)
+      csvRows.push(`300 DPI,"${quality.recommendedSizes.at300dpi.w_cm.toFixed(2)} × ${quality.recommendedSizes.at300dpi.h_cm.toFixed(2)} cm (${quality.recommendedSizes.at300dpi.w_in.toFixed(2)}"" × ${quality.recommendedSizes.at300dpi.h_in.toFixed(2)}"")"`)
+      csvRows.push(`150 DPI,"${quality.recommendedSizes.at150dpi.w_cm.toFixed(2)} × ${quality.recommendedSizes.at150dpi.h_cm.toFixed(2)} cm (${quality.recommendedSizes.at150dpi.w_in.toFixed(2)}"" × ${quality.recommendedSizes.at150dpi.h_in.toFixed(2)}"")"`)
     }
     
     if (quality.alphaStats) {

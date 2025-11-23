@@ -1069,7 +1069,31 @@ function App() {
                               max={maxWidthCm}
                               step={0.1}
                               value={sliderWidth}
-                              onChange={(e) => setSliderWidth(parseFloat(e.target.value))}
+                              onChange={(e) => {
+                                const newWidth = parseFloat(e.target.value)
+                                setSliderWidth(newWidth)
+                                
+                                // Calculate values for this slider position
+                                const newHeightCm = newWidth / aspectRatio
+                                const newWidthIn = newWidth / 2.54
+                                const newHeightIn = newHeightCm / 2.54
+                                const newDPI = Math.round(pixelW / newWidthIn)
+                                let newQuality = 'Poor'
+                                if (newDPI >= 250) newQuality = 'Optimal'
+                                else if (newDPI >= 200) newQuality = 'Good'
+                                
+                                // Send slider update to agent (silent background update)
+                                if ((window as any).__artworkChatSliderUpdate) {
+                                  (window as any).__artworkChatSliderUpdate({
+                                    widthCm: Math.round(newWidth * 10) / 10,
+                                    heightCm: Math.round(newHeightCm * 10) / 10,
+                                    widthInches: Math.round(newWidthIn * 100) / 100,
+                                    heightInches: Math.round(newHeightIn * 100) / 100,
+                                    dpi: newDPI,
+                                    quality: newQuality
+                                  })
+                                }
+                              }}
                               className="absolute inset-0 w-full h-10 opacity-0 cursor-pointer"
                             />
                             {/* Slider control - white line with arrows */}
@@ -1167,21 +1191,19 @@ function App() {
                     <div className="flex justify-between text-slate-600">
                       <dt className="text-slate-500">DPI 300</dt>
                       <dd className="font-medium text-slate-700">
-                        {`${analysis.quality.recommendedSizes.at300dpi.w_in}" × ${analysis.quality.recommendedSizes.at300dpi.h_in}" (${analysis.quality.recommendedSizes.at300dpi.w_cm} × ${analysis.quality.recommendedSizes.at300dpi.h_cm} cm)`}
+                        {`${analysis.quality.recommendedSizes.at300dpi.w_cm} × ${analysis.quality.recommendedSizes.at300dpi.h_cm} cm (${analysis.quality.recommendedSizes.at300dpi.w_in}" × ${analysis.quality.recommendedSizes.at300dpi.h_in}")`}
                       </dd>
                     </div>
                     <div className="flex justify-between text-slate-600">
                       <dt className="text-slate-500">DPI 150</dt>
                       <dd className="font-medium text-slate-700">
-                        {`${analysis.quality.recommendedSizes.at150dpi.w_in}" × ${analysis.quality.recommendedSizes.at150dpi.h_in}" (${analysis.quality.recommendedSizes.at150dpi.w_cm} × ${analysis.quality.recommendedSizes.at150dpi.h_cm} cm)`}
+                        {`${analysis.quality.recommendedSizes.at150dpi.w_cm} × ${analysis.quality.recommendedSizes.at150dpi.h_cm} cm (${analysis.quality.recommendedSizes.at150dpi.w_in}" × ${analysis.quality.recommendedSizes.at150dpi.h_in}")`}
                       </dd>
                     </div>
                     <div className="flex justify-between text-slate-600">
                       <dt className="text-slate-500">DPI 72</dt>
                       <dd className="font-medium text-slate-700">
-                        {analysis.quality.pixels && analysis.quality.recommendedSizes
-                          ? `${((analysis.quality.pixels.w / 72)).toFixed(2)}" × ${((analysis.quality.pixels.h / 72)).toFixed(2)}" (${((analysis.quality.pixels.w / 72) * 2.54).toFixed(2)} × ${((analysis.quality.pixels.h / 72) * 2.54).toFixed(2)} cm)`
-                          : 'N/A'}
+                        {`${analysis.quality.recommendedSizes.at72dpi.w_cm} × ${analysis.quality.recommendedSizes.at72dpi.h_cm} cm (${analysis.quality.recommendedSizes.at72dpi.w_in}" × ${analysis.quality.recommendedSizes.at72dpi.h_in}")`}
                       </dd>
                     </div>
                   </dl>

@@ -27,7 +27,11 @@ export interface QualityReport {
   imageCategory: ImageCategory
   recommendedSizes: {
     at300dpi: { w_in: number; h_in: number; w_cm: number; h_cm: number }
+    at250dpi: { w_in: number; h_in: number; w_cm: number; h_cm: number }
+    at200dpi: { w_in: number; h_in: number; w_cm: number; h_cm: number }
     at150dpi: { w_in: number; h_in: number; w_cm: number; h_cm: number }
+    at100dpi: { w_in: number; h_in: number; w_cm: number; h_cm: number }
+    at72dpi: { w_in: number; h_in: number; w_cm: number; h_cm: number }
   }
   aspectRatio: string
   rating: QualityRating

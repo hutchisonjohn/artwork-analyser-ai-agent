@@ -17,9 +17,10 @@ interface ArtworkChatProps {
   aiName?: string
   greetingMessage?: string
   isOpen?: boolean // Track if chat is open to reset on close
+  onSliderUpdate?: (data: { widthCm: number; heightCm: number; widthInches: number; heightInches: number; dpi: number; quality: string }) => void
 }
 
-export default function ArtworkChat({ quality, colors, fileName, workerUrl, aiName = 'McCarthy AI Artwork Assistant', greetingMessage = "Hello! I'm McCarthy, your AI artwork assistant.\n\nI'm here to help you understand your artwork's print quality, DPI, colors, and file specifications.\n\nFeel free to ask me anything about your artwork!", isOpen = true }: ArtworkChatProps) {
+export default function ArtworkChat({ quality, colors, fileName, workerUrl, aiName = 'McCarthy AI Artwork Assistant', greetingMessage = "Hello! I'm McCarthy, your AI artwork assistant.\n\nI'm here to help you understand your artwork's print quality, DPI, colors, and file specifications.\n\nFeel free to ask me anything about your artwork!", isOpen = true, onSliderUpdate }: ArtworkChatProps) {
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState('')
   const [isLoading, setIsLoading] = useState(false)
@@ -243,6 +244,46 @@ export default function ArtworkChat({ quality, colors, fileName, workerUrl, aiNa
       setIsLoading(false)
     }
   }
+
+  // Send slider update silently to agent (no user message, just updates memory)
+  const sendSliderUpdate = async (sliderData: { widthCm: number; heightCm: number; widthInches: number; heightInches: number; dpi: number; quality: string }) => {
+    try {
+      // Generate or use existing session ID
+      const currentSessionId = sessionId || `artwork-session-${Date.now()}`
+      if (!sessionId) {
+        setSessionId(currentSessionId)
+      }
+
+      // Create slider update message (silent, no user message displayed)
+      const sliderMessage = `[Slider: ${JSON.stringify(sliderData)}]`
+
+      // Call Dartmouth OS V2 API with McCarthy Artwork Analyzer agent
+      await fetch(`${apiBase}/api/v2/chat`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          agentId: 'mccarthy-artwork',
+          message: sliderMessage,
+          sessionId: currentSessionId,
+          userId: 'artwork-user',
+        }),
+      })
+      
+      // Silent update - no response needed, no messages added
+    } catch (error) {
+      console.error('Slider update error:', error)
+      // Silent failure - don't show error to user
+    }
+  }
+
+  // Expose sendSliderUpdate to parent via callback
+  useEffect(() => {
+    if (onSliderUpdate) {
+      // This is a workaround to expose the function to parent
+      // In a real app, you'd use forwardRef and useImperativeHandle
+      (window as any).__artworkChatSliderUpdate = sendSliderUpdate
+    }
+  }, [sessionId, apiBase])
 
   const handleKeyDown = (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (event.key === 'Enter' && !event.shiftKey) {
