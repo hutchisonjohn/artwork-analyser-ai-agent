@@ -1,6 +1,6 @@
 # PROJECT STATUS: Artwork Analyser AI Agent
-**Last Updated:** 2025-11-22  
-**Status:** ✅ PRODUCTION - Fully Functional & Bug-Free
+**Last Updated:** 2025-11-23  
+**Status:** 🚨 **DEPLOYED WITH CRITICAL ISSUES** - FAM (BaseAgent) Architectural Problems
 
 ---
 
@@ -33,7 +33,53 @@ A specialized tool for DTF (Direct to Film) and UV DTF printing businesses to:
 - ✅ **Knowledge Base Loaded** - McCarthy agent has DTF requirements
 - ✅ **Chat Widget Working** - Connects to Dartmouth OS successfully
 
-### Recent Changes (2025-11-22) - CRITICAL FIXES
+### 🚨 CRITICAL ISSUES DISCOVERED (2025-11-23)
+
+**During user testing, we discovered fundamental architectural issues in FAM (BaseAgent) that affect this agent:**
+
+1. ❌ **Generic Greeting** - Uses FAM's generic greeting instead of McCarthy's personality
+   - Expected: "Hey! 👋 I'm McCarthy, your artwork assistant..."
+   - Actual: "Hello! Ready to help you out. What's on your mind?"
+   - **Root Cause:** FAM's `GreetingHandler` intercepts all greetings before specialized agent can apply personality
+
+2. ❌ **Incorrect Calculations** - Agent does its own math instead of using handlers/pre-calculated data
+   - User: "I need my artwork bigger at least 28.5 wide. What will be the size and dpi?"
+   - Agent calculates: "approximately 200 DPI" (WRONG - actual is 251 DPI from slider)
+   - **Root Cause:** `SizeCalculationHandler` pattern matching too rigid, LLM fallback ignores system prompt
+
+3. ❌ **Context Loss Mid-Conversation** - Agent loses conversation context
+   - User: "I need my artwork at 28.6 × 25.8 cm"
+   - Agent: "Hmm, I'm not quite sure what you're asking. Could you tell me more?"
+   - **Root Cause:** FallbackHandler doesn't check conversation history
+
+4. ❌ **Over-Explanation** - Agent provides walls of text despite "brief and conversational" instructions
+   - Lists all DPI options unprompted
+   - Doesn't adapt when user says "simple and brief answers"
+   - **Root Cause:** LLM ignores response length constraints in system prompt
+
+5. ❌ **Handler Pattern Matching** - Natural language doesn't trigger specialized handlers
+   - "I need my artwork bigger at least 28.5 wide" → doesn't match rigid regex patterns
+   - Falls through to LLM → LLM calculates (incorrectly)
+   - **Root Cause:** Handler patterns too specific, don't catch natural language variations
+
+**Impact:** Agent is deployed but provides incorrect information and poor UX  
+**Fix Required:** 4-6 hours to fix FAM (BaseAgent) architectural issues  
+**See:** `D:\coding\DARTMOUTH_OS_PROJECT\CRITICAL_FIXES_REQUIRED.md` for detailed fix plan
+
+**Status:** ⏸️ **PAUSED - Waiting for FAM fixes before resuming development**
+
+---
+
+### Recent Changes (2025-11-23) - DPI Expansion & Slider Integration
+- ✅ **ADDED:** Expanded pre-calculated DPI values (at300dpi, at250dpi, at200dpi, at150dpi, at100dpi, at72dpi)
+- ✅ **ADDED:** Interactive size calculator slider integration
+- ✅ **ADDED:** Slider updates sent to agent memory (`currentSliderPosition`)
+- ✅ **ADDED:** `SizeCalculationHandler` for reverse DPI calculations (size → DPI)
+- ✅ **UPDATED:** System prompt with explicit "NEVER CALCULATE" rules
+- ✅ **UPDATED:** TypeScript types to include all DPI values
+- ⚠️ **ISSUE:** Despite these fixes, agent still performs incorrect calculations (FAM issue)
+
+### Previous Changes (2025-11-22) - CRITICAL FIXES
 - ✅ **FIXED:** Agent data access - Now reads ALL artwork metadata from context (filename, bitDepth, ICC profile, etc.)
 - ✅ **FIXED:** Message input focus bug - Cursor stays in field after agent response (no more manual clicking)
 - ✅ **FIXED:** DPI quality ranges - Correct ranges: Optimal 250-300, Good 200-249, Poor <200
@@ -269,17 +315,36 @@ database_id = "f0c5a6a4-6fa7-4b1e-8a4e-b1aa3e8cfb38"
 
 ## 📋 NEXT STEPS
 
-### Immediate
-- ⏳ Test all knowledge base queries on production
-- ⏳ Verify artwork context is being used correctly
-- ⏳ Monitor for any errors
+### 🔴 IMMEDIATE (CRITICAL - 4-6 hours)
+1. **Fix FAM (BaseAgent) Architectural Issues** - BLOCKING ALL AGENTS
+   - Make GreetingHandler overridable (30 min)
+   - Improve FallbackHandler context awareness (1 hour)
+   - Add handler priority system (30 min)
+   - Create ArtworkGreetingHandler (45 min)
+   - Improve SizeCalculationHandler patterns (30 min)
+   - Add slider position awareness (30 min)
+   - Update system prompt (15 min)
+   - Test thoroughly (1 hour)
 
-### Future Enhancements
+2. **Re-test McCarthy Artwork Agent** - After FAM fixes
+   - Test greeting with/without artwork
+   - Test all size/DPI calculation variations
+   - Test slider integration
+   - Test conversation context retention
+   - Test response brevity
+
+3. **Deploy Fixed Version** - After testing passes
+   - Deploy Dartmouth OS worker
+   - Deploy frontend (if needed)
+   - Monitor production
+
+### Future Enhancements (After FAM Fixed)
 - Connect GitHub repo for auto-deployment
 - Add more artwork file formats (AI, EPS)
 - Add batch upload capability
 - Add print preview feature
 - Add export to print-ready format
+- Add voice input (optional)
 
 ---
 
@@ -291,8 +356,16 @@ database_id = "f0c5a6a4-6fa7-4b1e-8a4e-b1aa3e8cfb38"
 - ✅ Account migration (completed)
 - ✅ Knowledge base not loaded (completed)
 
-### Current Issues
-- None as of 2025-11-22 ✅
+### Current Issues (2025-11-23)
+- 🚨 **CRITICAL:** FAM (BaseAgent) architectural issues (see above)
+- 🚨 **CRITICAL:** Agent provides incorrect DPI calculations
+- 🚨 **CRITICAL:** Agent uses generic greeting instead of McCarthy personality
+- 🚨 **CRITICAL:** Agent loses conversation context
+- 🚨 **CRITICAL:** Agent over-explains despite instructions
+- 🚨 **CRITICAL:** Handler pattern matching too rigid
+
+**All issues are FAM-level, not specific to this agent**  
+**Fix in progress:** See `CRITICAL_FIXES_REQUIRED.md`
 
 ---
 

@@ -38,6 +38,34 @@ export default function ArtworkChat({ quality, colors, fileName, workerUrl, aiNa
     return base.replace(/\/$/, '')
   }, [workerUrl])
 
+  // Helper function to render message content with clickable links
+  const renderMessageContent = (content: string, role: 'user' | 'assistant') => {
+    // URL regex pattern
+    const urlPattern = /(https?:\/\/[^\s]+)/g
+    const parts = content.split(urlPattern)
+    
+    return parts.map((part, index) => {
+      if (part.match(urlPattern)) {
+        // This is a URL - render as clickable link
+        return (
+          <a
+            key={index}
+            href={part}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={`underline hover:opacity-80 ${
+              role === 'user' ? 'text-white' : 'text-indigo-600'
+            }`}
+          >
+            {part}
+          </a>
+        )
+      }
+      // Regular text
+      return <span key={index}>{part}</span>
+    })
+  }
+
   // Scroll chat messages to bottom (NOT the page, just the chat container)
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' })
@@ -337,7 +365,9 @@ export default function ArtworkChat({ quality, colors, fileName, workerUrl, aiNa
                     : 'bg-slate-100 text-slate-900'
                 }`}
               >
-                <p className="whitespace-pre-wrap text-sm">{message.content}</p>
+                <div className="whitespace-pre-wrap text-sm">
+                  {renderMessageContent(message.content, message.role)}
+                </div>
                 <p
                   className={`mt-1 text-xs ${
                     message.role === 'user' ? 'text-indigo-200' : 'text-slate-500'
