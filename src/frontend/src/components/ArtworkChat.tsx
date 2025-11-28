@@ -365,7 +365,7 @@ export default function ArtworkChat({ quality, colors, fileName, workerUrl, aiNa
                     : 'bg-slate-100 text-slate-900'
                 }`}
               >
-                <div className="whitespace-pre-wrap text-sm">
+                <div className="whitespace-pre-wrap text-sm break-words">
                   {renderMessageContent(message.content, message.role)}
                 </div>
                 <p
